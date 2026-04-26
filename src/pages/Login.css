@@ -1,0 +1,136 @@
+/* ============================================================
+   Login.css — Be: Confident
+   Extra styles for the Login page (Remember me, Forgot password,
+   loading spinner, inline error / info messages).
+   Import this AFTER Auth.css in Login.jsx.
+   ============================================================ */
+
+/* Row with Remember me + Forgot password */
+.auth-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 12px 0 6px;
+  flex-wrap: wrap;
+}
+
+/* Custom checkbox */
+.auth-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: rgba(244, 244, 249, 0.75);
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+}
+.auth-checkbox input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+.auth-checkbox-box {
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  border: 1.5px solid rgba(196, 181, 232, 0.35);
+  background: rgba(244, 244, 249, 0.04);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  position: relative;
+  flex-shrink: 0;
+}
+.auth-checkbox input:checked + .auth-checkbox-box {
+  background: #84A07C;
+  border-color: #84A07C;
+  transform: scale(1.05);
+}
+.auth-checkbox input:checked + .auth-checkbox-box::after {
+  content: "";
+  width: 5px;
+  height: 9px;
+  border-right: 2px solid #0F0326;
+  border-bottom: 2px solid #0F0326;
+  transform: rotate(45deg) translate(-1px, -1px);
+  animation: check-pop 0.25s ease;
+}
+@keyframes check-pop {
+  0%   { transform: rotate(45deg) scale(0.3) translate(-1px, -1px); opacity: 0; }
+  100% { transform: rotate(45deg) scale(1)   translate(-1px, -1px); opacity: 1; }
+}
+
+/* Forgot password link button */
+.link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.82rem;
+  color: #C4B5E8;
+  cursor: pointer;
+  letter-spacing: -0.005em;
+  transition: color 0.2s ease, opacity 0.2s ease;
+  font-family: inherit;
+}
+.link-btn:hover:not(:disabled) {
+  color: #ddd0f5;
+  text-decoration: underline;
+}
+.link-btn:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+/* Inline error / info messages */
+.auth-error-inline {
+  color: #ff7a7a;
+  font-size: 0.82rem;
+  margin: 10px 0 0;
+  text-align: left;
+  line-height: 1.4;
+}
+.auth-info-inline {
+  color: #84A07C;
+  font-size: 0.82rem;
+  margin: 10px 0 0;
+  text-align: left;
+  line-height: 1.4;
+}
+.shake { animation: auth-shake 0.35s ease; }
+@keyframes auth-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+
+/* Loading spinner inside button */
+.btn-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.spin { animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.auth-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: grayscale(0.15);
+  transform: none;
+}
+
+/* Responsive: stack the row on tiny screens */
+@media (max-width: 480px) {
+  .auth-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}

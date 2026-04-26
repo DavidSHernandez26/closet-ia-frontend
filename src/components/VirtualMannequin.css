@@ -1,0 +1,149 @@
+.mannequin-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 8px 0;
+}
+
+.mannequin-container {
+  position: relative;
+  width: 180px;
+  height: 360px;
+  flex-shrink: 0;
+}
+
+.mannequin-silhouette {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.mannequin-layers {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.mannequin-prenda {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 88%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.prenda-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.mannequin-prenda:hover .prenda-img {
+  transform: scale(1.05);
+  filter: drop-shadow(0 8px 20px rgba(196,181,232,0.3));
+}
+
+.prenda-label {
+  font-size: 0.68rem;
+  color: rgba(196, 181, 232, 0.7);
+  background: rgba(15, 3, 38, 0.8);
+  border-radius: 5px;
+  padding: 2px 6px;
+  margin-top: 2px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+  position: absolute;
+  bottom: -18px;
+}
+
+.mannequin-prenda:hover .prenda-label { opacity: 1; }
+
+/* ── LISTA ── */
+.outfit-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  width: 100%;
+}
+
+.outfit-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(196, 181, 232, 0.06);
+  border: 1px solid rgba(196, 181, 232, 0.1);
+  border-radius: 12px;
+  padding: 7px 11px;
+  transition: all 0.25s ease;
+  cursor: default;
+}
+
+.outfit-chip:hover {
+  background: rgba(196, 181, 232, 0.11);
+  border-color: rgba(196, 181, 232, 0.2);
+  transform: translateX(3px);
+}
+
+.outfit-chip img {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: rgba(15, 3, 38, 0.5);
+  flex-shrink: 0;
+}
+
+.chip-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chip-nombre {
+  font-size: 0.82rem;
+  color: rgba(244, 244, 249, 0.8);
+  line-height: 1.2;
+}
+
+.chip-tipo {
+  font-size: 0.72rem;
+  color: rgba(196, 181, 232, 0.5);
+  text-transform: capitalize;
+}
+
+/* MODO CLARO */
+body.light-mode .mannequin-silhouette ellipse,
+body.light-mode .mannequin-silhouette path,
+body.light-mode .mannequin-silhouette rect {
+  fill: rgba(15, 3, 38, 0.04) !important;
+  stroke: rgba(15, 3, 38, 0.15) !important;
+}
+
+body.light-mode .prenda-label {
+  color: rgba(15, 3, 38, 0.7);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+body.light-mode .outfit-chip {
+  background: rgba(15, 3, 38, 0.06);
+  border-color: rgba(15, 3, 38, 0.1);
+}
+
+body.light-mode .outfit-chip:hover {
+  background: rgba(15, 3, 38, 0.1);
+  border-color: rgba(15, 3, 38, 0.2);
+}
+
+body.light-mode .outfit-chip img { background: rgba(255, 255, 255, 0.5); }
+body.light-mode .chip-nombre { color: rgba(15, 3, 38, 0.8); }
+body.light-mode .chip-tipo { color: rgba(15, 3, 38, 0.45); }

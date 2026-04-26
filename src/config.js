@@ -1,0 +1,1 @@
+export const API_URL = "https://closet-ia-backend-production-d8da.up.railway.app";
