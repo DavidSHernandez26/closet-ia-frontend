@@ -36,16 +36,12 @@
   position: relative;
 }
 
-/* Línea de acento superior */
 .asistente-card::before {
   content: "";
   position: absolute;
   top: 0; left: 10%; right: 10%;
   height: 1px;
-  background: linear-gradient(90deg,
-    transparent,
-    rgba(196,181,232,0.5),
-    transparent);
+  background: linear-gradient(90deg, transparent, rgba(196,181,232,0.5), transparent);
   pointer-events: none;
 }
 
@@ -212,15 +208,9 @@
   margin-bottom: 4px;
 }
 
-.chat-message-row.user {
-  flex-direction: row-reverse;
-}
+.chat-message-row.user { flex-direction: row-reverse; }
+.chat-message-row.assistant { flex-direction: row; }
 
-.chat-message-row.assistant {
-  flex-direction: row;
-}
-
-/* Avatar del mensaje */
 .chat-msg-avatar {
   width: 30px;
   height: 30px;
@@ -244,7 +234,6 @@
   border: 1px solid rgba(196, 181, 232, 0.15);
 }
 
-/* Contenido del mensaje */
 .chat-msg-content {
   display: flex;
   flex-direction: column;
@@ -252,9 +241,7 @@
   max-width: 75%;
 }
 
-.chat-message-row.user .chat-msg-content {
-  align-items: flex-end;
-}
+.chat-message-row.user .chat-msg-content { align-items: flex-end; }
 
 .chat-msg-sender {
   font-size: 0.7rem;
@@ -264,13 +251,8 @@
   padding: 0 4px;
 }
 
-.chat-message-row.assistant .chat-msg-sender {
-  color: rgba(196, 181, 232, 0.5);
-}
-
-.chat-message-row.user .chat-msg-sender {
-  color: rgba(244, 244, 249, 0.35);
-}
+.chat-message-row.assistant .chat-msg-sender { color: rgba(196, 181, 232, 0.5); }
+.chat-message-row.user .chat-msg-sender { color: rgba(244, 244, 249, 0.35); }
 
 /* ── BURBUJAS ── */
 .chat-bubble {
@@ -287,9 +269,7 @@
   color: rgba(244, 244, 249, 0.92);
   border: 1px solid rgba(196, 181, 232, 0.2);
   border-bottom-right-radius: 5px;
-  box-shadow:
-    0 2px 8px rgba(0,0,0,0.15),
-    inset 0 1px 0 rgba(196,181,232,0.12);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15), inset 0 1px 0 rgba(196,181,232,0.12);
 }
 
 .chat-bubble.assistant {
@@ -297,9 +277,7 @@
   color: rgba(244, 244, 249, 0.88);
   border: 1px solid rgba(196, 181, 232, 0.08);
   border-bottom-left-radius: 5px;
-  box-shadow:
-    0 2px 8px rgba(0,0,0,0.2),
-    inset 0 1px 0 rgba(255,255,255,0.03);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.03);
 }
 
 /* ── LOADER ── */
@@ -350,9 +328,7 @@
 .asistente-form-inner:focus-within {
   border-color: rgba(196, 181, 232, 0.3);
   background: rgba(255, 255, 255, 0.06);
-  box-shadow:
-    0 0 0 3px rgba(196,181,232,0.08),
-    inset 0 1px 0 rgba(196,181,232,0.05);
+  box-shadow: 0 0 0 3px rgba(196,181,232,0.08), inset 0 1px 0 rgba(196,181,232,0.05);
 }
 
 .asistente-form textarea {
@@ -371,9 +347,7 @@
   overflow-y: auto;
 }
 
-.asistente-form textarea::placeholder {
-  color: rgba(244, 244, 249, 0.25);
-}
+.asistente-form textarea::placeholder { color: rgba(244, 244, 249, 0.25); }
 
 .asistente-form textarea::-webkit-scrollbar { width: 3px; }
 .asistente-form textarea::-webkit-scrollbar-thumb {
@@ -404,17 +378,10 @@
   background: rgba(196, 181, 232, 0.25);
   border-color: rgba(196, 181, 232, 0.4);
   transform: scale(1.05);
-  box-shadow: 0 4px 16px rgba(196,181,232,0.2), inset 0 1px 0 rgba(196,181,232,0.15);
 }
 
-.btn-recomendar:active:not(:disabled) {
-  transform: scale(0.96);
-}
-
-.btn-recomendar:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
+.btn-recomendar:active:not(:disabled) { transform: scale(0.96); }
+.btn-recomendar:disabled { opacity: 0.35; cursor: not-allowed; }
 
 .btn-send-icon {
   width: 16px;
@@ -448,7 +415,7 @@
   color: rgba(255, 107, 107, 0.8);
 }
 
-/* ── OUTFIT PANEL ── */
+/* ── OUTFIT PANEL desktop ── */
 .outfit-panel {
   background: rgba(12, 4, 28, 0.65);
   backdrop-filter: blur(28px) saturate(180%);
@@ -470,10 +437,7 @@
   position: absolute;
   top: 0; left: 10%; right: 10%;
   height: 1px;
-  background: linear-gradient(90deg,
-    transparent,
-    rgba(196,181,232,0.4),
-    transparent);
+  background: linear-gradient(90deg, transparent, rgba(196,181,232,0.4), transparent);
   pointer-events: none;
 }
 
@@ -669,10 +633,7 @@
   font-family: inherit;
 }
 
-.cal-picker-close:hover {
-  background: rgba(255, 80, 80, 0.2);
-  color: #ff6b6b;
-}
+.cal-picker-close:hover { background: rgba(255, 80, 80, 0.2); color: #ff6b6b; }
 
 .cal-picker-input {
   width: 100%;
@@ -715,6 +676,62 @@
   transform: translateY(-1px);
 }
 
+/* ── CHIPS DE OCASIÓN ── */
+.ocasion-chips-wrap {
+  display: flex;
+  gap: 6px;
+  padding: 10px 16px 6px;
+  overflow-x: auto;
+  flex-shrink: 0;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.ocasion-chips-wrap::-webkit-scrollbar { display: none; }
+
+.ocasion-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(244, 244, 249, 0.45);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: inherit;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ocasion-chip:hover:not(:disabled) {
+  background: rgba(196, 181, 232, 0.1);
+  border-color: rgba(196, 181, 232, 0.2);
+  color: rgba(244, 244, 249, 0.75);
+  transform: translateY(-1px);
+}
+
+.ocasion-chip.activa {
+  background: rgba(196, 181, 232, 0.15);
+  border-color: rgba(196, 181, 232, 0.3);
+  color: #C4B5E8;
+  box-shadow:
+    0 0 0 1px rgba(196,181,232,0.1),
+    0 4px 12px rgba(196,181,232,0.1),
+    inset 0 1px 0 rgba(196,181,232,0.1);
+}
+
+.ocasion-chip:disabled { opacity: 0.4; cursor: not-allowed; }
+.ocasion-chip-icon { font-size: 0.9rem; line-height: 1; }
+
+/* ── BOTTOM SHEET — oculto en desktop ── */
+.outfit-sheet-backdrop { display: none; }
+.outfit-sheet { display: none; }
+
 /* ── ANIMACIONES ── */
 @keyframes messageIn {
   from { opacity: 0; transform: translateY(8px) scale(0.98); }
@@ -731,7 +748,9 @@
   to   { opacity: 1; transform: scale(1); }
 }
 
-/* ── MODO CLARO ── */
+/* ══════════════════════════════════════
+   🌿 MODO CLARO
+══════════════════════════════════════ */
 body.light-mode .asistente-fondo { background: var(--green); }
 
 body.light-mode .asistente-card {
@@ -822,7 +841,10 @@ body.light-mode .outfit-panel {
 }
 
 body.light-mode .outfit-panel h3 { color: rgba(15, 3, 38, 0.6) !important; }
-body.light-mode .outfit-placeholder { color: rgba(15, 3, 38, 0.35) !important; border-color: rgba(15, 3, 38, 0.08) !important; }
+body.light-mode .outfit-placeholder {
+  color: rgba(15, 3, 38, 0.35) !important;
+  border-color: rgba(15, 3, 38, 0.08) !important;
+}
 
 body.light-mode .btn-add-cal {
   background: rgba(15, 3, 38, 0.05) !important;
@@ -832,70 +854,6 @@ body.light-mode .btn-add-cal {
 
 body.light-mode .cal-confirmado { color: #4a7a42 !important; }
 
-/* ── RESPONSIVE ── */
-@media (max-width: 900px) {
-  .asistente-fondo { padding: 1rem; align-items: flex-start; }
-  .asistente-layout { grid-template-columns: 1fr; gap: 16px; }
-  .outfit-panel { order: -1; }
-  .asistente-card { height: 72vh; }
-  .chat-msg-content { max-width: 85%; }
-  .chat-placeholder-hints { max-width: 100%; }
-}
-
-/* ── CHIPS DE OCASIÓN ── */
-.ocasion-chips-wrap {
-  display: flex;
-  gap: 6px;
-  padding: 10px 16px 6px;
-  overflow-x: auto;
-  flex-shrink: 0;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.ocasion-chips-wrap::-webkit-scrollbar { display: none; }
-
-.ocasion-chip {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 6px 12px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: rgba(244, 244, 249, 0.45);
-  font-size: 0.78rem;
-  font-weight: 500;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  font-family: inherit;
-  flex-shrink: 0;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.ocasion-chip:hover:not(:disabled) {
-  background: rgba(196, 181, 232, 0.1);
-  border-color: rgba(196, 181, 232, 0.2);
-  color: rgba(244, 244, 249, 0.75);
-  transform: translateY(-1px);
-}
-
-.ocasion-chip.activa {
-  background: rgba(196, 181, 232, 0.15);
-  border-color: rgba(196, 181, 232, 0.3);
-  color: #C4B5E8;
-  box-shadow:
-    0 0 0 1px rgba(196,181,232,0.1),
-    0 4px 12px rgba(196,181,232,0.1),
-    inset 0 1px 0 rgba(196,181,232,0.1);
-}
-
-.ocasion-chip:disabled { opacity: 0.4; cursor: not-allowed; }
-
-.ocasion-chip-icon { font-size: 0.9rem; line-height: 1; }
-
-/* MODO CLARO */
 body.light-mode .ocasion-chip {
   background: rgba(15, 3, 38, 0.05) !important;
   border-color: rgba(15, 3, 38, 0.1) !important;
@@ -911,4 +869,290 @@ body.light-mode .ocasion-chip.activa {
   background: rgba(15, 3, 38, 0.12) !important;
   border-color: rgba(15, 3, 38, 0.2) !important;
   color: #0F0326 !important;
+}
+
+/* ══════════════════════════════════════
+   📱 MÓVIL — comportamiento app nativa
+══════════════════════════════════════ */
+@media (max-width: 900px) {
+
+  /* Evitar zoom de iOS al tocar el textarea */
+.asistente-form textarea {
+  font-size: 16px !important;
+}
+  /* ── Asistente ocupa viewport completo menos navbar y sheet ── */
+  .asistente-fondo {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    /* 58px navbar + env safe area + 72px para sheet asomado ── */
+    bottom: calc(58px + env(safe-area-inset-bottom) + 72px) !important;
+    padding: 8px 10px 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    align-items: stretch !important;
+    min-height: unset !important;
+    background: var(--purple) !important;
+  }
+
+  body.light-mode .asistente-fondo {
+    background: var(--green) !important;
+  }
+
+  /* Cuando no hay outfit, usar todo el espacio */
+  .asistente-fondo.sin-outfit {
+    bottom: calc(58px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .asistente-layout {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 !important;
+    overflow: hidden !important;
+    gap: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .asistente-card {
+    flex: 1 !important;
+    height: unset !important;
+    max-width: 100% !important;
+    border-radius: 18px 18px 0 0 !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* ── Solo el chat scrollea con el dedo ── */
+  .chat-box {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    overscroll-behavior-y: contain !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-y !important;
+    padding: 16px !important;
+  }
+
+  /* ── Chips scrollean horizontal ── */
+  .ocasion-chips-wrap {
+    flex-shrink: 0 !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    touch-action: pan-x !important;
+    padding: 8px 12px 6px !important;
+  }
+
+  /* ── Input SIEMPRE visible y accesible ── */
+  .asistente-form {
+    flex-shrink: 0 !important;
+    padding: 10px 12px 12px !important;
+    position: relative !important;
+    z-index: 10 !important;
+    background: rgba(12, 4, 28, 0.98) !important;
+    border-top: 1px solid rgba(196,181,232,0.08) !important;
+  }
+
+  body.light-mode .asistente-form {
+    background: rgba(255, 255, 255, 0.98) !important;
+  }
+
+  /* ── Ocultar panel desktop ── */
+  .outfit-panel { display: none !important; }
+
+  .chat-msg-content { max-width: 88% !important; }
+  .chat-bubble { font-size: 0.88rem !important; }
+  .chat-placeholder-hints { max-width: 100%; }
+
+  /* ══════════════════════════════════════
+     📱 BOTTOM SHEET
+  ══════════════════════════════════════ */
+
+  /* ── Backdrop ── */
+  .outfit-sheet-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    bottom: calc(58px + env(safe-area-inset-bottom));
+    background: rgba(10, 2, 26, 0.5);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 150;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .outfit-sheet-backdrop.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  /* ── Sheet ── */
+  .outfit-sheet {
+    display: block;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(58px + env(safe-area-inset-bottom));
+    z-index: 160;
+    background: rgba(14, 4, 34, 0.98);
+    border: 1px solid rgba(196, 181, 232, 0.12);
+    border-bottom: none;
+    border-radius: 22px 22px 0 0;
+    box-shadow: 0 -8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(196,181,232,0.08);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    /* Empieza oculto ── */
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+    overflow: hidden;
+    /* Máximo media pantalla ── */
+    max-height: 50dvh;
+  }
+
+  /* Asoma 72px — nunca tapa el input ── */
+  .outfit-sheet.has-outfit {
+    transform: translateY(calc(100% - 72px));
+  }
+
+  /* Expandido — media pantalla ── */
+  .outfit-sheet.expanded {
+    transform: translateY(0);
+  }
+
+  /* ── Handle ── */
+  .outfit-sheet-handle-wrap {
+    padding: 8px 16px 10px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    flex-shrink: 0;
+  }
+
+  .outfit-sheet-handle {
+    width: 36px;
+    height: 4px;
+    background: rgba(196, 181, 232, 0.3);
+    border-radius: 2px;
+    margin: 0 auto 10px;
+  }
+
+  .outfit-sheet-preview-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .outfit-sheet-thumbs { display: flex; }
+
+  .outfit-sheet-thumb {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    object-fit: cover;
+    border: 2px solid rgba(14, 4, 34, 0.9);
+    margin-left: -8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  }
+
+  .outfit-sheet-thumb:first-child { margin-left: 0; }
+
+  .outfit-sheet-info { flex: 1; min-width: 0; }
+
+  .outfit-sheet-title {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: rgba(244, 244, 249, 0.9);
+    margin: 0 0 2px;
+  }
+
+  .outfit-sheet-sub {
+    font-size: 0.74rem;
+    color: rgba(244, 244, 249, 0.4);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .outfit-sheet-arrow {
+    font-size: 1rem;
+    color: rgba(196, 181, 232, 0.6);
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+    font-weight: 600;
+  }
+
+  .outfit-sheet.expanded .outfit-sheet-arrow {
+    transform: rotate(180deg);
+  }
+
+  /* ── Contenido scrolleable ── */
+  .outfit-sheet-content {
+    padding: 0 16px 16px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    scrollbar-width: none;
+    max-height: calc(50dvh - 72px);
+  }
+
+  .outfit-sheet-content::-webkit-scrollbar { display: none; }
+
+  /* ── Grid prendas ── */
+  .outfit-sheet-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
+  .outfit-sheet-card {
+    background: rgba(196, 181, 232, 0.06);
+    border: 1px solid rgba(196, 181, 232, 0.1);
+    border-radius: 12px;
+    overflow: hidden;
+    text-align: center;
+  }
+
+  .outfit-sheet-card img {
+    width: 100%;
+    height: 85px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .outfit-sheet-card p {
+    font-size: 0.68rem;
+    color: rgba(244, 244, 249, 0.55);
+    padding: 5px 4px;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .outfit-sheet-content .outfit-guardado-preview img {
+    max-height: 180px;
+    border-radius: 12px;
+  }
+
+  /* ── Modo claro sheet ── */
+  body.light-mode .outfit-sheet {
+    background: rgba(255, 255, 255, 0.98) !important;
+    border-color: rgba(15, 3, 38, 0.1) !important;
+  }
+
+  body.light-mode .outfit-sheet-handle { background: rgba(15, 3, 38, 0.18) !important; }
+  body.light-mode .outfit-sheet-title { color: #0F0326 !important; }
+  body.light-mode .outfit-sheet-sub { color: rgba(15, 3, 38, 0.4) !important; }
+  body.light-mode .outfit-sheet-arrow { color: rgba(15, 3, 38, 0.4) !important; }
+  body.light-mode .outfit-sheet-card { background: rgba(15,3,38,0.04) !important; border-color: rgba(15,3,38,0.08) !important; }
+  body.light-mode .outfit-sheet-card p { color: rgba(15,3,38,0.55) !important; }
 }

@@ -12,6 +12,7 @@ export default function Asistente({ usuarioId }) {
   const STORAGE_CALENDARIO      = `calendario_outfits_${usuarioId}`;
 
   const [mensaje, setMensaje] = useState("");
+  const [showOutfitSheet, setShowOutfitSheet] = useState(false);
 
   const [chat, setChat] = useState(() => {
     try { return JSON.parse(localStorage.getItem(STORAGE_CHAT)) || []; }
@@ -60,14 +61,21 @@ export default function Asistente({ usuarioId }) {
     }
   }, [mensaje]);
 
+  /* ── Auto abrir sheet cuando hay outfit nuevo ── */
+  useEffect(() => {
+    if (outfit.length > 0 || outfitGuardado) {
+      setShowOutfitSheet(false); // asoma pero no expande
+    }
+  }, [outfit, outfitGuardado]);
+
   /* ── Ocasiones ── */
   const ocasiones = [
-    { id: "casual",    icon: "👟", label: "Casual",    prompt: "Arma un outfit casual y cómodo para el día a día" },
-    { id: "trabajo",   icon: "💼", label: "Trabajo",   prompt: "Necesito un outfit profesional para ir a trabajar u oficina" },
-    { id: "cita",      icon: "🌙", label: "Cita",      prompt: "Arma un outfit para una cita romántica, que se vea cuidado y atractivo" },
-    { id: "deporte",   icon: "⚡", label: "Deporte",   prompt: "Quiero un look deportivo o activo para hacer ejercicio o salir a caminar" },
-    { id: "salida",    icon: "🎉", label: "Salida",    prompt: "Arma un outfit para salir de noche con amigos, que se vea moderno y divertido" },
-    { id: "viaje",     icon: "✈️", label: "Viaje",     prompt: "Necesito un outfit cómodo pero estiloso para viajar" },
+    { id: "casual",  icon: "👟", label: "Casual",  prompt: "Arma un outfit casual y cómodo para el día a día" },
+    { id: "trabajo", icon: "💼", label: "Trabajo", prompt: "Necesito un outfit profesional para ir a trabajar u oficina" },
+    { id: "cita",    icon: "🌙", label: "Cita",    prompt: "Arma un outfit para una cita romántica, que se vea cuidado y atractivo" },
+    { id: "deporte", icon: "⚡", label: "Deporte", prompt: "Quiero un look deportivo o activo para hacer ejercicio o salir a caminar" },
+    { id: "salida",  icon: "🎉", label: "Salida",  prompt: "Arma un outfit para salir de noche con amigos, que se vea moderno y divertido" },
+    { id: "viaje",   icon: "✈️", label: "Viaje",   prompt: "Necesito un outfit cómodo pero estiloso para viajar" },
   ];
 
   function handleOcasion(ocas) {
@@ -145,6 +153,7 @@ export default function Asistente({ usuarioId }) {
     setCalConfirmado(false);
     setOcasionActiva(null);
     setMensaje("");
+    setShowOutfitSheet(false);
     localStorage.removeItem(STORAGE_CHAT);
     localStorage.removeItem(STORAGE_OUTFIT);
     localStorage.removeItem(STORAGE_OUTFIT_IDS);
@@ -194,141 +203,243 @@ export default function Asistente({ usuarioId }) {
   ];
 
   return (
-    <div className="asistente-fondo">
-      <div className="asistente-layout">
+    <>
+      <div className="asistente-fondo">
+        <div className="asistente-layout">
 
-        {/* ── CHAT ── */}
-        <div className="asistente-card">
+          {/* ── CHAT ── */}
+          <div className="asistente-card">
 
-          {/* Header */}
-          <div className="asistente-header">
-            <div className="asistente-header-left">
-              <div className="asistente-avatar">✦</div>
-              <div className="asistente-header-info">
-                <h1>Asistente de Moda</h1>
-                <p>
-                  <span className="asistente-status-dot" />
-                  Activo · Closet IA
-                </p>
+            {/* Header */}
+            <div className="asistente-header">
+              <div className="asistente-header-left">
+                <div className="asistente-avatar">✦</div>
+                <div className="asistente-header-info">
+                  <h1>Asistente de Moda</h1>
+                  <p>
+                    <span className="asistente-status-dot" />
+                    Activo · Closet IA
+                  </p>
+                </div>
+              </div>
+              {chat.length > 0 && (
+                <button className="btn-clear-chat" onClick={handleClearChat}>
+                  🗑 Limpiar
+                </button>
+              )}
+            </div>
+
+            {/* Mensajes */}
+            <div className="chat-box">
+              {chat.length === 0 ? (
+                <div className="chat-placeholder">
+                  <div className="chat-placeholder-icon">✦</div>
+                  <p className="chat-placeholder-title">Tu estilista personal con IA</p>
+                  <div className="chat-placeholder-hints">
+                    {hints.map((h, i) => (
+                      <button key={i} className="chat-hint" onClick={() => handleHint(h)}>
+                        <span>"{h}"</span>
+                        <span className="chat-hint-arrow">→</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                chat.map((msg, i) => (
+                  <div key={i} className={`chat-message-row ${msg.role}`}>
+                    <div className={`chat-msg-avatar ${msg.role}`}>
+                      {msg.role === "assistant" ? "✦" : "👤"}
+                    </div>
+                    <div className="chat-msg-content">
+                      <span className="chat-msg-sender">
+                        {msg.role === "assistant" ? "Asistente" : "Tú"}
+                      </span>
+                      <div className={`chat-bubble ${msg.role}`}>
+                        {msg.text}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+
+              {loading && (
+                <div className="chat-message-row assistant">
+                  <div className="chat-msg-avatar assistant">✦</div>
+                  <div className="chat-msg-content">
+                    <span className="chat-msg-sender">Asistente</span>
+                    <div className="chat-bubble assistant">
+                      <div className="chat-loader">
+                        <span className="dot" />
+                        <span className="dot" />
+                        <span className="dot" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div ref={chatEndRef} />
+            </div>
+
+            {/* ── CHIPS DE OCASIÓN ── */}
+            <div className="ocasion-chips-wrap">
+              {ocasiones.map((o) => (
+                <button
+                  key={o.id}
+                  className={`ocasion-chip ${ocasionActiva?.id === o.id ? "activa" : ""}`}
+                  onClick={() => handleOcasion(o)}
+                  disabled={loading}
+                >
+                  <span className="ocasion-chip-icon">{o.icon}</span>
+                  <span>{o.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Input */}
+            <div className="asistente-form">
+              <div className="asistente-form-inner">
+                <textarea
+                  ref={textareaRef}
+                  placeholder={
+                    ocasionActiva
+                      ? `Outfit para ${ocasionActiva.label.toLowerCase()}... (personaliza si quieres)`
+                      : "Escribe tu pregunta... (Enter para enviar)"
+                  }
+                  value={mensaje}
+                  onChange={(e) => {
+                    setMensaje(e.target.value);
+                    if (ocasionActiva && e.target.value !== ocasionActiva.prompt) {
+                      setOcasionActiva(null);
+                    }
+                  }}
+                  onKeyDown={handleKeyDown}
+                  disabled={loading}
+                  rows={1}
+                />
+                <button
+                  onClick={handleRecommend}
+                  className="btn-recomendar"
+                  disabled={loading || !mensaje.trim()}
+                  title="Enviar"
+                >
+                  <svg className="btn-send-icon" viewBox="0 0 24 24">
+                    <path d="M22 2L11 13" />
+                    <path d="M22 2L15 22L11 13L2 9L22 2Z" />
+                  </svg>
+                </button>
               </div>
             </div>
-            {chat.length > 0 && (
-              <button className="btn-clear-chat" onClick={handleClearChat}>
-                🗑 Limpiar
-              </button>
-            )}
           </div>
 
-          {/* Mensajes */}
-          <div className="chat-box">
-            {chat.length === 0 ? (
-              <div className="chat-placeholder">
-                <div className="chat-placeholder-icon">✦</div>
-                <p className="chat-placeholder-title">Tu estilista personal con IA</p>
-                <div className="chat-placeholder-hints">
-                  {hints.map((h, i) => (
-                    <button key={i} className="chat-hint" onClick={() => handleHint(h)}>
-                      <span>"{h}"</span>
-                      <span className="chat-hint-arrow">→</span>
-                    </button>
-                  ))}
-                </div>
+          {/* ── PANEL OUTFIT desktop ── */}
+          <div className="outfit-panel">
+            <div className="outfit-panel-header">
+              <div className="outfit-panel-icon">👔</div>
+              <h3>Outfit sugerido</h3>
+            </div>
+
+            {outfitGuardado ? (
+              <div className="outfit-guardado-preview">
+                <img src={outfitGuardado.imagen_url} alt={outfitGuardado.descripcion} />
+                <p>{outfitGuardado.descripcion}</p>
+                {outfitGuardado.metadata_ia?.prendas?.length > 0 && (
+                  <div className="outfit-guardado-prendas">
+                    {outfitGuardado.metadata_ia.prendas.map((pr, i) => (
+                      <span key={i} className="outfit-guardado-chip">
+                        {pr.nombre} ({pr.color})
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : outfit.length === 0 ? (
+              <div className="outfit-placeholder">
+                <span className="outfit-placeholder-icon">✦</span>
+                <p>Las prendas recomendadas aparecerán aquí</p>
               </div>
             ) : (
-              chat.map((msg, i) => (
-                <div key={i} className={`chat-message-row ${msg.role}`}>
-                  <div className={`chat-msg-avatar ${msg.role}`}>
-                    {msg.role === "assistant" ? "✦" : "👤"}
-                  </div>
-                  <div className="chat-msg-content">
-                    <span className="chat-msg-sender">
-                      {msg.role === "assistant" ? "Asistente" : "Tú"}
-                    </span>
-                    <div className={`chat-bubble ${msg.role}`}>
-                      {msg.text}
-                    </div>
-                  </div>
-                </div>
-              ))
+              <VirtualMannequin outfit={outfit} />
             )}
 
-            {loading && (
-              <div className="chat-message-row assistant">
-                <div className="chat-msg-avatar assistant">✦</div>
-                <div className="chat-msg-content">
-                  <span className="chat-msg-sender">Asistente</span>
-                  <div className="chat-bubble assistant">
-                    <div className="chat-loader">
-                      <span className="dot" />
-                      <span className="dot" />
-                      <span className="dot" />
-                    </div>
-                  </div>
-                </div>
+            {tieneOutfit && !loading && (
+              <div className="cal-actions">
+                {calConfirmado ? (
+                  <p className="cal-confirmado">✅ Guardado en el calendario</p>
+                ) : (
+                  <button className="btn-add-cal" onClick={() => {
+                    setFechaSeleccionada(new Date().toISOString().split("T")[0]);
+                    setShowCalPicker(true);
+                  }}>
+                    📅 Agregar al calendario
+                  </button>
+                )}
               </div>
             )}
-
-            <div ref={chatEndRef} />
-          </div>
-
-          {/* ── CHIPS DE OCASIÓN ── */}
-          <div className="ocasion-chips-wrap">
-            {ocasiones.map((o) => (
-              <button
-                key={o.id}
-                className={`ocasion-chip ${ocasionActiva?.id === o.id ? "activa" : ""}`}
-                onClick={() => handleOcasion(o)}
-                disabled={loading}
-              >
-                <span className="ocasion-chip-icon">{o.icon}</span>
-                <span>{o.label}</span>
-              </button>
-            ))}
-          </div>
-
-          {/* Input */}
-          <div className="asistente-form">
-            <div className="asistente-form-inner">
-              <textarea
-                ref={textareaRef}
-                placeholder={
-                  ocasionActiva
-                    ? `Outfit para ${ocasionActiva.label.toLowerCase()}... (personaliza si quieres)`
-                    : "Escribe tu pregunta... (Enter para enviar)"
-                }
-                value={mensaje}
-                onChange={(e) => {
-                  setMensaje(e.target.value);
-                  if (ocasionActiva && e.target.value !== ocasionActiva.prompt) {
-                    setOcasionActiva(null);
-                  }
-                }}
-                onKeyDown={handleKeyDown}
-                disabled={loading}
-                rows={1}
-              />
-              <button
-                onClick={handleRecommend}
-                className="btn-recomendar"
-                disabled={loading || !mensaje.trim()}
-                title="Enviar"
-              >
-                <svg className="btn-send-icon" viewBox="0 0 24 24">
-                  <path d="M22 2L11 13" />
-                  <path d="M22 2L15 22L11 13L2 9L22 2Z" />
-                </svg>
-              </button>
-            </div>
           </div>
         </div>
 
-        {/* ── PANEL OUTFIT ── */}
-        <div className="outfit-panel">
-          <div className="outfit-panel-header">
-            <div className="outfit-panel-icon">👔</div>
-            <h3>Outfit sugerido</h3>
+        {/* ── Modal calendario ── */}
+        {showCalPicker && (
+          <div className="cal-picker-overlay" onClick={() => setShowCalPicker(false)}>
+            <div className="cal-picker-modal" onClick={(e) => e.stopPropagation()}>
+              <button className="cal-picker-close" onClick={() => setShowCalPicker(false)}>✕</button>
+              <h3>📅 Agregar al calendario</h3>
+              <p>Selecciona el día en que usarás este outfit</p>
+              <input
+                type="date"
+                className="cal-picker-input"
+                value={fechaSeleccionada}
+                onChange={(e) => setFechaSeleccionada(e.target.value)}
+              />
+              <button className="cal-picker-confirm" onClick={handleGuardarCalendario}>
+                Guardar outfit
+              </button>
+            </div>
           </div>
+        )}
+      </div>
 
+      {/* ══════════════════════════════════════
+          📱 BOTTOM SHEET — fuera del fondo
+          para que position:fixed funcione
+      ══════════════════════════════════════ */}
+      {tieneOutfit && (
+        <div
+          className={`outfit-sheet-backdrop ${showOutfitSheet ? "open" : ""}`}
+          onClick={() => setShowOutfitSheet(false)}
+        />
+      )}
+
+      <div className={`outfit-sheet ${tieneOutfit ? "has-outfit" : ""} ${showOutfitSheet ? "expanded" : ""}`}>
+
+        {/* Handle — toca para expandir/contraer */}
+        <div className="outfit-sheet-handle-wrap" onClick={() => setShowOutfitSheet(!showOutfitSheet)}>
+          <div className="outfit-sheet-handle" />
+          <div className="outfit-sheet-preview-bar">
+            <div className="outfit-sheet-thumbs">
+              {outfitGuardado ? (
+                <img src={outfitGuardado.imagen_url} alt="" className="outfit-sheet-thumb" />
+              ) : (
+                outfit.slice(0, 3).map((p, i) => (
+                  <img key={i} src={p.imagen_url} alt="" className="outfit-sheet-thumb" />
+                ))
+              )}
+            </div>
+            <div className="outfit-sheet-info">
+              <p className="outfit-sheet-title">Outfit sugerido</p>
+              <p className="outfit-sheet-sub">
+                {outfitGuardado
+                  ? outfitGuardado.descripcion?.slice(0, 40) + "..."
+                  : `${outfit.length} prenda${outfit.length !== 1 ? "s" : ""}`}
+              </p>
+            </div>
+            <span className="outfit-sheet-arrow">{showOutfitSheet ? "↓" : "↑"}</span>
+          </div>
+        </div>
+
+        {/* Contenido expandido */}
+        <div className="outfit-sheet-content">
           {outfitGuardado ? (
             <div className="outfit-guardado-preview">
               <img src={outfitGuardado.imagen_url} alt={outfitGuardado.descripcion} />
@@ -343,51 +454,31 @@ export default function Asistente({ usuarioId }) {
                 </div>
               )}
             </div>
-          ) : outfit.length === 0 ? (
-            <div className="outfit-placeholder">
-              <span className="outfit-placeholder-icon">✦</span>
-              <p>Las prendas recomendadas aparecerán aquí</p>
-            </div>
           ) : (
-            <VirtualMannequin outfit={outfit} />
-          )}
-
-          {tieneOutfit && !loading && (
-            <div className="cal-actions">
-              {calConfirmado ? (
-                <p className="cal-confirmado">✅ Guardado en el calendario</p>
-              ) : (
-                <button className="btn-add-cal" onClick={() => {
-                  setFechaSeleccionada(new Date().toISOString().split("T")[0]);
-                  setShowCalPicker(true);
-                }}>
-                  📅 Agregar al calendario
-                </button>
-              )}
+            <div className="outfit-sheet-grid">
+              {outfit.map((p, i) => (
+                <div key={i} className="outfit-sheet-card">
+                  <img src={p.imagen_url} alt={p.descripcion} />
+                  <p>{p.descripcion?.split("(")[0]?.trim()}</p>
+                </div>
+              ))}
             </div>
           )}
-        </div>
-      </div>
 
-      {/* Modal calendario */}
-      {showCalPicker && (
-        <div className="cal-picker-overlay" onClick={() => setShowCalPicker(false)}>
-          <div className="cal-picker-modal" onClick={(e) => e.stopPropagation()}>
-            <button className="cal-picker-close" onClick={() => setShowCalPicker(false)}>✕</button>
-            <h3>📅 Agregar al calendario</h3>
-            <p>Selecciona el día en que usarás este outfit</p>
-            <input
-              type="date"
-              className="cal-picker-input"
-              value={fechaSeleccionada}
-              onChange={(e) => setFechaSeleccionada(e.target.value)}
-            />
-            <button className="cal-picker-confirm" onClick={handleGuardarCalendario}>
-              Guardar outfit
-            </button>
+          <div className="cal-actions" style={{ marginTop: 16 }}>
+            {calConfirmado ? (
+              <p className="cal-confirmado">✅ Guardado en el calendario</p>
+            ) : (
+              <button className="btn-add-cal" onClick={() => {
+                setFechaSeleccionada(new Date().toISOString().split("T")[0]);
+                setShowCalPicker(true);
+              }}>
+                📅 Agregar al calendario
+              </button>
+            )}
           </div>
         </div>
-      )}
-    </div>
+      </div>
+    </>
   );
 }
