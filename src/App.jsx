@@ -23,6 +23,14 @@ import { supabase } from "./supabase";
 import { API_URL } from "./config";
 import "./App.css";
 
+// Interceptor global: adjunta el JWT de Supabase a cada request de axios
+axios.interceptors.request.use(async (config) => {
+  const { data } = await supabase.auth.getSession();
+  const token = data?.session?.access_token;
+  if (token) config.headers["Authorization"] = `Bearer ${token}`;
+  return config;
+});
+
 export default function App() {
   const [session, setSession] = useState(null);
   const [loadingSession, setLoadingSession] = useState(true);
