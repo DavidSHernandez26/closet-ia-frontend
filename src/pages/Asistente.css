@@ -124,9 +124,7 @@
   background: rgba(196,181,232,0.15);
   border-radius: 4px;
 }
-.chat-box::-webkit-scrollbar-thumb:hover {
-  background: rgba(196,181,232,0.3);
-}
+.chat-box::-webkit-scrollbar-thumb:hover { background: rgba(196,181,232,0.3); }
 
 /* ── PLACEHOLDER ── */
 .chat-placeholder {
@@ -348,12 +346,8 @@
 }
 
 .asistente-form textarea::placeholder { color: rgba(244, 244, 249, 0.25); }
-
 .asistente-form textarea::-webkit-scrollbar { width: 3px; }
-.asistente-form textarea::-webkit-scrollbar-thumb {
-  background: rgba(196,181,232,0.2);
-  border-radius: 3px;
-}
+.asistente-form textarea::-webkit-scrollbar-thumb { background: rgba(196,181,232,0.2); border-radius: 3px; }
 
 /* ── BOTÓN ENVIAR ── */
 .btn-recomendar {
@@ -872,21 +866,15 @@ body.light-mode .ocasion-chip.activa {
 }
 
 /* ══════════════════════════════════════
-   📱 MÓVIL — comportamiento app nativa
+   📱 MÓVIL — iOS y Android
 ══════════════════════════════════════ */
 @media (max-width: 900px) {
 
-  /* Evitar zoom de iOS al tocar el textarea */
-.asistente-form textarea {
-  font-size: 16px !important;
-}
-  /* ── Asistente ocupa viewport completo menos navbar y sheet ── */
   .asistente-fondo {
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
     right: 0 !important;
-    /* 58px navbar + env safe area + 72px para sheet asomado ── */
     bottom: calc(58px + env(safe-area-inset-bottom) + 72px) !important;
     padding: 8px 10px 0 !important;
     display: flex !important;
@@ -899,11 +887,6 @@ body.light-mode .ocasion-chip.activa {
 
   body.light-mode .asistente-fondo {
     background: var(--green) !important;
-  }
-
-  /* Cuando no hay outfit, usar todo el espacio */
-  .asistente-fondo.sin-outfit {
-    bottom: calc(58px + env(safe-area-inset-bottom)) !important;
   }
 
   .asistente-layout {
@@ -927,27 +910,29 @@ body.light-mode .ocasion-chip.activa {
     flex-direction: column !important;
   }
 
-  /* ── Solo el chat scrollea con el dedo ── */
+  /* ── Chat scrollea — iOS y Android ── */
   .chat-box {
     flex: 1 !important;
-    overflow-y: auto !important;
+    overflow-y: scroll !important;
     overflow-x: hidden !important;
     overscroll-behavior-y: contain !important;
     -webkit-overflow-scrolling: touch !important;
     touch-action: pan-y !important;
+    -ms-touch-action: pan-y !important;
     padding: 16px !important;
   }
 
-  /* ── Chips scrollean horizontal ── */
+  /* ── Chips horizontal — iOS y Android ── */
   .ocasion-chips-wrap {
     flex-shrink: 0 !important;
-    overflow-x: auto !important;
+    overflow-x: scroll !important;
     overflow-y: hidden !important;
     touch-action: pan-x !important;
+    -ms-touch-action: pan-x !important;
     padding: 8px 12px 6px !important;
   }
 
-  /* ── Input SIEMPRE visible y accesible ── */
+  /* ── Input siempre accesible ── */
   .asistente-form {
     flex-shrink: 0 !important;
     padding: 10px 12px 12px !important;
@@ -957,11 +942,15 @@ body.light-mode .ocasion-chip.activa {
     border-top: 1px solid rgba(196,181,232,0.08) !important;
   }
 
+  /* Evitar zoom en iOS y Android al tocar textarea */
+  .asistente-form textarea {
+    font-size: 16px !important;
+  }
+
   body.light-mode .asistente-form {
     background: rgba(255, 255, 255, 0.98) !important;
   }
 
-  /* ── Ocultar panel desktop ── */
   .outfit-panel { display: none !important; }
 
   .chat-msg-content { max-width: 88% !important; }
@@ -969,10 +958,8 @@ body.light-mode .ocasion-chip.activa {
   .chat-placeholder-hints { max-width: 100%; }
 
   /* ══════════════════════════════════════
-     📱 BOTTOM SHEET
+     BOTTOM SHEET
   ══════════════════════════════════════ */
-
-  /* ── Backdrop ── */
   .outfit-sheet-backdrop {
     display: block;
     position: fixed;
@@ -992,7 +979,6 @@ body.light-mode .ocasion-chip.activa {
     pointer-events: all;
   }
 
-  /* ── Sheet ── */
   .outfit-sheet {
     display: block;
     position: fixed;
@@ -1007,25 +993,20 @@ body.light-mode .ocasion-chip.activa {
     box-shadow: 0 -8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(196,181,232,0.08);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
-    /* Empieza oculto ── */
     transform: translateY(100%);
     transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
     overflow: hidden;
-    /* Máximo media pantalla ── */
     max-height: 50dvh;
   }
 
-  /* Asoma 72px — nunca tapa el input ── */
   .outfit-sheet.has-outfit {
     transform: translateY(calc(100% - 72px));
   }
 
-  /* Expandido — media pantalla ── */
   .outfit-sheet.expanded {
     transform: translateY(0);
   }
 
-  /* ── Handle ── */
   .outfit-sheet-handle-wrap {
     padding: 8px 16px 10px;
     cursor: pointer;
@@ -1088,24 +1069,22 @@ body.light-mode .ocasion-chip.activa {
     font-weight: 600;
   }
 
-  .outfit-sheet.expanded .outfit-sheet-arrow {
-    transform: rotate(180deg);
-  }
+  .outfit-sheet.expanded .outfit-sheet-arrow { transform: rotate(180deg); }
 
-  /* ── Contenido scrolleable ── */
+  /* ── Contenido scrolleable — iOS y Android ── */
   .outfit-sheet-content {
     padding: 0 16px 16px;
-    overflow-y: auto;
+    overflow-y: scroll !important;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
-    touch-action: pan-y;
+    touch-action: pan-y !important;
+    -ms-touch-action: pan-y !important;
     scrollbar-width: none;
     max-height: calc(50dvh - 72px);
   }
 
   .outfit-sheet-content::-webkit-scrollbar { display: none; }
 
-  /* ── Grid prendas ── */
   .outfit-sheet-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);

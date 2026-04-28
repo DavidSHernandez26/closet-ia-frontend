@@ -233,10 +233,6 @@ body.light-mode .asistente-form textarea {
   color: #0F0326 !important;
 }
 body.light-mode .asistente-form textarea::placeholder { color: rgba(15, 3, 38, 0.35) !important; }
-body.light-mode .asistente-form textarea:focus {
-  border-color: #0F0326 !important;
-  box-shadow: 0 0 0 3px rgba(15, 3, 38, 0.1) !important;
-}
 body.light-mode .btn-recomendar {
   background: rgba(15, 3, 38, 0.08) !important;
   color: #0F0326 !important;
@@ -387,13 +383,15 @@ body.light-mode .cal-picker-confirm {
 }
 
 /* =============================================
-   📱 MÓVIL — responsive
+   📱 MÓVIL — iOS y Android
 ============================================= */
 @media (max-width: 900px) {
-  /* ── Sin rebote ni scroll horizontal ── */
+  /* ── Base — sin rebote, sin scroll horizontal ── */
   html, body {
     overscroll-behavior: none;
     overflow-x: hidden;
+    touch-action: pan-y;
+    -ms-touch-action: pan-y;
   }
 
   .app-container {
@@ -401,23 +399,24 @@ body.light-mode .cal-picker-confirm {
     width: 100%;
   }
 
-  /* ── Main content deja espacio para navbar móvil ── */
+  /* ── Main content ── */
   .main-content {
     padding: 0 0 calc(58px + env(safe-area-inset-bottom)) !important;
     overflow-x: hidden;
     justify-content: flex-start;
   }
 
-  /* ── Páginas que scrollean con el dedo ── */
+  /* ── Páginas con scroll táctil — iOS y Android ── */
   .closet-container,
   .cal-container,
   .amigos-container,
   .perfil-container,
   .feed-container {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-y: contain;
-    touch-action: pan-y;
+    overflow-y: scroll !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior-y: contain !important;
+    touch-action: pan-y !important;
+    -ms-touch-action: pan-y !important;
     padding-top: 16px;
     min-height: calc(100dvh - 58px - env(safe-area-inset-bottom));
     box-sizing: border-box;
@@ -435,7 +434,11 @@ body.light-mode .cal-picker-confirm {
 
   /* ── Calendario ── */
   .cal-grid { gap: 4px !important; }
-  .cal-celda { min-height: 52px !important; padding: 4px !important; border-radius: 8px !important; }
+  .cal-celda {
+    min-height: 52px !important;
+    padding: 4px !important;
+    border-radius: 8px !important;
+  }
   .cal-numero { font-size: 0.7rem !important; }
   .cal-outfit-preview img { height: 28px !important; }
 
@@ -474,63 +477,4 @@ body.light-mode .cal-picker-confirm {
     max-width: 100% !important;
   }
   .perfil-grid { grid-template-columns: 1fr !important; }
-}
-/* ══════════════════════════════════════
-   🤖 ANDROID — fixes de scroll táctil
-══════════════════════════════════════ */
-@media (max-width: 900px) {
-
-  /* Android necesita esto explícito para scrollear */
-  html {
-    touch-action: pan-y;
-    -ms-touch-action: pan-y;
-  }
-
-  body {
-    touch-action: pan-y;
-    -ms-touch-action: pan-y;
-  }
-
-  /* Páginas con scroll táctil Android */
-  .closet-container,
-  .cal-container,
-  .amigos-container,
-  .perfil-container,
-  .feed-container {
-    touch-action: pan-y !important;
-    -webkit-overflow-scrolling: touch !important;
-    overflow-y: scroll !important; /* scroll en vez de auto para Android */
-    -ms-overflow-style: none;
-  }
-
-  /* Chat box */
-  .chat-box {
-    touch-action: pan-y !important;
-    overflow-y: scroll !important;
-    -webkit-overflow-scrolling: touch !important;
-  }
-
-  /* Chips horizontales */
-  .ocasion-chips-wrap {
-    touch-action: pan-x !important;
-    overflow-x: scroll !important;
-  }
-
-  /* Sheet content */
-  .outfit-sheet-content {
-    touch-action: pan-y !important;
-    overflow-y: scroll !important;
-  }
-
-  /* Feed */
-  .feed-list,
-  .feed-wishlist-grid {
-    touch-action: pan-y !important;
-  }
-
-  /* Notif list */
-  .notif-list {
-    touch-action: pan-y !important;
-    overflow-y: scroll !important;
-  }
 }
