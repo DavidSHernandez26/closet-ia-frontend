@@ -23,11 +23,12 @@ import { supabase } from "./supabase";
 import { API_URL } from "./config";
 import "./App.css";
 
-// Interceptor global: adjunta el JWT de Supabase a cada request de axios
-axios.interceptors.request.use(async (config) => {
-  const { data } = await supabase.auth.getSession();
-  const token = data?.session?.access_token;
-  if (token) config.headers["Authorization"] = `Bearer ${token}`;
+// Token cacheado — se actualiza sincrónicamente desde onAuthStateChange
+let _authToken = null;
+
+// Interceptor síncrono: nunca puede colgar la app
+axios.interceptors.request.use((config) => {
+  if (_authToken) config.headers["Authorization"] = `Bearer ${_authToken}`;
   return config;
 });
 
@@ -48,6 +49,7 @@ export default function App() {
   useEffect(() => {
     async function getSession() {
       const { data } = await supabase.auth.getSession();
+      _authToken = data?.session?.access_token || null;
       setSession(data?.session || null);
       if (data?.session?.user) {
         const uid = data.session.user.id;
@@ -61,6 +63,7 @@ export default function App() {
     getSession();
 
     const { data: listener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      _authToken = session?.access_token || null;
       setSession(session);
       if (session?.user) {
         const uid = session.user.id;
