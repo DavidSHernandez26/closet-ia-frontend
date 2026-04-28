@@ -475,3 +475,62 @@ body.light-mode .cal-picker-confirm {
   }
   .perfil-grid { grid-template-columns: 1fr !important; }
 }
+/* ══════════════════════════════════════
+   🤖 ANDROID — fixes de scroll táctil
+══════════════════════════════════════ */
+@media (max-width: 900px) {
+
+  /* Android necesita esto explícito para scrollear */
+  html {
+    touch-action: pan-y;
+    -ms-touch-action: pan-y;
+  }
+
+  body {
+    touch-action: pan-y;
+    -ms-touch-action: pan-y;
+  }
+
+  /* Páginas con scroll táctil Android */
+  .closet-container,
+  .cal-container,
+  .amigos-container,
+  .perfil-container,
+  .feed-container {
+    touch-action: pan-y !important;
+    -webkit-overflow-scrolling: touch !important;
+    overflow-y: scroll !important; /* scroll en vez de auto para Android */
+    -ms-overflow-style: none;
+  }
+
+  /* Chat box */
+  .chat-box {
+    touch-action: pan-y !important;
+    overflow-y: scroll !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* Chips horizontales */
+  .ocasion-chips-wrap {
+    touch-action: pan-x !important;
+    overflow-x: scroll !important;
+  }
+
+  /* Sheet content */
+  .outfit-sheet-content {
+    touch-action: pan-y !important;
+    overflow-y: scroll !important;
+  }
+
+  /* Feed */
+  .feed-list,
+  .feed-wishlist-grid {
+    touch-action: pan-y !important;
+  }
+
+  /* Notif list */
+  .notif-list {
+    touch-action: pan-y !important;
+    overflow-y: scroll !important;
+  }
+}

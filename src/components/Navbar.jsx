@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import "./Navbar.css";
 import UploadModal from "./UploadModal";
 import { supabase } from "../supabase";
+import NotifPanel from "./NotifPanel";
 
 export default function Navbar({ onUploaded, darkMode, onToggleTheme, usuarioId }) {
   const location = useLocation();
@@ -69,18 +70,23 @@ export default function Navbar({ onUploaded, darkMode, onToggleTheme, usuarioId 
         </div>
 
         <div className="navbar-right">
-          <button className="theme-toggle-btn" onClick={onToggleTheme} title="Cambiar tema">
-            {darkMode ? "☀️" : "🌙"}
-          </button>
-          {user ? (
-            <>
-              <button className="upload-btn" onClick={handleUploadClick}>📸 Subir</button>
-              <button className="logout-btn" onClick={handleLogout}>🔒</button>
-            </>
-          ) : (
-            <button className="login-btn" onClick={() => navigate("/login")}>🔐 Login</button>
-          )}
-        </div>
+  <button className="theme-toggle-btn" onClick={onToggleTheme}>
+    {darkMode ? "☀️" : "🌙"}
+  </button>
+
+  {user && usuarioId && (
+    <NotifPanel usuarioId={usuarioId} />
+  )}
+
+  {user ? (
+    <>
+      <button className="upload-btn" onClick={handleUploadClick}>📸 Subir</button>
+      <button className="logout-btn" onClick={handleLogout}>🔒</button>
+    </>
+  ) : (
+    <button className="login-btn" onClick={() => navigate("/login")}>🔐 Login</button>
+  )}
+</div>
       </nav>
 
       {/* ── BOTTOM BAR móvil ── */}
