@@ -1,27 +1,25 @@
 {
-  "short_name": "Be: Confident",
-  "name": "Be: Confident — Tu estilista personal con IA",
-  "description": "Asistente de moda con IA que organiza tu closet y crea outfits perfectos para cualquier ocasión",
+  "short_name": "React App",
+  "name": "Create React App Sample",
   "icons": [
     {
-      "src": "icon-192.png",
-      "type": "image/png",
-      "sizes": "192x192",
-      "purpose": "any maskable"
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
     },
     {
-      "src": "icon-512.png",
+      "src": "logo192.png",
       "type": "image/png",
-      "sizes": "512x512",
-      "purpose": "any maskable"
+      "sizes": "192x192"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512"
     }
   ],
-  "start_url": "/",
+  "start_url": ".",
   "display": "standalone",
-  "orientation": "portrait",
-  "theme_color": "#0F0326",
-  "background_color": "#0F0326",
-  "scope": "/",
-  "lang": "es",
-  "categories": ["lifestyle", "shopping", "social"]
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
 }
