@@ -474,7 +474,99 @@ body.light-mode .cal-picker-confirm {
 @media (max-width: 380px) {
   .closet-card { flex: 1 1 100% !important; max-width: 100% !important; }
   .perfil-grid { grid-template-columns: 1fr !important; }
-}@media (max-width: 900px) {
+}
+@media (max-width: 900px) {
+  html, body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  #root {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .app-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .main-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: calc(58px + env(safe-area-inset-bottom));
+    overflow-y: scroll;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    padding: 0 !important;
+    display: block !important;
+  }
+
+  /* ── Páginas dentro del scroll ── */
+  .closet-container,
+  .cal-container,
+  .amigos-container,
+  .perfil-container,
+  .feed-container {
+    display: block;
+    width: 100%;
+    padding-top: 16px;
+    padding-bottom: 24px;
+    box-sizing: border-box;
+  }
+
+  /* ── Closet ── */
+  .closet-grid { gap: 12px !important; }
+  .closet-card {
+    flex: 1 1 calc(50% - 6px) !important;
+    max-width: calc(50% - 6px) !important;
+    transform: none !important;
+  }
+  .closet-card:nth-child(odd),
+  .closet-card:nth-child(even) { transform: none !important; }
+
+  /* ── Calendario ── */
+  .cal-grid { gap: 4px !important; }
+  .cal-celda { min-height: 52px !important; padding: 4px !important; border-radius: 8px !important; }
+  .cal-numero { font-size: 0.7rem !important; }
+  .cal-outfit-preview img { height: 28px !important; }
+
+  /* ── Perfil ── */
+  .perfil-header {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    padding: 20px 16px !important;
+    gap: 16px !important;
+  }
+  .perfil-acciones { justify-content: center !important; }
+  .perfil-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+  .perfil-card img { height: 160px !important; }
+
+  /* ── Modales ── */
+  .cal-modal,
+  .cal-picker-modal,
+  .perfil-modal { border-radius: 20px !important; padding: 22px 18px !important; }
+  .upload-modal { border-radius: 20px !important; padding: 24px 18px !important; max-height: 85dvh !important; }
+}
+
+@media (max-width: 380px) {
+  .closet-card { flex: 1 1 100% !important; max-width: 100% !important; }
+  .perfil-grid { grid-template-columns: 1fr !important; }
+}
+@media (max-width: 900px) {
   /* ── Base — sin rebote, sin scroll horizontal ── */
   html, body {
     overscroll-behavior: none;
