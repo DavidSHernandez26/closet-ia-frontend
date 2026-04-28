@@ -9,18 +9,26 @@ export default function Perfil({ usuarioId }) {
   const navigate = useNavigate();
   const esPropio = !username;
 
-  const [perfil, setPerfil] = useState(null);
-  const [prendas, setPrendas] = useState([]);
-  const [tabActiva, setTabActiva] = useState("prenda");
+  const [perfil,        setPerfil]        = useState(null);
+  const [items,         setItems]         = useState([]);
+  const [tabActiva,     setTabActiva]     = useState("outfit");
   const [estadoAmistad, setEstadoAmistad] = useState({ status: "none" });
-  const [loading, setLoading] = useState(true);
-  const [editando, setEditando] = useState(false);
-  const [form, setForm] = useState({ username: "", nombre: "", bio: "" });
-  const [errorEdit, setErrorEdit] = useState("");
-  const [modalItem, setModalItem] = useState(null);
+  const [loading,       setLoading]       = useState(true);
+  const [editando,      setEditando]      = useState(false);
+  const [form,          setForm]          = useState({ username: "", nombre: "", bio: "" });
+  const [errorEdit,     setErrorEdit]     = useState("");
+  const [modalItem,     setModalItem]     = useState(null);
+  const [stats,         setStats]         = useState({ posts: 0, amigos: 0, prendas: 0 });
   const fileRef = useRef();
 
   useEffect(() => { cargarPerfil(); }, [username, usuarioId]);
+
+  useEffect(() => {
+    if (perfil) {
+      const esAmigoActual = estadoAmistad?.status === "accepted";
+      cargarItems(perfil.id, tabActiva, esAmigoActual);
+    }
+  }, [tabActiva]);
 
   async function cargarPerfil() {
     setLoading(true);
@@ -37,38 +45,85 @@ export default function Perfil({ usuarioId }) {
         const estadoRes = await axios.get(`${API_URL}/api/amistad/estado`, {
           params: { usuario_id: usuarioId, otro_id: perfilData.id }
         });
-        setEstadoAmistad(estadoRes.data || { status: "none" });
+        const estadoData = estadoRes.data || { status: "none" };
+        setEstadoAmistad(estadoData);
+        const esAmigoActual = estadoData.status === "accepted";
+
+        setPerfil(perfilData);
+        setForm({
+          username: perfilData.username || "",
+          nombre:   perfilData.nombre   || "",
+          bio:      perfilData.bio      || "",
+        });
+        await Promise.all([
+          cargarStats(perfilData.id),
+          cargarItems(perfilData.id, "outfit", esAmigoActual),
+        ]);
+        setLoading(false);
+        return;
       }
 
       setPerfil(perfilData);
-      setForm({ username: perfilData.username || "", nombre: perfilData.nombre || "", bio: perfilData.bio || "" });
-      await cargarPrendas(perfilData.id, tabActiva, esPropio);
+      setForm({
+        username: perfilData.username || "",
+        nombre:   perfilData.nombre   || "",
+        bio:      perfilData.bio      || "",
+      });
+      await Promise.all([
+        cargarStats(perfilData.id),
+        cargarItems(perfilData.id, "outfit", true),
+      ]);
     } catch (err) {
-      console.error("Error cargando perfil:", err);
+      console.error(err);
     } finally {
       setLoading(false);
     }
   }
 
-  async function cargarPrendas(pid, tipo, propio) {
+  async function cargarStats(pid) {
     try {
-      let res;
-      if (propio) {
-        res = await axios.get(`${API_URL}/api/prendas`, {
-          params: { usuario_id: pid, tipo }
-        });
-      } else {
-        res = await axios.get(`${API_URL}/api/prendas/amigo/${pid}`, {
-          params: { usuario_id: usuarioId, tipo }
-        });
-      }
-      setPrendas(res.data || []);
-    } catch { setPrendas([]); }
+      const [postsRes, amigosRes, prendasRes] = await Promise.allSettled([
+        axios.get(`${API_URL}/api/posts/${pid}`, { params: { viewer_id: usuarioId } }),
+        axios.get(`${API_URL}/api/amistad/amigos`, { params: { usuario_id: pid } }),
+        axios.get(`${API_URL}/api/prendas`, { params: { usuario_id: pid, tipo: "prenda" } }),
+      ]);
+      setStats({
+        posts:   postsRes.status   === "fulfilled" ? postsRes.value.data?.length   || 0 : 0,
+        amigos:  amigosRes.status  === "fulfilled" ? amigosRes.value.data?.length  || 0 : 0,
+        prendas: prendasRes.status === "fulfilled" ? prendasRes.value.data?.length || 0 : 0,
+      });
+    } catch (err) { console.error(err); }
   }
 
-  useEffect(() => {
-    if (perfil) cargarPrendas(perfil.id, tabActiva, esPropio);
-  }, [tabActiva]);
+  async function cargarItems(pid, tab, esAmigoActual = false) {
+    try {
+      if (tab === "guardados") {
+        const res = await axios.get(`${API_URL}/api/wishlist`, {
+          params: { usuario_id: usuarioId }
+        });
+        setItems(res.data || []);
+        return;
+      }
+
+      // Si no es propio y no son amigos, no hacer la llamada
+      if (!esPropio && !esAmigoActual) {
+        setItems([]);
+        return;
+      }
+
+      const url = esPropio
+        ? `${API_URL}/api/prendas`
+        : `${API_URL}/api/prendas/amigo/${pid}`;
+      const params = esPropio
+        ? { usuario_id: pid, tipo: tab }
+        : { usuario_id: usuarioId, tipo: tab };
+
+      const res = await axios.get(url, { params });
+      setItems(res.data || []);
+    } catch {
+      setItems([]);
+    }
+  }
 
   async function handleGuardarPerfil(e) {
     e.preventDefault();
@@ -76,9 +131,9 @@ export default function Perfil({ usuarioId }) {
     try {
       const res = await axios.put(`${API_URL}/api/perfil`, {
         usuario_id: usuarioId,
-        username: form.username,
-        nombre: form.nombre,
-        bio: form.bio,
+        username:   form.username,
+        nombre:     form.nombre,
+        bio:        form.bio,
       });
       setPerfil(res.data);
       setEditando(false);
@@ -97,8 +152,8 @@ export default function Perfil({ usuarioId }) {
       const res = await axios.post(`${API_URL}/api/perfil/avatar`, fd, {
         headers: { "Content-Type": "multipart/form-data" }
       });
-      setPerfil((prev) => ({ ...prev, avatar_url: res.data.avatar_url }));
-    } catch (err) { console.error("Error subiendo avatar:", err); }
+      setPerfil(prev => ({ ...prev, avatar_url: res.data.avatar_url }));
+    } catch (err) { console.error(err); }
   }
 
   async function handleSolicitud() {
@@ -112,37 +167,129 @@ export default function Perfil({ usuarioId }) {
   }
 
   async function handleEliminarAmistad() {
-    if (!window.confirm("¿Eliminar esta amistad?")) return;
+    if (!window.confirm("¿Dejar de seguir?")) return;
     try {
       await axios.delete(`${API_URL}/api/amistad/${estadoAmistad.id}`);
       setEstadoAmistad({ status: "none" });
-      setPrendas([]);
+      setItems([]);
     } catch (err) { console.error(err); }
   }
 
   if (loading) return (
     <div className="perfil-loading">
-      <div className="perfil-loading-dot"></div>
-      <div className="perfil-loading-dot"></div>
-      <div className="perfil-loading-dot"></div>
+      <div className="perfil-loading-dot" />
+      <div className="perfil-loading-dot" />
+      <div className="perfil-loading-dot" />
     </div>
   );
 
   if (!perfil) return (
     <div className="perfil-not-found">
       <p>Usuario no encontrado</p>
-      <button onClick={() => navigate(-1)} className="perfil-back-btn">← Volver</button>
+      <button onClick={() => navigate(-1)} className="perfil-btn-action">← Volver</button>
     </div>
   );
 
-  const esAmigo = estadoAmistad?.status === "accepted";
+  const esAmigo          = estadoAmistad?.status === "accepted";
   const solicitudPendiente = estadoAmistad?.status === "pending";
-  const soyRequester = estadoAmistad?.requester_id === usuarioId;
-  const puedeVerCloset = esPropio || esAmigo;
+  const soyRequester     = estadoAmistad?.requester_id === usuarioId;
+  const puedeVerCloset   = esPropio || esAmigo;
+
+  const tabs = [
+    { id: "outfit",   label: "Outfits"  },
+    { id: "prenda",   label: "Prendas"  },
+    ...(esPropio ? [{ id: "guardados", label: "Guardados" }] : []),
+  ];
+
+  function InfoBloque() {
+    if (editando) return (
+      <form onSubmit={handleGuardarPerfil} className="perfil-edit-form">
+        <div className="perfil-edit-field">
+          <span className="perfil-at">@</span>
+          <input
+            value={form.username}
+            onChange={e => setForm({ ...form, username: e.target.value.toLowerCase() })}
+            placeholder="username"
+            className="perfil-edit-input"
+            style={{ paddingLeft: "28px" }}
+          />
+        </div>
+        <input
+          value={form.nombre}
+          onChange={e => setForm({ ...form, nombre: e.target.value })}
+          placeholder="Nombre"
+          className="perfil-edit-input"
+        />
+        <textarea
+          value={form.bio}
+          onChange={e => setForm({ ...form, bio: e.target.value })}
+          placeholder="Bio..."
+          className="perfil-edit-textarea"
+          rows={2}
+        />
+        {errorEdit && <p className="perfil-edit-error">{errorEdit}</p>}
+        <div className="perfil-edit-actions">
+          <button type="submit" className="perfil-btn-action perfil-btn-primary">Guardar</button>
+          <button type="button" className="perfil-btn-action" onClick={() => setEditando(false)}>Cancelar</button>
+        </div>
+      </form>
+    );
+
+    return (
+      <>
+        <p className="perfil-nombre">{perfil.nombre || perfil.username}</p>
+        <p className="perfil-handle">@{perfil.username}</p>
+        {perfil.bio && <p className="perfil-bio">{perfil.bio}</p>}
+        <div className="perfil-acciones">
+          {esPropio ? (
+            <>
+              <button className="perfil-btn-action" onClick={() => setEditando(true)}>
+                Editar perfil
+              </button>
+              <button className="perfil-btn-action">Compartir</button>
+            </>
+          ) : (
+            <>
+              {estadoAmistad.status === "none" && (
+                <button className="perfil-btn-action perfil-btn-primary" onClick={handleSolicitud}>
+                  Seguir
+                </button>
+              )}
+              {solicitudPendiente && soyRequester && (
+                <button className="perfil-btn-action" disabled>
+                  Solicitud enviada
+                </button>
+              )}
+              {solicitudPendiente && !soyRequester && (
+                <button
+                  className="perfil-btn-action perfil-btn-primary"
+                  onClick={() => navigate("/amigos")}
+                >
+                  Responder solicitud
+                </button>
+              )}
+              {esAmigo && (
+                <button
+                  className="perfil-btn-action perfil-btn-danger"
+                  onClick={handleEliminarAmistad}
+                >
+                  Dejar de seguir
+                </button>
+              )}
+            </>
+          )}
+        </div>
+      </>
+    );
+  }
 
   return (
     <div className="perfil-container">
-      <div className="perfil-header">
+
+      {/* ── HEADER estilo Instagram ── */}
+      <div className="perfil-top">
+
+        {/* Avatar */}
         <div className="perfil-avatar-wrap">
           <div
             className="perfil-avatar"
@@ -151,100 +298,81 @@ export default function Perfil({ usuarioId }) {
           >
             {perfil.avatar_url
               ? <img src={perfil.avatar_url} alt={perfil.username} />
-              : <span className="perfil-avatar-placeholder">{(perfil.nombre || perfil.username || "?")[0].toUpperCase()}</span>
+              : <span className="perfil-avatar-placeholder">
+                  {(perfil.nombre || perfil.username || "?")[0].toUpperCase()}
+                </span>
             }
             {esPropio && <div className="perfil-avatar-overlay">📷</div>}
           </div>
           {esPropio && (
-            <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleAvatar} />
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={handleAvatar}
+            />
           )}
         </div>
 
-        <div className="perfil-info">
-          {editando ? (
-            <form onSubmit={handleGuardarPerfil} className="perfil-edit-form">
-              <div className="perfil-edit-field">
-                <span className="perfil-at">@</span>
-                <input
-                  value={form.username}
-                  onChange={(e) => setForm({ ...form, username: e.target.value.toLowerCase() })}
-                  placeholder="username"
-                  className="perfil-edit-input"
-                  style={{ paddingLeft: "28px" }}
-                />
-              </div>
-              <input
-                value={form.nombre}
-                onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-                placeholder="Nombre"
-                className="perfil-edit-input"
-              />
-              <textarea
-                value={form.bio}
-                onChange={(e) => setForm({ ...form, bio: e.target.value })}
-                placeholder="Bio..."
-                className="perfil-edit-textarea"
-                rows={2}
-              />
-              {errorEdit && <p className="perfil-edit-error">{errorEdit}</p>}
-              <div className="perfil-edit-actions">
-                <button type="submit" className="perfil-btn-primary">Guardar</button>
-                <button type="button" className="perfil-btn-secondary" onClick={() => setEditando(false)}>Cancelar</button>
-              </div>
-            </form>
-          ) : (
-            <>
-              <h1 className="perfil-nombre">{perfil.nombre || perfil.username}</h1>
-              <p className="perfil-username">@{perfil.username}</p>
-              {perfil.bio && <p className="perfil-bio">{perfil.bio}</p>}
-              <div className="perfil-acciones">
-                {esPropio ? (
-                  <button className="perfil-btn-primary" onClick={() => setEditando(true)}>✏️ Editar perfil</button>
-                ) : (
-                  <>
-                    {estadoAmistad.status === "none" && (
-                      <button className="perfil-btn-primary" onClick={handleSolicitud}>➕ Seguir</button>
-                    )}
-                    {solicitudPendiente && soyRequester && (
-                      <button className="perfil-btn-secondary" disabled>⏳ Solicitud enviada</button>
-                    )}
-                    {solicitudPendiente && !soyRequester && (
-                      <button className="perfil-btn-primary" onClick={() => navigate("/amigos")}>✅ Responder solicitud</button>
-                    )}
-                    {esAmigo && (
-                      <button className="perfil-btn-danger" onClick={handleEliminarAmistad}>🚫 Dejar de seguir</button>
-                    )}
-                  </>
-                )}
-              </div>
-            </>
-          )}
+        {/* Stats + info (desktop) */}
+        <div className="perfil-header-right">
+          <div className="perfil-stats-row">
+            <div className="perfil-stat">
+              <strong>{stats.posts}</strong>
+              <span>posts</span>
+            </div>
+            <div className="perfil-stat">
+              <strong>{stats.amigos}</strong>
+              <span>amigos</span>
+            </div>
+            <div className="perfil-stat">
+              <strong>{stats.prendas}</strong>
+              <span>prendas</span>
+            </div>
+          </div>
+          <div className="perfil-info-desktop">
+            <InfoBloque />
+          </div>
         </div>
       </div>
 
+      {/* Info visible en mobile */}
+      <div className="perfil-info-mobile">
+        <InfoBloque />
+      </div>
+
+      {/* ── CONTENIDO ── */}
       {puedeVerCloset ? (
         <>
           <div className="perfil-tabs">
-            <button className={`perfil-tab ${tabActiva === "prenda" ? "activa" : ""}`} onClick={() => setTabActiva("prenda")}>
-              👚 Prendas
-            </button>
-            <button className={`perfil-tab ${tabActiva === "outfit" ? "activa" : ""}`} onClick={() => setTabActiva("outfit")}>
-              🧥 Outfits
-            </button>
+            {tabs.map(t => (
+              <button
+                key={t.id}
+                className={`perfil-tab ${tabActiva === t.id ? "activa" : ""}`}
+                onClick={() => setTabActiva(t.id)}
+              >
+                {t.label}
+              </button>
+            ))}
           </div>
 
-          {prendas.length === 0 ? (
-            <p className="perfil-empty">
-              {esPropio ? "Aún no tienes prendas. ¡Sube algo!" : "Este usuario no tiene prendas todavía."}
-            </p>
+          {items.length === 0 ? (
+            <div className="perfil-empty">
+              <p>
+                {esPropio
+                  ? "Aún no tienes nada aquí. ¡Sube algo!"
+                  : "Sin contenido todavía."}
+              </p>
+            </div>
           ) : (
             <div className="perfil-grid">
-              {prendas.map((p) => (
+              {items.map(p => (
                 <div key={p.id} className="perfil-card" onClick={() => setModalItem(p)}>
-                  <img src={p.imagen_url} alt={p.descripcion} />
-                  <div className="perfil-card-info">
-                    <p>{p.descripcion?.split(" - ")[0]}</p>
-                  </div>
+                  <img
+                    src={p.imagen_url || p.post?.imagen_url}
+                    alt={p.descripcion}
+                  />
                 </div>
               ))}
             </div>
@@ -252,19 +380,29 @@ export default function Perfil({ usuarioId }) {
         </>
       ) : (
         <div className="perfil-privado">
-          <p>🔒</p>
-          <p>Este closet es privado</p>
-          <p className="perfil-privado-sub">Envía una solicitud para ver el closet de @{perfil.username}</p>
+          <p className="perfil-privado-lock">🔒</p>
+          <p className="perfil-privado-title">Closet privado</p>
+          <p className="perfil-privado-sub">
+            Envía una solicitud para ver el closet de @{perfil.username}
+          </p>
           {estadoAmistad.status === "none" && (
-            <button className="perfil-btn-primary" onClick={handleSolicitud}>➕ Enviar solicitud</button>
+            <button
+              className="perfil-btn-action perfil-btn-primary"
+              onClick={handleSolicitud}
+            >
+              Seguir
+            </button>
           )}
-          {solicitudPendiente && <p className="perfil-pendiente">⏳ Solicitud pendiente</p>}
+          {solicitudPendiente && (
+            <p className="perfil-pendiente">⏳ Solicitud pendiente</p>
+          )}
         </div>
       )}
 
+      {/* ── MODAL ── */}
       {modalItem && (
         <div className="perfil-modal-overlay" onClick={() => setModalItem(null)}>
-          <div className="perfil-modal" onClick={(e) => e.stopPropagation()}>
+          <div className="perfil-modal" onClick={e => e.stopPropagation()}>
             <button className="perfil-modal-close" onClick={() => setModalItem(null)}>✕</button>
             <img src={modalItem.imagen_url} alt={modalItem.descripcion} />
             <p className="perfil-modal-desc">{modalItem.descripcion}</p>

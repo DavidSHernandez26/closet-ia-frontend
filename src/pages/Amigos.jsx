@@ -1,21 +1,24 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import "./Amigos.css";
+import "./Perfil.css";   // ← cambia Amigos.css por Perfil.css (archivo unificado)
 import { API_URL } from "../config";
 
 export default function Amigos({ usuarioId }) {
-  const [busqueda, setBusqueda] = useState("");
-  const [resultados, setResultados] = useState([]);
-  const [solicitudes, setSolicitudes] = useState([]);
-  const [amigos, setAmigos] = useState([]);
-  const [tab, setTab] = useState("amigos");
-  const [loading, setLoading] = useState(false);
+  const [busqueda,           setBusqueda]           = useState("");
+  const [resultados,         setResultados]         = useState([]);
+  const [solicitudes,        setSolicitudes]        = useState([]);
+  const [amigos,             setAmigos]             = useState([]);
+  const [sugeridos,          setSugeridos]          = useState([]);
+  const [solicitudesEnviadas,setSolicitudesEnviadas]= useState(new Set());
+  const [tab,                setTab]                = useState("amigos");
+  const [loading,            setLoading]            = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     cargarSolicitudes();
     cargarAmigos();
+    cargarSugeridos();
   }, [usuarioId]);
 
   useEffect(() => {
@@ -25,19 +28,22 @@ export default function Amigos({ usuarioId }) {
 
   async function cargarSolicitudes() {
     try {
-      const res = await axios.get(`${API_URL}/api/amistad/solicitudes`, {
-        params: { usuario_id: usuarioId }
-      });
+      const res = await axios.get(`${API_URL}/api/amistad/solicitudes`, { params: { usuario_id: usuarioId } });
       setSolicitudes(res.data || []);
     } catch (err) { console.error(err); }
   }
 
   async function cargarAmigos() {
     try {
-      const res = await axios.get(`${API_URL}/api/amistad/amigos`, {
-        params: { usuario_id: usuarioId }
-      });
+      const res = await axios.get(`${API_URL}/api/amistad/amigos`, { params: { usuario_id: usuarioId } });
       setAmigos(res.data || []);
+    } catch (err) { console.error(err); }
+  }
+
+  async function cargarSugeridos() {
+    try {
+      const res = await axios.get(`${API_URL}/api/usuarios/sugeridos`, { params: { usuario_id: usuarioId } });
+      setSugeridos(res.data || []);
     } catch (err) { console.error(err); }
   }
 
@@ -54,9 +60,7 @@ export default function Amigos({ usuarioId }) {
 
   async function responderSolicitud(friendship_id, status) {
     try {
-      await axios.put(`${API_URL}/api/amistad/responder`, {
-        friendship_id, status, usuario_id: usuarioId,
-      });
+      await axios.put(`${API_URL}/api/amistad/responder`, { friendship_id, status, usuario_id: usuarioId });
       await cargarSolicitudes();
       await cargarAmigos();
     } catch (err) { console.error(err); }
@@ -66,7 +70,17 @@ export default function Amigos({ usuarioId }) {
     if (!window.confirm("¿Eliminar esta amistad?")) return;
     try {
       await axios.delete(`${API_URL}/api/amistad/${friendship_id}`);
-      setAmigos((prev) => prev.filter((a) => a.friendship_id !== friendship_id));
+      setAmigos(prev => prev.filter(a => a.friendship_id !== friendship_id));
+    } catch (err) { console.error(err); }
+  }
+
+  async function enviarSolicitud(usuario) {
+    try {
+      await axios.post(`${API_URL}/api/amistad/solicitar`, {
+        requester_id: usuarioId,
+        addressee_id: usuario.id,
+      });
+      setSolicitudesEnviadas(prev => new Set([...prev, usuario.id]));
     } catch (err) { console.error(err); }
   }
 
@@ -81,6 +95,12 @@ export default function Amigos({ usuarioId }) {
     );
   }
 
+  const tabs = [
+    { id: "amigos",      label: "Amigos",      icon: "👫", badge: amigos.length     },
+    { id: "solicitudes", label: "Solicitudes",  icon: "📩", badge: solicitudes.length },
+    { id: "sugeridos",   label: "Sugeridos",    icon: "✦",  badge: 0                 },
+  ];
+
   return (
     <div className="amigos-container">
       <header className="amigos-header">
@@ -88,6 +108,7 @@ export default function Amigos({ usuarioId }) {
         <p>Encuentra y conecta con otros usuarios</p>
       </header>
 
+      {/* ── Buscador ── */}
       <div className="amigos-search-wrap">
         <div className="amigos-search">
           <span className="amigos-search-icon">🔍</span>
@@ -95,7 +116,7 @@ export default function Amigos({ usuarioId }) {
             type="text"
             placeholder="Buscar por @username..."
             value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
+            onChange={e => setBusqueda(e.target.value)}
             className="amigos-search-input"
           />
           {busqueda && (
@@ -110,7 +131,7 @@ export default function Amigos({ usuarioId }) {
             ) : resultados.length === 0 ? (
               <p className="amigos-no-results">No se encontraron usuarios con "@{busqueda}"</p>
             ) : (
-              resultados.map((u) => (
+              resultados.map(u => (
                 <div
                   key={u.id}
                   className="amigos-resultado-item"
@@ -128,27 +149,32 @@ export default function Amigos({ usuarioId }) {
         )}
       </div>
 
+      {/* ── Tabs ── */}
       <div className="amigos-tabs">
-        <button className={`amigos-tab ${tab === "amigos" ? "activa" : ""}`} onClick={() => setTab("amigos")}>
-          👫 Amigos
-          {amigos.length > 0 && <span className="amigos-badge">{amigos.length}</span>}
-        </button>
-        <button className={`amigos-tab ${tab === "solicitudes" ? "activa" : ""}`} onClick={() => setTab("solicitudes")}>
-          📩 Solicitudes
-          {solicitudes.length > 0 && <span className="amigos-badge">{solicitudes.length}</span>}
-        </button>
+        {tabs.map(t => (
+          <button
+            key={t.id}
+            className={`amigos-tab ${tab === t.id ? "activa" : ""}`}
+            onClick={() => setTab(t.id)}
+          >
+            <span>{t.icon}</span>
+            <span>{t.label}</span>
+            {t.badge > 0 && <span className="amigos-badge">{t.badge}</span>}
+          </button>
+        ))}
       </div>
 
+      {/* ── Amigos ── */}
       {tab === "amigos" && (
         <div className="amigos-lista">
           {amigos.length === 0 ? (
             <div className="amigos-empty">
               <span className="amigos-empty-icon">👥</span>
               <p className="amigos-empty-title">Aún no tienes amigos</p>
-              <p className="amigos-empty-sub">Busca usuarios por su @username para conectar con ellos</p>
+              <p className="amigos-empty-sub">Busca usuarios o explora la pestaña Sugeridos</p>
             </div>
           ) : (
-            amigos.map((a) => (
+            amigos.map(a => (
               <div key={a.friendship_id} className="amigos-item">
                 <div className="amigos-item-left" onClick={() => navigate(`/perfil/${a.username}`)}>
                   <Avatar user={a} />
@@ -171,6 +197,7 @@ export default function Amigos({ usuarioId }) {
         </div>
       )}
 
+      {/* ── Solicitudes ── */}
       {tab === "solicitudes" && (
         <div className="amigos-lista">
           {solicitudes.length === 0 ? (
@@ -180,7 +207,7 @@ export default function Amigos({ usuarioId }) {
               <p className="amigos-empty-sub">Cuando alguien te envíe una solicitud aparecerá aquí</p>
             </div>
           ) : (
-            solicitudes.map((s) => (
+            solicitudes.map(s => (
               <div key={s.id} className="amigos-item">
                 <div className="amigos-item-left" onClick={() => navigate(`/perfil/${s.requester.username}`)}>
                   <Avatar user={s.requester} />
@@ -199,6 +226,43 @@ export default function Amigos({ usuarioId }) {
                 </div>
               </div>
             ))
+          )}
+        </div>
+      )}
+
+      {/* ── Sugeridos ── */}
+      {tab === "sugeridos" && (
+        <div className="amigos-lista">
+          {sugeridos.length === 0 ? (
+            <div className="amigos-empty">
+              <span className="amigos-empty-icon">✦</span>
+              <p className="amigos-empty-title">Sin sugerencias por ahora</p>
+              <p className="amigos-empty-sub">A medida que más usuarios se unan aparecerán aquí</p>
+            </div>
+          ) : (
+            sugeridos.map(s => {
+              const enviada = solicitudesEnviadas.has(s.id);
+              return (
+                <div key={s.id} className="amigos-item">
+                  <div className="amigos-item-left" onClick={() => navigate(`/perfil/${s.username}`)}>
+                    <Avatar user={s} />
+                    <div className="amigos-item-info">
+                      <p className="amigos-item-nombre">{s.nombre || s.username}</p>
+                      <p className="amigos-item-username">@{s.username}</p>
+                    </div>
+                  </div>
+                  <div className="amigos-item-actions">
+                    <button
+                      className={`amigos-btn-ver ${enviada ? "amigos-btn-enviado" : ""}`}
+                      onClick={() => !enviada && enviarSolicitud(s)}
+                      disabled={enviada}
+                    >
+                      {enviada ? "⏳ Enviado" : "➕ Seguir"}
+                    </button>
+                  </div>
+                </div>
+              );
+            })
           )}
         </div>
       )}
