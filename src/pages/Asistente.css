@@ -1,11 +1,17 @@
 /* ── FONDO ── */
 .asistente-fondo {
+    position: fixed;
+  top: 64px;        /* ← altura exacta del navbar */
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   justify-content: center;
   align-items: flex-start;
   min-height: calc(100vh - 64px);
   background: var(--purple);
-  padding: 2rem;
+  padding: 3rem 2rem 2rem;  /* ← antes: padding: 2rem */
+  overflow: hidden;
 }
 
 .asistente-layout {
@@ -20,7 +26,7 @@
 /* ── CARD PRINCIPAL ── */
 .asistente-card {
   width: 100%;
-  height: 82vh;
+  height: calc(100vh - 64px - 3rem);  /* ← antes: height: 82vh */
   display: flex;
   flex-direction: column;
   background: rgba(12, 4, 28, 0.7);
@@ -45,47 +51,139 @@
   pointer-events: none;
 }
 
-/* ── HEADER ── */
-.asistente-header {
-  padding: 18px 24px;
-  border-bottom: 1px solid rgba(196, 181, 232, 0.07);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: rgba(196, 181, 232, 0.03);
-  flex-shrink: 0;
-}
-
-.asistente-header-left {
+/* ════════════════════════════════════════
+   HUD macOS
+════════════════════════════════════════ */
+.asistente-hud {
   display: flex;
   align-items: center;
   gap: 12px;
+  padding: 13px 18px;
+  border-bottom: 1px solid rgba(196, 181, 232, 0.07);
+  background: rgba(196, 181, 232, 0.03);
+  flex-shrink: 0;
+  user-select: none;
 }
 
+/* Traffic lights */
+.asistente-mac-dots {
+  display: flex;
+  gap: 7px;
+  flex-shrink: 0;
+}
+
+.asistente-mac-dot {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  position: relative;
+  display: block;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.asistente-mac-dot::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.22s ease;
+  background: radial-gradient(
+    circle at 30% 25%,
+    rgba(255,255,255,0.45) 0%,
+    rgba(255,255,255,0.08) 45%,
+    transparent 70%
+  );
+}
+
+.asistente-mac-dot::after {
+  content: "";
+  position: absolute;
+  top: 2px; left: 3px;
+  width: 5px; height: 3px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.55);
+  opacity: 0;
+  transition: opacity 0.22s ease;
+  filter: blur(0.5px);
+}
+
+.asistente-mac-dot.red {
+  background: radial-gradient(circle at 35% 35%, #ff8080, #ff5f57 50%, #d93b33);
+  box-shadow: 0 0 0 0.5px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.22);
+}
+
+.asistente-mac-dot.yellow {
+  background: radial-gradient(circle at 35% 35%, #ffd97a, #ffbd2e 50%, #cc8f00);
+  box-shadow: 0 0 0 0.5px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.22);
+}
+
+.asistente-mac-dot.green {
+  background: radial-gradient(circle at 35% 35%, #7de87d, #28c840 50%, #1a8a2a);
+  box-shadow: 0 0 0 0.5px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.22);
+}
+
+.asistente-mac-dots:hover .asistente-mac-dot { transform: scale(1.15); }
+.asistente-mac-dots:hover .asistente-mac-dot::before { opacity: 1; }
+.asistente-mac-dots:hover .asistente-mac-dot::after  { opacity: 1; }
+
+.asistente-mac-dots:hover .asistente-mac-dot.red {
+  background: radial-gradient(circle at 35% 35%, #ffaaaa, #ff5f57 40%, #cc2e26 80%, #ff5f57);
+  box-shadow: 0 0 0 0.5px rgba(0,0,0,0.4), 0 2px 8px rgba(255,95,87,0.5), inset 0 1px 0 rgba(255,255,255,0.3);
+}
+
+.asistente-mac-dots:hover .asistente-mac-dot.yellow {
+  background: radial-gradient(circle at 35% 35%, #ffe9a0, #ffbd2e 40%, #aa7000 80%, #ffbd2e);
+  box-shadow: 0 0 0 0.5px rgba(0,0,0,0.4), 0 2px 8px rgba(255,189,46,0.5), inset 0 1px 0 rgba(255,255,255,0.3);
+}
+
+.asistente-mac-dots:hover .asistente-mac-dot.green {
+  background: radial-gradient(circle at 35% 35%, #aaffaa, #28c840 40%, #0f6020 80%, #28c840);
+  box-shadow: 0 0 0 0.5px rgba(0,0,0,0.4), 0 2px 8px rgba(40,200,64,0.5), inset 0 1px 0 rgba(255,255,255,0.3);
+}
+
+/* Centro HUD — avatar + título centrados */
+.asistente-hud-center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* Derecha HUD — botón limpiar */
+.asistente-hud-right {
+  min-width: 46px;
+  display: flex;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+/* Avatar */
 .asistente-avatar {
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
   background: linear-gradient(135deg, rgba(196,181,232,0.25), rgba(196,181,232,0.08));
   border: 1px solid rgba(196,181,232,0.2);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
+  font-size: 0.9rem;
   flex-shrink: 0;
   box-shadow: 0 4px 12px rgba(196,181,232,0.1), inset 0 1px 0 rgba(196,181,232,0.15);
 }
 
 .asistente-header-info h1 {
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: #F4F4F9;
-  margin: 0 0 2px;
+  margin: 0 0 1px;
   letter-spacing: -0.01em;
 }
 
 .asistente-header-info p {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: rgba(244, 244, 249, 0.38);
   margin: 0;
   display: flex;
@@ -104,7 +202,7 @@
 
 @keyframes statusPulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  50%       { opacity: 0.5; }
 }
 
 /* ── CHAT BOX ── */
@@ -118,12 +216,9 @@
   scroll-behavior: smooth;
 }
 
-.chat-box::-webkit-scrollbar { width: 4px; }
+.chat-box::-webkit-scrollbar       { width: 4px; }
 .chat-box::-webkit-scrollbar-track { background: transparent; }
-.chat-box::-webkit-scrollbar-thumb {
-  background: rgba(196,181,232,0.15);
-  border-radius: 4px;
-}
+.chat-box::-webkit-scrollbar-thumb { background: rgba(196,181,232,0.15); border-radius: 4px; }
 .chat-box::-webkit-scrollbar-thumb:hover { background: rgba(196,181,232,0.3); }
 
 /* ── PLACEHOLDER ── */
@@ -206,7 +301,7 @@
   margin-bottom: 4px;
 }
 
-.chat-message-row.user { flex-direction: row-reverse; }
+.chat-message-row.user      { flex-direction: row-reverse; }
 .chat-message-row.assistant { flex-direction: row; }
 
 .chat-msg-avatar {
@@ -250,7 +345,7 @@
 }
 
 .chat-message-row.assistant .chat-msg-sender { color: rgba(196, 181, 232, 0.5); }
-.chat-message-row.user .chat-msg-sender { color: rgba(244, 244, 249, 0.35); }
+.chat-message-row.user .chat-msg-sender      { color: rgba(244, 244, 249, 0.35); }
 
 /* ── BURBUJAS ── */
 .chat-bubble {
@@ -300,7 +395,7 @@
 
 @keyframes dotBounce {
   0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-  30% { transform: translateY(-5px); opacity: 1; }
+  30%           { transform: translateY(-5px); opacity: 1; }
 }
 
 /* ── FORM INPUT ── */
@@ -345,8 +440,8 @@
   overflow-y: auto;
 }
 
-.asistente-form textarea::placeholder { color: rgba(244, 244, 249, 0.25); }
-.asistente-form textarea::-webkit-scrollbar { width: 3px; }
+.asistente-form textarea::placeholder          { color: rgba(244, 244, 249, 0.25); }
+.asistente-form textarea::-webkit-scrollbar    { width: 3px; }
 .asistente-form textarea::-webkit-scrollbar-thumb { background: rgba(196,181,232,0.2); border-radius: 3px; }
 
 /* ── BOTÓN ENVIAR ── */
@@ -401,6 +496,7 @@
   align-items: center;
   gap: 5px;
   font-family: inherit;
+  white-space: nowrap;
 }
 
 .btn-clear-chat:hover {
@@ -521,7 +617,7 @@
   color: rgba(244, 244, 249, 0.5);
 }
 
-/* ── CALENDARIO ACTIONS ── */
+/* ── CALENDARIO ── */
 .cal-actions {
   margin-top: 14px;
   display: flex;
@@ -610,15 +706,13 @@
 
 .cal-picker-close {
   position: absolute;
-  top: 14px;
-  right: 16px;
+  top: 14px; right: 16px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 50%;
   color: rgba(244, 244, 249, 0.4);
   font-size: 15px;
-  width: 28px;
-  height: 28px;
+  width: 28px; height: 28px;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
@@ -724,7 +818,7 @@
 
 /* ── BOTTOM SHEET — oculto en desktop ── */
 .outfit-sheet-backdrop { display: none; }
-.outfit-sheet { display: none; }
+.outfit-sheet          { display: none; }
 
 /* ── ANIMACIONES ── */
 @keyframes messageIn {
@@ -756,10 +850,15 @@ body.light-mode .asistente-card::before {
   background: linear-gradient(90deg, transparent, rgba(15,3,38,0.15), transparent) !important;
 }
 
-body.light-mode .asistente-header {
+/* HUD light */
+body.light-mode .asistente-hud {
   background: rgba(255, 255, 255, 0.3) !important;
   border-bottom-color: rgba(15, 3, 38, 0.07) !important;
 }
+
+body.light-mode .asistente-mac-dot.red    { box-shadow: 0 0 0 0.5px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3); }
+body.light-mode .asistente-mac-dot.yellow { box-shadow: 0 0 0 0.5px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3); }
+body.light-mode .asistente-mac-dot.green  { box-shadow: 0 0 0 0.5px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3); }
 
 body.light-mode .asistente-avatar {
   background: rgba(15, 3, 38, 0.08) !important;
@@ -767,8 +866,8 @@ body.light-mode .asistente-avatar {
 }
 
 body.light-mode .asistente-header-info h1 { color: #0F0326 !important; }
-body.light-mode .asistente-header-info p { color: rgba(15, 3, 38, 0.45) !important; }
-body.light-mode .asistente-status-dot { background: #4a7a42 !important; box-shadow: 0 0 6px #4a7a42 !important; }
+body.light-mode .asistente-header-info p  { color: rgba(15, 3, 38, 0.45) !important; }
+body.light-mode .asistente-status-dot     { background: #4a7a42 !important; box-shadow: 0 0 6px #4a7a42 !important; }
 
 body.light-mode .chat-hint {
   background: rgba(15, 3, 38, 0.04) !important;
@@ -815,7 +914,7 @@ body.light-mode .asistente-form-inner:focus-within {
   box-shadow: 0 0 0 3px rgba(15, 3, 38, 0.07) !important;
 }
 
-body.light-mode .asistente-form textarea { color: #0F0326 !important; }
+body.light-mode .asistente-form textarea           { color: #0F0326 !important; }
 body.light-mode .asistente-form textarea::placeholder { color: rgba(15, 3, 38, 0.3) !important; }
 
 body.light-mode .btn-recomendar {
@@ -834,7 +933,8 @@ body.light-mode .outfit-panel {
   border-color: rgba(15, 3, 38, 0.08) !important;
 }
 
-body.light-mode .outfit-panel h3 { color: rgba(15, 3, 38, 0.6) !important; }
+body.light-mode .outfit-panel h3  { color: rgba(15, 3, 38, 0.6) !important; }
+
 body.light-mode .outfit-placeholder {
   color: rgba(15, 3, 38, 0.35) !important;
   border-color: rgba(15, 3, 38, 0.08) !important;
@@ -885,9 +985,7 @@ body.light-mode .ocasion-chip.activa {
     background: var(--purple) !important;
   }
 
-  body.light-mode .asistente-fondo {
-    background: var(--green) !important;
-  }
+  body.light-mode .asistente-fondo { background: var(--green) !important; }
 
   .asistente-layout {
     display: flex !important;
@@ -910,7 +1008,25 @@ body.light-mode .ocasion-chip.activa {
     flex-direction: column !important;
   }
 
-  /* ── Chat scrollea — iOS y Android ── */
+  /* HUD compacto en mobile */
+  .asistente-hud { padding: 10px 14px !important; }
+
+  .asistente-mac-dot {
+    width: 11px !important;
+    height: 11px !important;
+  }
+
+  .asistente-header-info h1 { font-size: 0.82rem !important; }
+  .asistente-header-info p  { font-size: 0.68rem !important; }
+
+  .asistente-avatar {
+    width: 24px !important;
+    height: 24px !important;
+    font-size: 0.78rem !important;
+    border-radius: 7px !important;
+  }
+
+  /* Chat */
   .chat-box {
     flex: 1 !important;
     overflow-y: scroll !important;
@@ -922,7 +1038,7 @@ body.light-mode .ocasion-chip.activa {
     padding: 16px !important;
   }
 
-  /* ── Chips horizontal — iOS y Android ── */
+  /* Chips horizontal */
   .ocasion-chips-wrap {
     flex-shrink: 0 !important;
     overflow-x: scroll !important;
@@ -932,7 +1048,7 @@ body.light-mode .ocasion-chip.activa {
     padding: 8px 12px 6px !important;
   }
 
-  /* ── Input siempre accesible ── */
+  /* Input */
   .asistente-form {
     flex-shrink: 0 !important;
     padding: 10px 12px 12px !important;
@@ -942,24 +1058,17 @@ body.light-mode .ocasion-chip.activa {
     border-top: 1px solid rgba(196,181,232,0.08) !important;
   }
 
-  /* Evitar zoom en iOS y Android al tocar textarea */
-  .asistente-form textarea {
-    font-size: 16px !important;
-  }
+  .asistente-form textarea { font-size: 16px !important; }
 
-  body.light-mode .asistente-form {
-    background: rgba(255, 255, 255, 0.98) !important;
-  }
+  body.light-mode .asistente-form { background: rgba(255, 255, 255, 0.98) !important; }
 
   .outfit-panel { display: none !important; }
 
-  .chat-msg-content { max-width: 88% !important; }
-  .chat-bubble { font-size: 0.88rem !important; }
-  .chat-placeholder-hints { max-width: 100%; }
+  .chat-msg-content          { max-width: 88% !important; }
+  .chat-bubble               { font-size: 0.88rem !important; }
+  .chat-placeholder-hints    { max-width: 100%; }
 
-  /* ══════════════════════════════════════
-     BOTTOM SHEET
-  ══════════════════════════════════════ */
+  /* BOTTOM SHEET */
   .outfit-sheet-backdrop {
     display: block;
     position: fixed;
@@ -974,16 +1083,12 @@ body.light-mode .ocasion-chip.activa {
     transition: opacity 0.3s ease;
   }
 
-  .outfit-sheet-backdrop.open {
-    opacity: 1;
-    pointer-events: all;
-  }
+  .outfit-sheet-backdrop.open { opacity: 1; pointer-events: all; }
 
   .outfit-sheet {
     display: block;
     position: fixed;
-    left: 0;
-    right: 0;
+    left: 0; right: 0;
     bottom: calc(58px + env(safe-area-inset-bottom));
     z-index: 160;
     background: rgba(14, 4, 34, 0.98);
@@ -999,13 +1104,8 @@ body.light-mode .ocasion-chip.activa {
     max-height: 50dvh;
   }
 
-  .outfit-sheet.has-outfit {
-    transform: translateY(calc(100% - 72px));
-  }
-
-  .outfit-sheet.expanded {
-    transform: translateY(0);
-  }
+  .outfit-sheet.has-outfit  { transform: translateY(calc(100% - 72px)); }
+  .outfit-sheet.expanded    { transform: translateY(0); }
 
   .outfit-sheet-handle-wrap {
     padding: 8px 16px 10px;
@@ -1016,24 +1116,17 @@ body.light-mode .ocasion-chip.activa {
   }
 
   .outfit-sheet-handle {
-    width: 36px;
-    height: 4px;
+    width: 36px; height: 4px;
     background: rgba(196, 181, 232, 0.3);
     border-radius: 2px;
     margin: 0 auto 10px;
   }
 
-  .outfit-sheet-preview-bar {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .outfit-sheet-thumbs { display: flex; }
+  .outfit-sheet-preview-bar  { display: flex; align-items: center; gap: 12px; }
+  .outfit-sheet-thumbs       { display: flex; }
 
   .outfit-sheet-thumb {
-    width: 42px;
-    height: 42px;
+    width: 42px; height: 42px;
     border-radius: 12px;
     object-fit: cover;
     border: 2px solid rgba(14, 4, 34, 0.9);
@@ -1043,35 +1136,25 @@ body.light-mode .ocasion-chip.activa {
 
   .outfit-sheet-thumb:first-child { margin-left: 0; }
 
-  .outfit-sheet-info { flex: 1; min-width: 0; }
+  .outfit-sheet-info  { flex: 1; min-width: 0; }
 
   .outfit-sheet-title {
-    font-size: 0.88rem;
-    font-weight: 600;
-    color: rgba(244, 244, 249, 0.9);
-    margin: 0 0 2px;
+    font-size: 0.88rem; font-weight: 600;
+    color: rgba(244, 244, 249, 0.9); margin: 0 0 2px;
   }
 
   .outfit-sheet-sub {
-    font-size: 0.74rem;
-    color: rgba(244, 244, 249, 0.4);
-    margin: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 0.74rem; color: rgba(244, 244, 249, 0.4); margin: 0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
 
   .outfit-sheet-arrow {
-    font-size: 1rem;
-    color: rgba(196, 181, 232, 0.6);
-    flex-shrink: 0;
-    transition: transform 0.3s ease;
-    font-weight: 600;
+    font-size: 1rem; color: rgba(196, 181, 232, 0.6);
+    flex-shrink: 0; transition: transform 0.3s ease; font-weight: 600;
   }
 
   .outfit-sheet.expanded .outfit-sheet-arrow { transform: rotate(180deg); }
 
-  /* ── Contenido scrolleable — iOS y Android ── */
   .outfit-sheet-content {
     padding: 0 16px 16px;
     overflow-y: scroll !important;
@@ -1088,50 +1171,31 @@ body.light-mode .ocasion-chip.activa {
   .outfit-sheet-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    margin-bottom: 4px;
+    gap: 8px; margin-bottom: 4px;
   }
 
   .outfit-sheet-card {
     background: rgba(196, 181, 232, 0.06);
     border: 1px solid rgba(196, 181, 232, 0.1);
-    border-radius: 12px;
-    overflow: hidden;
-    text-align: center;
+    border-radius: 12px; overflow: hidden; text-align: center;
   }
 
-  .outfit-sheet-card img {
-    width: 100%;
-    height: 85px;
-    object-fit: cover;
-    display: block;
-  }
+  .outfit-sheet-card img { width: 100%; height: 85px; object-fit: cover; display: block; }
 
   .outfit-sheet-card p {
-    font-size: 0.68rem;
-    color: rgba(244, 244, 249, 0.55);
-    padding: 5px 4px;
-    margin: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 0.68rem; color: rgba(244, 244, 249, 0.55);
+    padding: 5px 4px; margin: 0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
 
-  .outfit-sheet-content .outfit-guardado-preview img {
-    max-height: 180px;
-    border-radius: 12px;
-  }
+  .outfit-sheet-content .outfit-guardado-preview img { max-height: 180px; border-radius: 12px; }
 
-  /* ── Modo claro sheet ── */
-  body.light-mode .outfit-sheet {
-    background: rgba(255, 255, 255, 0.98) !important;
-    border-color: rgba(15, 3, 38, 0.1) !important;
-  }
-
-  body.light-mode .outfit-sheet-handle { background: rgba(15, 3, 38, 0.18) !important; }
-  body.light-mode .outfit-sheet-title { color: #0F0326 !important; }
-  body.light-mode .outfit-sheet-sub { color: rgba(15, 3, 38, 0.4) !important; }
-  body.light-mode .outfit-sheet-arrow { color: rgba(15, 3, 38, 0.4) !important; }
-  body.light-mode .outfit-sheet-card { background: rgba(15,3,38,0.04) !important; border-color: rgba(15,3,38,0.08) !important; }
-  body.light-mode .outfit-sheet-card p { color: rgba(15,3,38,0.55) !important; }
+  /* Sheet light mode */
+  body.light-mode .outfit-sheet         { background: rgba(255, 255, 255, 0.98) !important; border-color: rgba(15, 3, 38, 0.1) !important; }
+  body.light-mode .outfit-sheet-handle  { background: rgba(15, 3, 38, 0.18) !important; }
+  body.light-mode .outfit-sheet-title   { color: #0F0326 !important; }
+  body.light-mode .outfit-sheet-sub     { color: rgba(15, 3, 38, 0.4) !important; }
+  body.light-mode .outfit-sheet-arrow   { color: rgba(15, 3, 38, 0.4) !important; }
+  body.light-mode .outfit-sheet-card    { background: rgba(15,3,38,0.04) !important; border-color: rgba(15,3,38,0.08) !important; }
+  body.light-mode .outfit-sheet-card p  { color: rgba(15,3,38,0.55) !important; }
 }

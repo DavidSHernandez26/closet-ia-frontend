@@ -1,305 +1,783 @@
-.closet-container {
+/* ═══════════════════════════════════════════
+   CLOSET — Be: Confident · macOS Fotos style
+   Liquid Glass · Sistema púrpura
+   ═══════════════════════════════════════════ */
+
+.mac-wrap {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 32px 24px 80px;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+/* ══════════════════════════════════
+   VENTANA macOS — liquid glass
+══════════════════════════════════ */
+.mac-window {
+  width: 100%;
+  max-width: 1100px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(12, 4, 28, 0.72);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border: 1px solid rgba(196, 181, 232, 0.12);
+  box-shadow:
+    0 0 0 0.5px rgba(196, 181, 232, 0.06),
+    0 32px 80px rgba(0, 0, 0, 0.75),
+    inset 0 1px 0 rgba(196, 181, 232, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
+  min-height: 560px;
+  position: relative;
+}
+
+/* Línea especular superior */
+.mac-window::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(196, 181, 232, 0.45),
+    transparent
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── Barra de título — liquid glass ── */
+.mac-titlebar {
+  display: flex;
   align-items: center;
-  padding: 100px 5vw 60px;
-  min-height: 100vh;
-  width: 100%;
-  box-sizing: border-box;
+  gap: 16px;
+  padding: 13px 18px;
+  background: rgba(196, 181, 232, 0.04);
+  border-bottom: 1px solid rgba(196, 181, 232, 0.08);
+  flex-shrink: 0;
+  user-select: none;
   position: relative;
   z-index: 1;
 }
 
-.closet-header {
-  text-align: center;
-  margin-bottom: 30px;
-  max-width: 700px;
+/* Traffic lights */
+.mac-dots { display: flex; gap: 7px; flex-shrink: 0; }
+
+.mac-dot {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  display: block;
+  position: relative;
+  flex-shrink: 0;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.closet-header h1 {
-  font-size: clamp(1.8rem, 2.4vw, 2.6rem);
-  font-weight: 600;
-  background: linear-gradient(90deg, #F4F4F9, #C4B5E8);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin: 0;
+.mac-dot::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.22s ease;
+  background: radial-gradient(
+    circle at 30% 25%,
+    rgba(255, 255, 255, 0.45) 0%,
+    rgba(255, 255, 255, 0.08) 45%,
+    transparent 70%
+  );
 }
 
-.closet-header p {
-  font-size: clamp(0.9rem, 1vw, 1rem);
-  color: rgba(244, 244, 249, 0.45);
-  margin-top: 8px;
+.mac-dot::after {
+  content: "";
+  position: absolute;
+  top: 2px; left: 3px;
+  width: 5px; height: 3px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55);
+  opacity: 0;
+  transition: opacity 0.22s ease;
+  filter: blur(0.5px);
 }
 
-/* ── TABS glass ── */
-.closet-tabs {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 35px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow:
-    0 0 0 1px rgba(196, 181, 232, 0.05),
-    0 8px 24px rgba(0,0,0,0.2),
-    inset 0 1px 0 rgba(255,255,255,0.07);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-radius: 14px;
-  padding: 4px;
+.mac-dot.red {
+  background: radial-gradient(circle at 35% 35%, #ff8080, #ff5f57 50%, #d93b33);
+  box-shadow: 0 0 0 0.5px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.22);
 }
 
-.tab-btn {
+.mac-dot.yellow {
+  background: radial-gradient(circle at 35% 35%, #ffd97a, #ffbd2e 50%, #cc8f00);
+  box-shadow: 0 0 0 0.5px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.22);
+}
+
+.mac-dot.green {
+  background: radial-gradient(circle at 35% 35%, #7de87d, #28c840 50%, #1a8a2a);
+  box-shadow: 0 0 0 0.5px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.22);
+}
+
+.mac-dots:hover .mac-dot              { transform: scale(1.15); }
+.mac-dots:hover .mac-dot::before      { opacity: 1; }
+.mac-dots:hover .mac-dot::after       { opacity: 1; }
+
+.mac-dots:hover .mac-dot.red {
+  background: radial-gradient(circle at 35% 35%, #ffaaaa, #ff5f57 40%, #cc2e26 80%, #ff5f57);
+  box-shadow: 0 0 0 0.5px rgba(0,0,0,0.4), 0 2px 8px rgba(255,95,87,0.5), inset 0 1px 0 rgba(255,255,255,0.3);
+}
+
+.mac-dots:hover .mac-dot.yellow {
+  background: radial-gradient(circle at 35% 35%, #ffe9a0, #ffbd2e 40%, #aa7000 80%, #ffbd2e);
+  box-shadow: 0 0 0 0.5px rgba(0,0,0,0.4), 0 2px 8px rgba(255,189,46,0.5), inset 0 1px 0 rgba(255,255,255,0.3);
+}
+
+.mac-dots:hover .mac-dot.green {
+  background: radial-gradient(circle at 35% 35%, #aaffaa, #28c840 40%, #0f6020 80%, #28c840);
+  box-shadow: 0 0 0 0.5px rgba(0,0,0,0.4), 0 2px 8px rgba(40,200,64,0.5), inset 0 1px 0 rgba(255,255,255,0.3);
+}
+
+.mac-title {
   flex: 1;
-  padding: 10px 32px;
-  border: none;
-  border-radius: 10px;
-  font-size: 0.9rem;
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: rgba(196, 181, 232, 0.55);
+  letter-spacing: 0.01em;
+  pointer-events: none;
+}
+
+/* ── Cuerpo: sidebar + content ── */
+.mac-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  min-height: 500px;
+}
+
+/* ── Sidebar — liquid glass ── */
+.mac-sidebar {
+  width: 180px;
+  flex-shrink: 0;
+  background: rgba(196, 181, 232, 0.03);
+  border-right: 1px solid rgba(196, 181, 232, 0.08);
+  padding: 14px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+}
+
+.mac-sidebar-section {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: rgba(196, 181, 232, 0.3);
+  margin: 0 8px 6px;
+  padding-top: 4px;
+}
+
+.mac-sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(244, 244, 249, 0.55);
+  font-size: 0.83rem;
   font-weight: 500;
   cursor: pointer;
-  background: transparent;
-  color: rgba(244, 244, 249, 0.4);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.tab-btn:hover {
-  color: var(--white);
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.tab-btn.activa {
-  background: rgba(196, 181, 232, 0.14);
-  color: #C4B5E8;
-  box-shadow:
-    0 0 0 1px rgba(196, 181, 232, 0.1),
-    0 2px 8px rgba(0,0,0,0.2),
-    inset 0 1px 0 rgba(196,181,232,0.1);
-}
-
-/* ── GRID ── */
-.closet-grid {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 24px;
+  text-align: left;
+  font-family: inherit;
+  transition: all 0.18s ease;
   width: 100%;
-  max-width: 1300px;
-  padding: 0 2vw;
-}
-
-.closet-card {
-  flex: 1 1 280px;
-  max-width: 320px;
-  background: rgba(196, 181, 232, 0.05);
-  backdrop-filter: blur(16px) saturate(160%);
-  border-radius: 22px;
-  overflow: hidden;
   position: relative;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.4);
-  border: 1px solid rgba(196, 181, 232, 0.1);
-  transition: transform 0.35s ease, box-shadow 0.35s ease;
-  cursor: pointer;
-}
-
-.closet-card:nth-child(odd) { transform: translateY(10px); }
-.closet-card:nth-child(even) { transform: translateY(-5px); }
-
-.closet-card:hover {
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 18px 45px rgba(0,0,0,0.55);
-  border-color: rgba(196, 181, 232, 0.22);
-}
-
-.image-box {
-  width: 100%;
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(15, 3, 38, 0.5);
 }
 
-.image-box img {
-  width: 100%;
-  height: auto;
-  object-fit: cover;
-  transition: transform 0.4s ease;
-}
-
-.image-box:hover img { transform: scale(1.05); }
-
-/* ── DELETE BTN glass ── */
-.delete-btn {
+/* Liquid glass hover en sidebar */
+.mac-sidebar-item::before {
+  content: "";
   position: absolute;
-  top: 8px;
-  right: 8px;
-  background: rgba(15, 3, 38, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border-radius: 50%;
-  color: var(--white);
-  width: 28px;
-  height: 28px;
-  font-size: 14px;
+  inset: 0;
+  border-radius: 8px;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+  background: radial-gradient(
+    ellipse at 30% 30%,
+    rgba(196, 181, 232, 0.12) 0%,
+    rgba(196, 181, 232, 0.03) 60%,
+    transparent 100%
+  );
+  box-shadow: inset 0 0 0 1px rgba(196, 181, 232, 0.1);
+}
+
+.mac-sidebar-item:hover::before { opacity: 1; }
+.mac-sidebar-item:hover         { color: rgba(244, 244, 249, 0.85); }
+
+.mac-sidebar-item.active {
+  color: #C4B5E8;
+}
+
+.mac-sidebar-item.active::before {
+  opacity: 1;
+  background: radial-gradient(
+    ellipse at 28% 28%,
+    rgba(196, 181, 232, 0.2) 0%,
+    rgba(196, 181, 232, 0.06) 55%,
+    transparent 80%
+  );
+  box-shadow:
+    inset 0 0 0 1px rgba(196, 181, 232, 0.2),
+    inset 0 1px 0 rgba(196, 181, 232, 0.25),
+    0 2px 8px rgba(196, 181, 232, 0.08);
+}
+
+.mac-sidebar-count {
+  margin-left: auto;
+  font-size: 0.72rem;
+  color: rgba(196, 181, 232, 0.35);
+  position: relative;
+}
+
+.mac-sidebar-stat {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  color: rgba(196, 181, 232, 0.35);
+}
+
+/* ── Área de fotos ── */
+.mac-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(196, 181, 232, 0.15) transparent;
+  background: rgba(8, 2, 20, 0.3);
+}
+
+.mac-content::-webkit-scrollbar       { width: 5px; }
+.mac-content::-webkit-scrollbar-thumb { background: rgba(196,181,232,0.15); border-radius: 5px; }
+
+/* ── Grid de fotos ── */
+.mac-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 3px;
+  width: 100%;
+}
+
+/* ── Thumbnail — liquid glass overlay ── */
+.mac-thumb {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 2;
+  background: rgba(196, 181, 232, 0.04);
+  border-radius: 4px;
+}
+
+.mac-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease, filter 0.2s ease;
+}
+
+.mac-thumb:hover img {
+  transform: scale(1.04);
+  filter: brightness(0.82);
+}
+
+/* Overlay liquid glass al hover */
+.mac-thumb::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  background: linear-gradient(
+    135deg,
+    rgba(196, 181, 232, 0.08) 0%,
+    transparent 50%,
+    rgba(0, 0, 0, 0.15) 100%
+  );
+}
+
+.mac-thumb:hover::after { opacity: 1; }
+
+/* Botón eliminar */
+.mac-thumb-del {
+  position: absolute;
+  top: 5px; right: 5px;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: rgba(12, 4, 28, 0.75);
+  border: 1px solid rgba(196, 181, 232, 0.15);
+  color: rgba(244, 244, 249, 0.7);
+  font-size: 0.65rem;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  opacity: 0;
+  transition: all 0.18s ease;
+  font-family: inherit;
+  backdrop-filter: blur(8px);
 }
 
-.delete-btn:hover {
-  background: rgba(255, 80, 80, 0.5);
-  border-color: rgba(255, 100, 100, 0.3);
+.mac-thumb:hover .mac-thumb-del { opacity: 1; }
+
+.mac-thumb-del:hover {
+  background: rgba(255, 59, 48, 0.65);
+  border-color: rgba(255, 59, 48, 0.3);
+  color: white;
   transform: scale(1.1);
-  box-shadow: 0 6px 16px rgba(255,80,80,0.2);
 }
 
-.card-info {
-  padding: 14px;
-  text-align: center;
-  background: rgba(15, 3, 38, 0.3);
-  border-top: 1px solid rgba(196, 181, 232, 0.08);
-}
-
-.tipo {
-  display: inline-block;
-  background: rgba(196, 181, 232, 0.12);
-  color: #C4B5E8;
+/* ── Loading ── */
+.mac-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  height: 100%;
+  min-height: 300px;
+  color: rgba(196, 181, 232, 0.35);
   font-size: 0.85rem;
-  font-weight: 600;
-  border-radius: 8px;
-  padding: 3px 10px;
-  margin-bottom: 6px;
 }
 
-.card-info p {
-  font-size: 0.9rem;
-  color: rgba(244, 244, 249, 0.55);
-  margin: 0;
-  line-height: 1.4;
+.mac-spinner {
+  width: 28px; height: 28px;
+  border: 2.5px solid rgba(196, 181, 232, 0.12);
+  border-top-color: rgba(196, 181, 232, 0.55);
+  border-radius: 50%;
+  animation: macSpin 0.8s linear infinite;
 }
 
-.loading, .no-items {
-  color: rgba(244, 244, 249, 0.35);
-  font-size: 1rem;
-  margin-top: 60px;
+@keyframes macSpin { to { transform: rotate(360deg); } }
+
+/* ── Empty ── */
+.mac-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 100%;
+  min-height: 300px;
+  text-align: center;
+  padding: 40px;
 }
 
-/* ── MODAL ── */
-.item-modal {
+.mac-empty-icon  { font-size: 3rem; line-height: 1; }
+.mac-empty-title { font-size: 1rem; font-weight: 600; color: rgba(196, 181, 232, 0.45); margin: 0; }
+.mac-empty-sub   { font-size: 0.82rem; color: rgba(196, 181, 232, 0.25); margin: 0; max-width: 220px; line-height: 1.5; }
+
+/* ══════════════════════════════════
+   MODAL DETALLE — liquid glass
+══════════════════════════════════ */
+.mac-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 3, 38, 0.8);
-  backdrop-filter: blur(25px) saturate(150%);
+  background: rgba(8, 2, 20, 0.82);
+  backdrop-filter: blur(24px) saturate(150%);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 999;
-  padding: 20px;
-  animation: fadeInBg 0.4s ease;
+  padding: 24px;
+  animation: macFadeIn 0.2s ease;
 }
 
-.modal-content {
-  position: relative;
-  background: rgba(25, 8, 55, 0.97);
+.mac-modal {
+  width: 100%;
+  max-width: 820px;
+  max-height: 88vh;
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(12, 4, 28, 0.88);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
   border: 1px solid rgba(196, 181, 232, 0.12);
-  border-radius: 28px;
-  padding: 25px;
-  max-width: 90vw;
-  width: 100%;
-  max-height: 90vh;
-  overflow: auto;
-  box-shadow: 0 25px 70px rgba(0,0,0,0.7);
-  animation: zoomInPhoto 0.4s ease;
+  box-shadow:
+    0 0 0 0.5px rgba(196, 181, 232, 0.06),
+    0 40px 100px rgba(0, 0, 0, 0.85),
+    inset 0 1px 0 rgba(196, 181, 232, 0.1);
+  display: flex;
+  flex-direction: column;
+  animation: macZoomIn 0.25s ease;
+  position: relative;
 }
 
-.modal-content img {
-  width: 100%;
-  height: auto;
-  max-height: 70vh;
-  border-radius: 18px;
-  margin-bottom: 20px;
-  object-fit: contain;
-}
-
-.modal-info h2 { color: var(--white); font-size: 1.2rem; margin-bottom: 8px; }
-.modal-info p { color: rgba(244, 244, 249, 0.55); }
-
-/* ── CLOSE MODAL glass ── */
-.close-modal {
+/* Línea especular modal */
+.mac-modal::before {
+  content: "";
   position: absolute;
-  top: 18px;
-  right: 22px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.08);
-  backdrop-filter: blur(8px);
-  border-radius: 50%;
-  color: var(--white);
-  font-size: 20px;
-  width: 38px;
-  height: 38px;
-  cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  top: 0; left: 10%; right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(196,181,232,0.4), transparent);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.mac-modal-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  background: rgba(196, 181, 232, 0.03);
+  border-bottom: 1px solid rgba(196, 181, 232, 0.07);
+  flex-shrink: 0;
+  user-select: none;
+  position: relative;
+  z-index: 1;
+}
+
+.mac-modal-body {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.mac-modal-img {
+  background: rgba(8, 2, 20, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 
-.close-modal:hover {
-  background: rgba(255, 80, 80, 0.4);
-  border-color: rgba(255, 100, 100, 0.3);
-  transform: scale(1.08);
-  box-shadow: 0 6px 20px rgba(255,80,80,0.2);
+.mac-modal-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  max-height: 70vh;
 }
 
-.outfit-prendas { margin-top: 16px; text-align: left; }
-
-.outfit-prendas h3 {
-  font-size: 0.95rem;
-  color: #C4B5E8;
-  margin-bottom: 8px;
-  font-weight: 500;
-}
-
-.outfit-prendas ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.mac-modal-info {
+  padding: 24px 20px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 12px;
+  overflow-y: auto;
+  border-left: 1px solid rgba(196, 181, 232, 0.07);
+  background: rgba(196, 181, 232, 0.02);
 }
 
-.outfit-prendas ul li {
-  background: rgba(196, 181, 232, 0.07);
-  border: 1px solid rgba(196, 181, 232, 0.1);
-  border-radius: 8px;
-  padding: 6px 12px;
+.mac-modal-tipo {
+  display: inline-block;
+  background: rgba(196, 181, 232, 0.1);
+  border: 1px solid rgba(196, 181, 232, 0.18);
+  color: #C4B5E8;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  border-radius: 6px;
+  padding: 3px 10px;
+  width: fit-content;
+  box-shadow: inset 0 1px 0 rgba(196, 181, 232, 0.1);
+}
+
+.mac-modal-desc {
   font-size: 0.88rem;
   color: rgba(244, 244, 249, 0.65);
+  line-height: 1.55;
+  margin: 0;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(15px); }
-  to { opacity: 1; transform: translateY(0); }
+.mac-modal-section-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(196, 181, 232, 0.35);
+  margin: 4px 0 4px;
 }
 
-@keyframes zoomInPhoto {
-  from { opacity: 0; transform: scale(0.85); }
-  to { opacity: 1; transform: scale(1); }
+.mac-modal-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+
+.mac-modal-chip {
+  background: rgba(196, 181, 232, 0.07);
+  border: 1px solid rgba(196, 181, 232, 0.1);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  color: rgba(244, 244, 249, 0.55);
 }
 
-@keyframes fadeInBg {
+.mac-modal-delete {
+  margin-top: auto;
+  background: rgba(255, 59, 48, 0.07);
+  border: 1px solid rgba(255, 59, 48, 0.16);
+  color: rgba(255, 100, 90, 0.85);
+  border-radius: 8px;
+  padding: 9px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  width: 100%;
+}
+
+.mac-modal-delete:hover {
+  background: rgba(255, 59, 48, 0.15);
+  border-color: rgba(255, 59, 48, 0.28);
+  color: #ff3b30;
+}
+
+/* ══════════════════════════════════
+   LIGHT MODE
+══════════════════════════════════ */
+body.light-mode .mac-window {
+  background: rgba(255, 255, 255, 0.5);
+  border-color: rgba(15, 3, 38, 0.1);
+  box-shadow:
+    0 0 0 0.5px rgba(15,3,38,0.05),
+    0 32px 80px rgba(15,3,38,0.18),
+    inset 0 1px 0 rgba(255,255,255,0.7);
+}
+
+body.light-mode .mac-window::before {
+  background: linear-gradient(90deg, transparent, rgba(15,3,38,0.15), transparent);
+}
+
+body.light-mode .mac-titlebar {
+  background: rgba(255,255,255,0.4);
+  border-bottom-color: rgba(15,3,38,0.08);
+}
+
+body.light-mode .mac-title          { color: rgba(15,3,38,0.45); }
+
+body.light-mode .mac-dot.red    { box-shadow: 0 0 0 0.5px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3); }
+body.light-mode .mac-dot.yellow { box-shadow: 0 0 0 0.5px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3); }
+body.light-mode .mac-dot.green  { box-shadow: 0 0 0 0.5px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3); }
+
+body.light-mode .mac-sidebar {
+  background: rgba(255,255,255,0.3);
+  border-right-color: rgba(15,3,38,0.08);
+}
+
+body.light-mode .mac-sidebar-section { color: rgba(15,3,38,0.35); }
+body.light-mode .mac-sidebar-item    { color: rgba(15,3,38,0.55); }
+body.light-mode .mac-sidebar-item:hover { color: #0F0326; }
+
+body.light-mode .mac-sidebar-item::before {
+  background: radial-gradient(ellipse at 30% 30%, rgba(15,3,38,0.08) 0%, transparent 70%);
+  box-shadow: inset 0 0 0 1px rgba(15,3,38,0.08);
+}
+
+body.light-mode .mac-sidebar-item.active {
+  color: #0F0326;
+}
+
+body.light-mode .mac-sidebar-item.active::before {
+  background: radial-gradient(ellipse at 28% 28%, rgba(15,3,38,0.12) 0%, rgba(15,3,38,0.04) 55%, transparent 80%);
+  box-shadow: inset 0 0 0 1px rgba(15,3,38,0.14), inset 0 1px 0 rgba(255,255,255,0.5);
+}
+
+body.light-mode .mac-sidebar-count { color: rgba(15,3,38,0.35); }
+body.light-mode .mac-sidebar-stat  { color: rgba(15,3,38,0.4); }
+
+body.light-mode .mac-content       { background: rgba(255,255,255,0.2); }
+body.light-mode .mac-thumb         { background: rgba(15,3,38,0.04); }
+
+body.light-mode .mac-thumb-del {
+  background: rgba(255,255,255,0.7);
+  border-color: rgba(15,3,38,0.12);
+  color: rgba(15,3,38,0.6);
+}
+
+body.light-mode .mac-empty-title { color: rgba(15,3,38,0.45); }
+body.light-mode .mac-empty-sub   { color: rgba(15,3,38,0.3); }
+
+body.light-mode .mac-loading { color: rgba(15,3,38,0.4); }
+body.light-mode .mac-spinner { border-color: rgba(15,3,38,0.1); border-top-color: rgba(15,3,38,0.45); }
+
+body.light-mode .mac-modal {
+  background: rgba(240, 236, 255, 0.92);
+  border-color: rgba(15,3,38,0.1);
+  box-shadow: 0 0 0 0.5px rgba(15,3,38,0.05), 0 40px 100px rgba(15,3,38,0.2), inset 0 1px 0 rgba(255,255,255,0.7);
+}
+
+body.light-mode .mac-modal::before {
+  background: linear-gradient(90deg, transparent, rgba(15,3,38,0.15), transparent);
+}
+
+body.light-mode .mac-modal-bar {
+  background: rgba(255,255,255,0.4);
+  border-bottom-color: rgba(15,3,38,0.07);
+}
+
+body.light-mode .mac-modal-img    { background: rgba(15,3,38,0.06); }
+body.light-mode .mac-modal-info   { border-left-color: rgba(15,3,38,0.07); background: rgba(255,255,255,0.2); }
+body.light-mode .mac-modal-tipo   { background: rgba(15,3,38,0.08); border-color: rgba(15,3,38,0.12); color: #0F0326; }
+body.light-mode .mac-modal-desc   { color: rgba(15,3,38,0.65); }
+body.light-mode .mac-modal-chip   { background: rgba(15,3,38,0.05); border-color: rgba(15,3,38,0.1); color: rgba(15,3,38,0.6); }
+body.light-mode .mac-modal-section-title { color: rgba(15,3,38,0.4); }
+
+/* ══════════════════════════════════
+   ANIMACIONES
+══════════════════════════════════ */
+@keyframes macFadeIn {
   from { opacity: 0; }
-  to { opacity: 1; }
+  to   { opacity: 1; }
+}
+
+@keyframes macZoomIn {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ══════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════ */
+@media (max-width: 768px) {
+  .mac-wrap    { padding: 12px 0 80px; }
+  .mac-window  { border-radius: 12px; min-height: unset; }
+  .mac-sidebar { display: none; }
+
+  .mac-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+  }
+
+  .mac-modal-body {
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+  }
+
+  .mac-modal-img {
+    max-height: 40vh;
+    min-height: 220px;
+  }
+
+  .mac-modal-info {
+    border-left: none;
+    border-top: 1px solid rgba(196,181,232,0.07);
+    max-height: 40vh;
+    overflow-y: auto;
+  }
+
+  body.light-mode .mac-modal-info { border-top-color: rgba(15,3,38,0.07); }
+}
+
+@media (max-width: 480px) {
+  .mac-grid { grid-template-columns: repeat(3, 1fr); gap: 1px; }
+}
+
+/* Switch — oculto en desktop, visible en mobile junto al título */
+.mac-switch-track {
+  display: none;
 }
 
 @media (max-width: 768px) {
-  .closet-container { padding: 80px 3vw; }
-  .closet-card { flex: 1 1 100%; }
-  .modal-content { padding: 15px; border-radius: 20px; }
+  .mac-switch-track {
+    display: flex;
+    position: relative;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 100px;
+    padding: 3px;
+    gap: 0;
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+
+  .mac-switch-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: calc(50% - 3px);
+    height: calc(100% - 6px);
+    border-radius: 100px;
+    pointer-events: none;
+    transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+    background:
+      radial-gradient(
+        ellipse at 28% 18%,
+        rgba(196, 181, 232, 0.26) 0%,
+        rgba(196, 181, 232, 0.07) 50%,
+        transparent 75%
+      ),
+      linear-gradient(
+        160deg,
+        rgba(196, 181, 232, 0.14) 0%,
+        rgba(196, 181, 232, 0.04) 50%,
+        rgba(196, 181, 232, 0.1) 100%
+      );
+    box-shadow:
+      inset 0 0 0 1px rgba(196, 181, 232, 0.26),
+      inset 0 1px 0 rgba(196, 181, 232, 0.35),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.15),
+      0 2px 8px rgba(196, 181, 232, 0.12);
+    overflow: hidden;
+  }
+
+  .mac-switch-thumb::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 18px;
+    height: 3px;
+    border-radius: 100px;
+    background: rgba(196, 181, 232, 0.5);
+    filter: blur(1.5px);
+  }
+
+  .mac-switch-btn {
+    position: relative;
+    z-index: 1;
+    padding: 5px 10px;
+    border-radius: 100px;
+    background: transparent;
+    color: rgba(244, 244, 249, 0.35);
+    font-size: 0.88rem;
+    cursor: pointer;
+    font-family: inherit;
+    transition: color 0.22s ease;
+    line-height: 1;
+  }
+
+  .mac-switch-btn.on { color: rgba(244, 244, 249, 0.9); }
+
+  /* En mobile el título se achica para dar espacio al switch */
+  .mac-title {
+    font-size: 0.75rem !important;
+    flex: 1;
+  }
+
+  /* Light mode */
+  body.light-mode .mac-switch-track {
+    background: rgba(255, 255, 255, 0.25);
+  }
+
+  body.light-mode .mac-switch-thumb {
+    background:
+      radial-gradient(ellipse at 28% 18%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.12) 50%, transparent 75%),
+      linear-gradient(160deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.08) 100%);
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,0.6),
+      inset 0 1px 0 rgba(255,255,255,0.8),
+      0 2px 8px rgba(0,0,0,0.06);
+  }
+
+  body.light-mode .mac-switch-thumb::after { background: rgba(255,255,255,0.75); }
+  body.light-mode .mac-switch-btn          { color: rgba(15,3,38,0.35); }
+  body.light-mode .mac-switch-btn.on       { color: #0F0326; }
 }

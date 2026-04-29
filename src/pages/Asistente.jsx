@@ -210,24 +210,33 @@ export default function Asistente({ usuarioId }) {
           {/* ── CHAT ── */}
           <div className="asistente-card">
 
-            {/* Header */}
-            <div className="asistente-header">
-              <div className="asistente-header-left">
-                <div className="asistente-avatar">✦</div>
-                <div className="asistente-header-info">
-                  <h1>Asistente de Moda</h1>
-                  <p>
-                    <span className="asistente-status-dot" />
-                    Activo · Closet IA
-                  </p>
-                </div>
-              </div>
-              {chat.length > 0 && (
-                <button className="btn-clear-chat" onClick={handleClearChat}>
-                  🗑 Limpiar
-                </button>
-              )}
-            </div>
+            {/* Header — HUD macOS */}
+<div className="asistente-hud">
+  <div className="asistente-mac-dots">
+    <span className="asistente-mac-dot red"    />
+    <span className="asistente-mac-dot yellow" />
+    <span className="asistente-mac-dot green"  />
+  </div>
+
+  <div className="asistente-hud-center">
+    <div className="asistente-avatar">✦</div>
+    <div className="asistente-header-info">
+      <h1>Asistente de Moda</h1>
+      <p>
+        <span className="asistente-status-dot" />
+        Activo · Closet IA
+      </p>
+    </div>
+  </div>
+
+  <div className="asistente-hud-right">
+    {chat.length > 0 && (
+      <button className="btn-clear-chat" onClick={handleClearChat}>
+        🗑 Limpiar
+      </button>
+    )}
+  </div>
+</div>
 
             {/* Mensajes */}
             <div className="chat-box">
