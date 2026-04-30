@@ -23,7 +23,7 @@ function getZIndex(tipo) {
   return z[tipo] || 2;
 }
 
-export default function VirtualMannequin({ outfit }) {
+export default function VirtualMannequin({ outfit, onSwap }) {
   if (!outfit || outfit.length === 0) return null;
 
   const prendas = outfit.map((p) => {
@@ -66,18 +66,20 @@ export default function VirtualMannequin({ outfit }) {
           {prendas.map((p) => (
             <div
               key={p.id}
-              className="mannequin-prenda"
+              className={`mannequin-prenda ${onSwap ? "swappable" : ""}`}
               style={{
                 top: p.pos.top,
                 height: p.pos.height,
                 zIndex: getZIndex(p.tipo),
               }}
+              onClick={() => onSwap && onSwap(p.tipo)}
             >
               <img
                 src={p.imagen_url}
                 alt={p.descripcion}
                 className="prenda-img"
               />
+              {onSwap && <div className="prenda-swap-badge">↕</div>}
               <span className="prenda-label">{p.descripcion?.split(" - ")[0]}</span>
             </div>
           ))}
@@ -87,9 +89,14 @@ export default function VirtualMannequin({ outfit }) {
       {/* Lista de prendas del outfit */}
       <div className="outfit-lista">
         {prendas.map((p) => (
-          <div key={p.id} className="outfit-chip">
+          <div
+            key={p.id}
+            className={`outfit-chip ${onSwap ? "swappable" : ""}`}
+            onClick={() => onSwap && onSwap(p.tipo)}
+          >
             <img src={p.imagen_url} alt={p.descripcion} />
             <span>{p.descripcion?.split(" - ")[0]}</span>
+            {onSwap && <span className="outfit-chip-swap">↕</span>}
           </div>
         ))}
       </div>

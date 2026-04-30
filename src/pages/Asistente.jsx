@@ -3,16 +3,33 @@ import axios from "axios";
 import "./Asistente.css";
 import VirtualMannequin from "../components/VirtualMannequin";
 import { API_URL } from "../config";
+import { supabase } from "../supabase";
+
+function getTipoPrenda(descripcion = "") {
+  const d = descripcion.toLowerCase();
+  if (d.includes("abrigo") || d.includes("chaqueta") || d.includes("jacket") || d.includes("hoodie") || d.includes("sudadera")) return "abrigo";
+  if (d.includes("gorra") || d.includes("cap") || d.includes("sombrero") || d.includes("accesorio")) return "accesorio";
+  if (d.includes("superior") || d.includes("camiseta") || d.includes("camisa") || d.includes("polo") || d.includes("blusa")) return "parte superior";
+  if (d.includes("inferior") || d.includes("pantalón") || d.includes("pantalon") || d.includes("jean") || d.includes("short") || d.includes("falda")) return "parte inferior";
+  if (d.includes("calzado") || d.includes("tenis") || d.includes("zapato") || d.includes("bota") || d.includes("zapatilla") || d.includes("sandalia")) return "calzado";
+  return "parte superior";
+}
 
 export default function Asistente({ usuarioId }) {
   const STORAGE_CHAT            = `asistente_chat_${usuarioId}`;
   const STORAGE_OUTFIT          = `asistente_outfit_${usuarioId}`;
   const STORAGE_OUTFIT_IDS      = `asistente_outfit_ids_${usuarioId}`;
   const STORAGE_OUTFIT_GUARDADO = `asistente_outfit_guardado_${usuarioId}`;
-  const STORAGE_CALENDARIO      = `calendario_outfits_${usuarioId}`;
 
-  const [mensaje, setMensaje] = useState("");
+  const [mensaje, setMensaje]               = useState("");
   const [showOutfitSheet, setShowOutfitSheet] = useState(false);
+  const [modo, setModo]                     = useState("chat"); // "chat" | "maniqui"
+  const [swapTipo, setSwapTipo]             = useState(null);
+  const [swapPrendas, setSwapPrendas]       = useState([]);
+  const [swapLoading, setSwapLoading]       = useState(false);
+  const [loadingManiqui, setLoadingManiqui] = useState(false);
+  const [ocasionManiqui, setOcasionManiqui] = useState(null);
+  const [token, setToken]                   = useState("");
 
   const [chat, setChat] = useState(() => {
     try { return JSON.parse(localStorage.getItem(STORAGE_CHAT)) || []; }
@@ -34,16 +51,22 @@ export default function Asistente({ usuarioId }) {
     catch { return null; }
   });
 
-  const [loading, setLoading] = useState(false);
-  const [showCalPicker, setShowCalPicker] = useState(false);
+  const [loading, setLoading]                     = useState(false);
+  const [showCalPicker, setShowCalPicker]         = useState(false);
   const [fechaSeleccionada, setFechaSeleccionada] = useState(
     new Date().toISOString().split("T")[0]
   );
   const [calConfirmado, setCalConfirmado] = useState(false);
   const [ocasionActiva, setOcasionActiva] = useState(null);
 
-  const chatEndRef = useRef(null);
+  const chatEndRef  = useRef(null);
   const textareaRef = useRef(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) =>
+      setToken(data?.session?.access_token || "")
+    );
+  }, []);
 
   useEffect(() => { localStorage.setItem(STORAGE_CHAT, JSON.stringify(chat)); }, [chat]);
   useEffect(() => { localStorage.setItem(STORAGE_OUTFIT, JSON.stringify(outfit)); }, [outfit]);
@@ -61,14 +84,12 @@ export default function Asistente({ usuarioId }) {
     }
   }, [mensaje]);
 
-  /* ── Auto abrir sheet cuando hay outfit nuevo ── */
   useEffect(() => {
     if (outfit.length > 0 || outfitGuardado) {
-      setShowOutfitSheet(false); // asoma pero no expande
+      setShowOutfitSheet(false);
     }
   }, [outfit, outfitGuardado]);
 
-  /* ── Ocasiones ── */
   const ocasiones = [
     { id: "casual",  icon: "👟", label: "Casual",  prompt: "Arma un outfit casual y cómodo para el día a día" },
     { id: "trabajo", icon: "💼", label: "Trabajo", prompt: "Necesito un outfit profesional para ir a trabajar u oficina" },
@@ -166,32 +187,79 @@ export default function Asistente({ usuarioId }) {
     textareaRef.current?.focus();
   }
 
-  function handleGuardarCalendario() {
-    const cal = (() => {
-      try { return JSON.parse(localStorage.getItem(STORAGE_CALENDARIO)) || {}; }
-      catch { return {}; }
-    })();
+  async function handleGuardarCalendario() {
+    try {
+      let imagen_url, descripcion, metadata;
+      if (outfitGuardado) {
+        imagen_url  = outfitGuardado.imagen_url;
+        descripcion = outfitGuardado.descripcion;
+        metadata    = outfitGuardado.metadata_ia || {};
+      } else if (outfit.length > 0) {
+        imagen_url  = outfit[0].imagen_url;
+        descripcion = outfit.map((p) => p.descripcion?.split("(")[0]?.trim()).join(", ");
+        metadata    = {};
+      } else return;
 
-    if (outfitGuardado) {
-      cal[fechaSeleccionada] = {
-        imagen_url: outfitGuardado.imagen_url,
-        descripcion: outfitGuardado.descripcion,
-        prendas: outfitGuardado.metadata_ia?.prendas || [],
-      };
-    } else if (outfit.length > 0) {
-      cal[fechaSeleccionada] = {
-        imagen_url: outfit[0].imagen_url,
-        descripcion: outfit.map((p) => p.descripcion?.split("(")[0]?.trim()).join(", "),
-        prendas: outfit.map((p) => ({
-          nombre: p.descripcion?.split("(")[0]?.trim(),
-          color: p.descripcion?.match(/\(([^)]+)\)/)?.[1] || "",
-        })),
-      };
+      await axios.post(`${API_URL}/api/calendario`, {
+        fecha: fechaSeleccionada,
+        imagen_url,
+        descripcion,
+        metadata,
+      }, { headers: { Authorization: `Bearer ${token}` } });
+
+      setShowCalPicker(false);
+      setCalConfirmado(true);
+    } catch (err) {
+      console.error("Error guardando en calendario:", err);
     }
+  }
 
-    localStorage.setItem(STORAGE_CALENDARIO, JSON.stringify(cal));
-    setShowCalPicker(false);
-    setCalConfirmado(true);
+  async function handleGenerarOutfit() {
+    if (loadingManiqui) return;
+    const ocas = ocasionManiqui || ocasiones[0];
+    setLoadingManiqui(true);
+    setCalConfirmado(false);
+    try {
+      const res = await axios.post(`${API_URL}/api/fashion`, {
+        usuario_id: usuarioId,
+        mensaje: ocas.prompt,
+        historial: [],
+        outfit_ids_anteriores: outfitIds,
+      });
+      if (Array.isArray(res.data?.outfit) && res.data.outfit.length > 0) {
+        setOutfit(res.data.outfit);
+        setOutfitIds(res.data.outfit.map((p) => p.id));
+        setOutfitGuardado(null);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingManiqui(false);
+    }
+  }
+
+  async function handleSwap(tipo) {
+    setSwapTipo(tipo);
+    setSwapLoading(true);
+    try {
+      const res = await axios.get(`${API_URL}/api/prendas`, {
+        params: { usuario_id: usuarioId },
+      });
+      setSwapPrendas(res.data || []);
+    } catch (err) {
+      console.error(err);
+      setSwapPrendas([]);
+    } finally {
+      setSwapLoading(false);
+    }
+  }
+
+  function handleSeleccionarPrenda(prenda) {
+    setOutfit(prev => {
+      const sinTipo = prev.filter(p => getTipoPrenda(p.descripcion || "") !== swapTipo);
+      return [...sinTipo, prenda];
+    });
+    setSwapTipo(null);
   }
 
   const tieneOutfit = outfit.length > 0 || !!outfitGuardado;
@@ -207,138 +275,202 @@ export default function Asistente({ usuarioId }) {
       <div className="asistente-fondo">
         <div className="asistente-layout">
 
-          {/* ── CHAT ── */}
+          {/* ── CARD PRINCIPAL ── */}
           <div className="asistente-card">
 
             {/* Header — HUD macOS */}
-<div className="asistente-hud">
-  <div className="asistente-mac-dots">
-    <span className="asistente-mac-dot red"    />
-    <span className="asistente-mac-dot yellow" />
-    <span className="asistente-mac-dot green"  />
-  </div>
+            <div className="asistente-hud">
+              <div className="asistente-mac-dots">
+                <span className="asistente-mac-dot red"    />
+                <span className="asistente-mac-dot yellow" />
+                <span className="asistente-mac-dot green"  />
+              </div>
 
-  <div className="asistente-hud-center">
-    <div className="asistente-avatar">✦</div>
-    <div className="asistente-header-info">
-      <h1>Asistente de Moda</h1>
-      <p>
-        <span className="asistente-status-dot" />
-        Activo · Closet IA
-      </p>
-    </div>
-  </div>
-
-  <div className="asistente-hud-right">
-    {chat.length > 0 && (
-      <button className="btn-clear-chat" onClick={handleClearChat}>
-        🗑 Limpiar
-      </button>
-    )}
-  </div>
-</div>
-
-            {/* Mensajes */}
-            <div className="chat-box">
-              {chat.length === 0 ? (
-                <div className="chat-placeholder">
-                  <div className="chat-placeholder-icon">✦</div>
-                  <p className="chat-placeholder-title">Tu estilista personal con IA</p>
-                  <div className="chat-placeholder-hints">
-                    {hints.map((h, i) => (
-                      <button key={i} className="chat-hint" onClick={() => handleHint(h)}>
-                        <span>"{h}"</span>
-                        <span className="chat-hint-arrow">→</span>
-                      </button>
-                    ))}
-                  </div>
+              <div className="asistente-hud-center">
+                <div className="asistente-avatar">✦</div>
+                <div className="asistente-header-info">
+                  <h1>{modo === "chat" ? "Asistente de Moda" : "Probador Virtual"}</h1>
+                  <p>
+                    <span className="asistente-status-dot" />
+                    Activo · Closet IA
+                  </p>
                 </div>
-              ) : (
-                chat.map((msg, i) => (
-                  <div key={i} className={`chat-message-row ${msg.role}`}>
-                    <div className={`chat-msg-avatar ${msg.role}`}>
-                      {msg.role === "assistant" ? "✦" : "👤"}
-                    </div>
-                    <div className="chat-msg-content">
-                      <span className="chat-msg-sender">
-                        {msg.role === "assistant" ? "Asistente" : "Tú"}
-                      </span>
-                      <div className={`chat-bubble ${msg.role}`}>
-                        {msg.text}
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
+              </div>
 
-              {loading && (
-                <div className="chat-message-row assistant">
-                  <div className="chat-msg-avatar assistant">✦</div>
-                  <div className="chat-msg-content">
-                    <span className="chat-msg-sender">Asistente</span>
-                    <div className="chat-bubble assistant">
-                      <div className="chat-loader">
-                        <span className="dot" />
-                        <span className="dot" />
-                        <span className="dot" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div ref={chatEndRef} />
+              <div className="asistente-hud-right">
+                {modo === "chat" && chat.length > 0 && (
+                  <button className="btn-clear-chat" onClick={handleClearChat}>
+                    🗑 Limpiar
+                  </button>
+                )}
+              </div>
             </div>
 
-            {/* ── CHIPS DE OCASIÓN ── */}
-            <div className="ocasion-chips-wrap">
-              {ocasiones.map((o) => (
+            {/* ── Modo toggle ── */}
+            <div className="modo-toggle-wrap">
+              <div className="modo-toggle">
                 <button
-                  key={o.id}
-                  className={`ocasion-chip ${ocasionActiva?.id === o.id ? "activa" : ""}`}
-                  onClick={() => handleOcasion(o)}
-                  disabled={loading}
+                  className={`modo-btn ${modo === "chat" ? "activo" : ""}`}
+                  onClick={() => setModo("chat")}
                 >
-                  <span className="ocasion-chip-icon">{o.icon}</span>
-                  <span>{o.label}</span>
+                  💬 Chat
                 </button>
-              ))}
-            </div>
-
-            {/* Input */}
-            <div className="asistente-form">
-              <div className="asistente-form-inner">
-                <textarea
-                  ref={textareaRef}
-                  placeholder={
-                    ocasionActiva
-                      ? `Outfit para ${ocasionActiva.label.toLowerCase()}... (personaliza si quieres)`
-                      : "Escribe tu pregunta... (Enter para enviar)"
-                  }
-                  value={mensaje}
-                  onChange={(e) => {
-                    setMensaje(e.target.value);
-                    if (ocasionActiva && e.target.value !== ocasionActiva.prompt) {
-                      setOcasionActiva(null);
-                    }
-                  }}
-                  onKeyDown={handleKeyDown}
-                  disabled={loading}
-                  rows={1}
-                />
                 <button
-                  onClick={handleRecommend}
-                  className="btn-recomendar"
-                  disabled={loading || !mensaje.trim()}
-                  title="Enviar"
+                  className={`modo-btn ${modo === "maniqui" ? "activo" : ""}`}
+                  onClick={() => setModo("maniqui")}
                 >
-                  <svg className="btn-send-icon" viewBox="0 0 24 24">
-                    <path d="M22 2L11 13" />
-                    <path d="M22 2L15 22L11 13L2 9L22 2Z" />
-                  </svg>
+                  👔 Probador
                 </button>
               </div>
             </div>
+
+            {modo === "chat" ? (
+              <>
+                {/* Mensajes */}
+                <div className="chat-box">
+                  {chat.length === 0 ? (
+                    <div className="chat-placeholder">
+                      <div className="chat-placeholder-icon">✦</div>
+                      <p className="chat-placeholder-title">Tu estilista personal con IA</p>
+                      <div className="chat-placeholder-hints">
+                        {hints.map((h, i) => (
+                          <button key={i} className="chat-hint" onClick={() => handleHint(h)}>
+                            <span>"{h}"</span>
+                            <span className="chat-hint-arrow">→</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    chat.map((msg, i) => (
+                      <div key={i} className={`chat-message-row ${msg.role}`}>
+                        <div className={`chat-msg-avatar ${msg.role}`}>
+                          {msg.role === "assistant" ? "✦" : "👤"}
+                        </div>
+                        <div className="chat-msg-content">
+                          <span className="chat-msg-sender">
+                            {msg.role === "assistant" ? "Asistente" : "Tú"}
+                          </span>
+                          <div className={`chat-bubble ${msg.role}`}>
+                            {msg.text}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+
+                  {loading && (
+                    <div className="chat-message-row assistant">
+                      <div className="chat-msg-avatar assistant">✦</div>
+                      <div className="chat-msg-content">
+                        <span className="chat-msg-sender">Asistente</span>
+                        <div className="chat-bubble assistant">
+                          <div className="chat-loader">
+                            <span className="dot" />
+                            <span className="dot" />
+                            <span className="dot" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div ref={chatEndRef} />
+                </div>
+
+                {/* ── CHIPS DE OCASIÓN ── */}
+                <div className="ocasion-chips-wrap">
+                  {ocasiones.map((o) => (
+                    <button
+                      key={o.id}
+                      className={`ocasion-chip ${ocasionActiva?.id === o.id ? "activa" : ""}`}
+                      onClick={() => handleOcasion(o)}
+                      disabled={loading}
+                    >
+                      <span className="ocasion-chip-icon">{o.icon}</span>
+                      <span>{o.label}</span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Input */}
+                <div className="asistente-form">
+                  <div className="asistente-form-inner">
+                    <textarea
+                      ref={textareaRef}
+                      placeholder={
+                        ocasionActiva
+                          ? `Outfit para ${ocasionActiva.label.toLowerCase()}... (personaliza si quieres)`
+                          : "Escribe tu pregunta... (Enter para enviar)"
+                      }
+                      value={mensaje}
+                      onChange={(e) => {
+                        setMensaje(e.target.value);
+                        if (ocasionActiva && e.target.value !== ocasionActiva.prompt) {
+                          setOcasionActiva(null);
+                        }
+                      }}
+                      onKeyDown={handleKeyDown}
+                      disabled={loading}
+                      rows={1}
+                    />
+                    <button
+                      onClick={handleRecommend}
+                      className="btn-recomendar"
+                      disabled={loading || !mensaje.trim()}
+                      title="Enviar"
+                    >
+                      <svg className="btn-send-icon" viewBox="0 0 24 24">
+                        <path d="M22 2L11 13" />
+                        <path d="M22 2L15 22L11 13L2 9L22 2Z" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              /* ── MODO MANIQUÍ ── */
+              <div className="maniqui-ctrl">
+                <div className="maniqui-ctrl-body">
+                  <p className="maniqui-ctrl-hint">
+                    Elige una ocasión y genera un outfit completo con tus prendas
+                  </p>
+                  <div className="ocasion-chips-wrap maniqui-chips">
+                    {ocasiones.map((o) => (
+                      <button
+                        key={o.id}
+                        className={`ocasion-chip ${ocasionManiqui?.id === o.id ? "activa" : ""}`}
+                        onClick={() => setOcasionManiqui(prev => prev?.id === o.id ? null : o)}
+                        disabled={loadingManiqui}
+                      >
+                        <span className="ocasion-chip-icon">{o.icon}</span>
+                        <span>{o.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                  {outfit.length > 0 && (
+                    <p className="maniqui-swap-hint">
+                      Toca una prenda en el maniquí para cambiarla por algo de tu closet
+                    </p>
+                  )}
+                </div>
+                <div className="maniqui-ctrl-footer">
+                  <button
+                    className="btn-generar-outfit"
+                    onClick={handleGenerarOutfit}
+                    disabled={loadingManiqui}
+                  >
+                    {loadingManiqui ? (
+                      <div className="chat-loader">
+                        <span className="dot" /><span className="dot" /><span className="dot" />
+                      </div>
+                    ) : (
+                      outfit.length > 0 ? "🔄 Regenerar outfit" : "✨ Generar outfit"
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* ── PANEL OUTFIT desktop ── */}
@@ -368,7 +500,10 @@ export default function Asistente({ usuarioId }) {
                 <p>Las prendas recomendadas aparecerán aquí</p>
               </div>
             ) : (
-              <VirtualMannequin outfit={outfit} />
+              <VirtualMannequin
+                outfit={outfit}
+                onSwap={modo === "maniqui" ? handleSwap : undefined}
+              />
             )}
 
             {tieneOutfit && !loading && (
@@ -407,11 +542,39 @@ export default function Asistente({ usuarioId }) {
             </div>
           </div>
         )}
+
+        {/* ── Modal swap (intercambiar prenda) ── */}
+        {swapTipo && (
+          <div className="cal-picker-overlay" onClick={() => setSwapTipo(null)}>
+            <div className="swap-modal" onClick={(e) => e.stopPropagation()}>
+              <button className="cal-picker-close" onClick={() => setSwapTipo(null)}>✕</button>
+              <h3>Cambiar {swapTipo}</h3>
+              <p>Elige una prenda de tu closet</p>
+              {swapLoading ? (
+                <div className="swap-loading">
+                  <div className="chat-loader">
+                    <span className="dot" /><span className="dot" /><span className="dot" />
+                  </div>
+                </div>
+              ) : swapPrendas.length === 0 ? (
+                <p className="swap-empty">No tienes prendas en tu closet.</p>
+              ) : (
+                <div className="swap-grid">
+                  {swapPrendas.map(p => (
+                    <div key={p.id} className="swap-item" onClick={() => handleSeleccionarPrenda(p)}>
+                      <img src={p.imagen_url} alt={p.descripcion} />
+                      <span>{p.descripcion?.split(" - ")[0]}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ══════════════════════════════════════
           📱 BOTTOM SHEET — fuera del fondo
-          para que position:fixed funcione
       ══════════════════════════════════════ */}
       {tieneOutfit && (
         <div
@@ -463,15 +626,19 @@ export default function Asistente({ usuarioId }) {
                 </div>
               )}
             </div>
-          ) : (
-            <div className="outfit-sheet-grid">
-              {outfit.map((p, i) => (
-                <div key={i} className="outfit-sheet-card">
-                  <img src={p.imagen_url} alt={p.descripcion} />
-                  <p>{p.descripcion?.split("(")[0]?.trim()}</p>
-                </div>
-              ))}
-            </div>
+          ) : outfit.length > 0 && (
+            modo === "maniqui" ? (
+              <VirtualMannequin outfit={outfit} onSwap={handleSwap} />
+            ) : (
+              <div className="outfit-sheet-grid">
+                {outfit.map((p, i) => (
+                  <div key={i} className="outfit-sheet-card">
+                    <img src={p.imagen_url} alt={p.descripcion} />
+                    <p>{p.descripcion?.split("(")[0]?.trim()}</p>
+                  </div>
+                ))}
+              </div>
+            )
           )}
 
           <div className="cal-actions" style={{ marginTop: 16 }}>

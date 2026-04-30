@@ -147,3 +147,51 @@ body.light-mode .outfit-chip:hover {
 body.light-mode .outfit-chip img { background: rgba(255, 255, 255, 0.5); }
 body.light-mode .chip-nombre { color: rgba(15, 3, 38, 0.8); }
 body.light-mode .chip-tipo { color: rgba(15, 3, 38, 0.45); }
+
+/* ── SWAP MODE ── */
+.mannequin-prenda.swappable {
+  cursor: pointer;
+}
+
+.mannequin-prenda.swappable:hover .prenda-img {
+  opacity: 0.7;
+}
+
+.prenda-swap-badge {
+  position: absolute;
+  top: 2px;
+  right: -2px;
+  background: rgba(196, 181, 232, 0.9);
+  color: #0F0326;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 0.65rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.mannequin-prenda.swappable:hover .prenda-swap-badge { opacity: 1; }
+
+.outfit-chip.swappable {
+  cursor: pointer;
+}
+
+.outfit-chip.swappable:hover {
+  border-color: rgba(196, 181, 232, 0.35) !important;
+  background: rgba(196, 181, 232, 0.1) !important;
+  transform: translateX(3px);
+}
+
+.outfit-chip-swap {
+  margin-left: auto;
+  font-size: 0.8rem;
+  color: rgba(196, 181, 232, 0.5);
+  flex-shrink: 0;
+}
