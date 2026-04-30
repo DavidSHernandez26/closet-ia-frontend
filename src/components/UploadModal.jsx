@@ -1,8 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./UploadModal.css";
 import { supabase } from "../supabase";
 import axios from "axios";
 import { API_URL } from "../config";
+
+const ETAPAS = [
+  { hasta: 20,  label: "📤 Subiendo imagen..." },
+  { hasta: 65,  label: "✂️ Removiendo fondo..." },
+  { hasta: 90,  label: "🧠 Analizando con IA..." },
+  { hasta: 100, label: "✅ ¡Listo!" },
+];
+
+function etapaLabel(progreso) {
+  return ETAPAS.find(e => progreso <= e.hasta)?.label || "✅ ¡Listo!";
+}
 
 export default function UploadModal({ onClose, onUploaded }) {
   const [tipo, setTipo] = useState("");
@@ -10,18 +21,39 @@ export default function UploadModal({ onClose, onUploaded }) {
   const [preview, setPreview] = useState("");
   const [mensajeIA, setMensajeIA] = useState("");
   const [loading, setLoading] = useState(false);
+  const [progreso, setProgreso] = useState(0);
+  const intervaloRef = useRef(null);
+
+  function iniciarProgreso() {
+    setProgreso(0);
+    intervaloRef.current = setInterval(() => {
+      setProgreso(prev => {
+        if (prev >= 90) { clearInterval(intervaloRef.current); return 90; }
+        // Avanza rápido al inicio, lento en el medio (simula el proceso real)
+        const incremento = prev < 20 ? 4 : prev < 65 ? 0.8 : 0.3;
+        return Math.min(prev + incremento, 90);
+      });
+    }, 200);
+  }
+
+  function completarProgreso() {
+    clearInterval(intervaloRef.current);
+    setProgreso(100);
+  }
+
+  useEffect(() => () => clearInterval(intervaloRef.current), []);
 
   async function handleUpload() {
     if (!file || !tipo) return alert("Selecciona el tipo y una imagen antes de subir.");
 
     try {
       setLoading(true);
-      setMensajeIA("🧠 Analizando y procesando imagen...");
+      setMensajeIA("");
+      iniciarProgreso();
 
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError || !user) throw new Error("Usuario no autenticado");
 
-      /* ── Enviar archivo directo al backend ── */
       const formData = new FormData();
       formData.append("imagen", file);
       formData.append("usuario_id", user.id);
@@ -32,13 +64,14 @@ export default function UploadModal({ onClose, onUploaded }) {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
+      completarProgreso();
       setMensajeIA(res.data?.mensaje ? `✅ ${res.data.mensaje}` : "✅ Imagen analizada correctamente.");
       if (onUploaded) onUploaded();
-      setFile(null);
-      setPreview("");
-      setTipo("");
+      setTimeout(() => { setFile(null); setPreview(""); setTipo(""); setProgreso(0); }, 1500);
     } catch (err) {
       console.error("❌ Error:", err);
+      clearInterval(intervaloRef.current);
+      setProgreso(0);
       setMensajeIA("⚠️ Ocurrió un error al subir o analizar la imagen.");
     } finally {
       setLoading(false);
@@ -116,14 +149,23 @@ export default function UploadModal({ onClose, onUploaded }) {
               onClick={handleUpload}
               disabled={loading || !file}
             >
-              {loading ? (
-                <span className="loader">
-                  <span className="dot"></span>
-                  <span className="dot"></span>
-                  <span className="dot"></span>
-                </span>
-              ) : "🚀 Subir imagen"}
+              {loading ? "Procesando..." : "🚀 Subir imagen"}
             </button>
+
+            {loading && (
+              <div className="progress-wrap">
+                <div className="progress-header">
+                  <span className="progress-label">{etapaLabel(progreso)}</span>
+                  <span className="progress-pct">{Math.round(progreso)}%</span>
+                </div>
+                <div className="progress-track">
+                  <div
+                    className="progress-fill"
+                    style={{ width: `${progreso}%` }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         )}
 
