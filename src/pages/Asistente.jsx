@@ -511,13 +511,35 @@ export default function Asistente({ usuarioId }) {
 
           {/* ── PANEL OUTFIT desktop — solo en modo chat ── */}
           {modo === "chat" && <div className="outfit-panel">
-            <div className="outfit-panel-header">
-              <div className="outfit-panel-icon">👔</div>
-              <h3>Outfit sugerido</h3>
+
+            {/* HUD macOS */}
+            <div className="outfit-panel-hud">
+              <div className="asistente-mac-dots">
+                <span className="asistente-mac-dot red"    />
+                <span className="asistente-mac-dot yellow" />
+                <span className="asistente-mac-dot green"  />
+              </div>
+              <div className="outfit-panel-hud-center">
+                <div className="outfit-panel-icon">👔</div>
+                <h3>Outfit sugerido</h3>
+              </div>
+              <div className="outfit-panel-hud-right">
+                {tieneOutfit && !loading && (
+                  calConfirmado ? (
+                    <span className="cal-confirmado-badge" title="Guardado en el calendario">✅</span>
+                  ) : (
+                    <button className="btn-add-cal-icon" title="Agregar al calendario" onClick={() => {
+                      setFechaSeleccionada(new Date().toISOString().split("T")[0]);
+                      setShowCalPicker(true);
+                    }}>📅</button>
+                  )
+                )}
+              </div>
             </div>
 
-            {outfitGuardado ? (
-              <div className="outfit-guardado-wrap">
+            {/* Contenido */}
+            <div className="outfit-panel-body">
+              {outfitGuardado ? (
                 <div className="outfit-guardado-preview">
                   <img src={outfitGuardado.imagen_url} alt={outfitGuardado.descripcion} />
                   <p>{outfitGuardado.descripcion}</p>
@@ -531,40 +553,18 @@ export default function Asistente({ usuarioId }) {
                     </div>
                   )}
                 </div>
-                {!loading && (
-                  <div className="cal-actions-float">
-                    {calConfirmado ? (
-                      <span className="cal-confirmado-badge" title="Guardado en el calendario">✅</span>
-                    ) : (
-                      <button className="btn-add-cal-icon" title="Agregar al calendario" onClick={() => {
-                        setFechaSeleccionada(new Date().toISOString().split("T")[0]);
-                        setShowCalPicker(true);
-                      }}>📅</button>
-                    )}
-                  </div>
-                )}
-              </div>
-            ) : outfit.length === 0 ? (
-              <div className="outfit-placeholder">
-                <span className="outfit-placeholder-icon">✦</span>
-                <p>Las prendas recomendadas aparecerán aquí</p>
-              </div>
-            ) : (
-              <VirtualMannequin
-                outfit={outfit}
-                onSwap={modo === "maniqui" ? handleSwap : undefined}
-                calAction={!loading && (
-                  calConfirmado ? (
-                    <span className="cal-confirmado-badge" title="Guardado en el calendario">✅</span>
-                  ) : (
-                    <button className="btn-add-cal-icon" title="Agregar al calendario" onClick={() => {
-                      setFechaSeleccionada(new Date().toISOString().split("T")[0]);
-                      setShowCalPicker(true);
-                    }}>📅</button>
-                  )
-                )}
-              />
-            )}
+              ) : outfit.length === 0 ? (
+                <div className="outfit-placeholder">
+                  <span className="outfit-placeholder-icon">✦</span>
+                  <p>Las prendas recomendadas aparecerán aquí</p>
+                </div>
+              ) : (
+                <VirtualMannequin
+                  outfit={outfit}
+                  onSwap={modo === "maniqui" ? handleSwap : undefined}
+                />
+              )}
+            </div>
           </div>}
         </div>
 

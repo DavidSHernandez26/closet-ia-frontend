@@ -511,7 +511,6 @@
   -webkit-backdrop-filter: blur(28px) saturate(180%);
   border: 1px solid rgba(196, 181, 232, 0.1);
   border-radius: 24px;
-  padding: 22px;
   color: var(--white);
   box-shadow:
     0 0 0 1px rgba(196,181,232,0.03),
@@ -533,34 +532,65 @@
   pointer-events: none;
 }
 
-.outfit-panel-header {
+/* ── HUD macOS (igual que asistente) ── */
+.outfit-panel-hud {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 18px;
+  gap: 12px;
+  padding: 13px 18px;
+  border-bottom: 1px solid rgba(196, 181, 232, 0.07);
+  background: rgba(196, 181, 232, 0.03);
   flex-shrink: 0;
+  user-select: none;
 }
 
-.outfit-panel-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  background: rgba(196,181,232,0.1);
-  border: 1px solid rgba(196,181,232,0.15);
+.outfit-panel-hud-center {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.9rem;
-  flex-shrink: 0;
+  gap: 10px;
 }
 
-.outfit-panel h3 {
+.outfit-panel-hud h3 {
   font-size: 0.9rem;
   font-weight: 600;
   color: rgba(244, 244, 249, 0.7);
   margin: 0;
   letter-spacing: -0.01em;
 }
+
+.outfit-panel-hud-right {
+  min-width: 36px;
+  display: flex;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+.outfit-panel-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  background: linear-gradient(135deg, rgba(196,181,232,0.25), rgba(196,181,232,0.08));
+  border: 1px solid rgba(196,181,232,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(196,181,232,0.1), inset 0 1px 0 rgba(196,181,232,0.15);
+}
+
+/* ── Cuerpo del panel (debajo del HUD) ── */
+.outfit-panel-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px 22px 22px;
+  scrollbar-width: none;
+}
+
+.outfit-panel-body::-webkit-scrollbar { display: none; }
 
 .outfit-placeholder {
   display: flex;
@@ -579,26 +609,8 @@
 
 .outfit-placeholder-icon { font-size: 2rem; opacity: 0.4; }
 
-/* ── VirtualMannequin en panel ── */
-.outfit-panel .mannequin-wrapper {
-  overflow-y: auto;
-}
 
 /* ── OUTFIT GUARDADO ── */
-.outfit-guardado-wrap {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  position: relative;
-}
-
-.outfit-guardado-wrap .cal-actions-float {
-  bottom: 0;
-  top: auto;
-}
-
 .outfit-guardado-preview {
   display: flex;
   flex-direction: column;
@@ -975,7 +987,17 @@ body.light-mode .outfit-panel {
   border-color: rgba(15, 3, 38, 0.08) !important;
 }
 
-body.light-mode .outfit-panel h3  { color: rgba(15, 3, 38, 0.6) !important; }
+body.light-mode .outfit-panel-hud {
+  background: rgba(255, 255, 255, 0.3) !important;
+  border-bottom-color: rgba(15, 3, 38, 0.07) !important;
+}
+
+body.light-mode .outfit-panel-hud h3  { color: rgba(15, 3, 38, 0.6) !important; }
+
+body.light-mode .outfit-panel-icon {
+  background: rgba(15, 3, 38, 0.08) !important;
+  border-color: rgba(15, 3, 38, 0.12) !important;
+}
 
 body.light-mode .outfit-placeholder {
   color: rgba(15, 3, 38, 0.35) !important;
