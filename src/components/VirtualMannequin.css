@@ -1,7 +1,7 @@
 .mannequin-wrapper {
   display: flex;
-  flex-direction: row;
-  align-items: flex-start;
+  flex-direction: column;
+  align-items: center;
   gap: 14px;
   width: 100%;
   padding: 8px 0;
@@ -173,23 +173,14 @@
 
 .mannequin-prenda:hover .prenda-label { opacity: 1; }
 
-/* ── COLUMNA DERECHA ── */
-.mannequin-right-col {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-width: 0;
-  min-height: 0;
-  max-height: 300px;
-}
-
-/* ── LISTA ── */
+/* ── LISTA (abajo del maniquí) ── */
 .outfit-lista {
   display: flex;
   flex-direction: column;
   gap: 7px;
-  flex: 1;
-  min-height: 0;
+  width: 100%;
+  /* ~5 items: cada chip ≈54px + 4 gaps de 7px = 298px */
+  max-height: 300px;
   overflow-y: auto;
   scrollbar-width: none;
   padding-top: 2px;
@@ -197,11 +188,11 @@
 
 .outfit-lista::-webkit-scrollbar { display: none; }
 
-/* ── OVERLAY botón (esquina sup. izq. del maniquí) ── */
+/* ── OVERLAY botón (esquina sup. der. del maniquí) ── */
 .mannequin-cal-overlay {
   position: absolute;
   top: 6px;
-  left: 6px;
+  right: 6px;
   z-index: 20;
 }
 

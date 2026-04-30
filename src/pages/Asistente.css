@@ -579,17 +579,9 @@
 
 .outfit-placeholder-icon { font-size: 2rem; opacity: 0.4; }
 
-/* ── VirtualMannequin fill panel ── */
+/* ── VirtualMannequin en panel ── */
 .outfit-panel .mannequin-wrapper {
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-}
-
-.outfit-panel .mannequin-right-col {
-  max-height: unset;
-  flex: 1;
-  min-height: 0;
+  overflow-y: auto;
 }
 
 /* ── OUTFIT GUARDADO ── */

@@ -111,24 +111,22 @@ export default function VirtualMannequin({ outfit, onSwap, calAction }) {
         )}
       </div>
 
-      {/* ── Columna derecha: lista ── */}
-      <div className="mannequin-right-col">
-        <div className="outfit-lista">
-          {prendas.map((p) => (
-            <div
-              key={p.id}
-              className={`outfit-chip ${onSwap ? "swappable" : ""}`}
-              onClick={() => onSwap && onSwap(p.tipo)}
-            >
-              <img src={p.imagen_url} alt={p.descripcion} />
-              <div className="outfit-chip-info">
-                <span className="outfit-chip-nombre">{p.descripcion?.split(" - ")[0]}</span>
-                <span className="outfit-chip-tipo">{ETIQUETAS[p.tipo] || p.tipo}</span>
-              </div>
-              {onSwap && <span className="outfit-chip-swap">↕</span>}
+      {/* ── Lista abajo del maniquí ── */}
+      <div className="outfit-lista">
+        {prendas.map((p) => (
+          <div
+            key={p.id}
+            className={`outfit-chip ${onSwap ? "swappable" : ""}`}
+            onClick={() => onSwap && onSwap(p.tipo)}
+          >
+            <img src={p.imagen_url} alt={p.descripcion} />
+            <div className="outfit-chip-info">
+              <span className="outfit-chip-nombre">{p.descripcion?.split(" - ")[0]}</span>
+              <span className="outfit-chip-tipo">{ETIQUETAS[p.tipo] || p.tipo}</span>
             </div>
-          ))}
-        </div>
+            {onSwap && <span className="outfit-chip-swap">↕</span>}
+          </div>
+        ))}
       </div>
     </div>
   );
