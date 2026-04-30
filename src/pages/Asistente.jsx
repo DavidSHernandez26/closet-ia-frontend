@@ -63,14 +63,24 @@ export default function Asistente({ usuarioId }) {
   const [calConfirmado, setCalConfirmado] = useState(false);
   const [ocasionActiva, setOcasionActiva] = useState(null);
 
-  const chatEndRef  = useRef(null);
-  const textareaRef = useRef(null);
+  const chatEndRef       = useRef(null);
+  const textareaRef      = useRef(null);
+  const prendasCacheRef  = useRef(null);   // cache de prendas para el swap modal
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) =>
       setToken(data?.session?.access_token || "")
     );
   }, []);
+
+  // Prefetch prendas al entrar al modo probador para que el swap sea instantáneo
+  useEffect(() => {
+    if (modo === "maniqui" && !prendasCacheRef.current && usuarioId) {
+      axios.get(`${API_URL}/api/prendas`, { params: { usuario_id: usuarioId } })
+        .then(res => { prendasCacheRef.current = res.data || []; })
+        .catch(() => {});
+    }
+  }, [modo, usuarioId]);
 
   useEffect(() => { localStorage.setItem(STORAGE_CHAT, JSON.stringify(chat)); }, [chat]);
   useEffect(() => { localStorage.setItem(STORAGE_OUTFIT, JSON.stringify(outfit)); }, [outfit]);
@@ -244,12 +254,18 @@ export default function Asistente({ usuarioId }) {
 
   async function handleSwap(tipo) {
     setSwapTipo(tipo);
+    // Si ya tenemos prendas cacheadas, las usamos sin mostrar loading
+    if (prendasCacheRef.current) {
+      setSwapPrendas(prendasCacheRef.current);
+      return;
+    }
     setSwapLoading(true);
     try {
       const res = await axios.get(`${API_URL}/api/prendas`, {
         params: { usuario_id: usuarioId },
       });
-      setSwapPrendas(res.data || []);
+      prendasCacheRef.current = res.data || [];
+      setSwapPrendas(prendasCacheRef.current);
     } catch (err) {
       console.error(err);
       setSwapPrendas([]);

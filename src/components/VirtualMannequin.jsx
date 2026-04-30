@@ -79,7 +79,7 @@ export default function VirtualMannequin({ outfit, onSwap }) {
                 style={{ top: p.pos.top, height: p.pos.height, zIndex: getZIndex(p.tipo) }}
                 onClick={() => onSwap && onSwap(p.tipo)}
               >
-                <img src={p.imagen_url} alt={p.descripcion} className="prenda-img" />
+                <img src={p.imagen_url} alt={p.descripcion} className="prenda-img" loading="lazy" />
                 {onSwap && <div className="prenda-swap-badge">↕</div>}
                 <span className="prenda-label">{p.descripcion?.split(" - ")[0]}</span>
               </div>
@@ -97,7 +97,7 @@ export default function VirtualMannequin({ outfit, onSwap }) {
                 className={`accesorio-side-item ${onSwap ? "swappable" : ""}`}
                 onClick={() => onSwap && onSwap(p.tipo)}
               >
-                <img src={p.imagen_url} alt={p.descripcion} />
+                <img src={p.imagen_url} alt={p.descripcion} loading="lazy" />
                 <span>{p.descripcion?.split(" - ")[0]}</span>
                 {onSwap && <span className="accesorio-swap-icon">↕</span>}
               </div>

@@ -6,22 +6,22 @@ import {
   Navigate,
 } from "react-router-dom";
 import axios from "axios";
-
-import Navbar from "./components/Navbar";
-import Asistente from "./pages/Asistente";
-import Closet from "./pages/Closet";
-import Calendario from "./pages/Calendario";
-import Perfil from "./pages/Perfil";
-import Amigos from "./pages/Amigos";
-import SetupPerfil from "./pages/SetupPerfil";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Feed from "./pages/Feed";
-
-
 import { supabase } from "./supabase";
 import { API_URL } from "./config";
 import "./App.css";
+
+import Navbar from "./components/Navbar";
+
+// Lazy load — cada página se descarga solo cuando el usuario la visita
+const Asistente   = React.lazy(() => import("./pages/Asistente"));
+const Closet      = React.lazy(() => import("./pages/Closet"));
+const Calendario  = React.lazy(() => import("./pages/Calendario"));
+const Perfil      = React.lazy(() => import("./pages/Perfil"));
+const Amigos      = React.lazy(() => import("./pages/Amigos"));
+const SetupPerfil = React.lazy(() => import("./pages/SetupPerfil"));
+const Login       = React.lazy(() => import("./pages/Login"));
+const Register    = React.lazy(() => import("./pages/Register"));
+const Feed        = React.lazy(() => import("./pages/Feed"));
 
 // Token cacheado — se actualiza sincrónicamente desde onAuthStateChange
 let _authToken = null;
@@ -109,6 +109,10 @@ export default function App() {
     return children;
   }
 
+  const PageFallback = () => (
+    <div className="loading-screen"><p>Cargando...</p></div>
+  );
+
   return (
     <Router>
       <div className="app-container">
@@ -121,26 +125,27 @@ export default function App() {
           />
         )}
 
-        <Routes>
-          <Route path="/login" element={!session ? <Login /> : <Navigate to="/" />} />
-          <Route path="/register" element={!session ? <Register /> : <Navigate to="/" />} />
+        <React.Suspense fallback={<PageFallback />}>
+          <Routes>
+            <Route path="/login" element={!session ? <Login /> : <Navigate to="/" />} />
+            <Route path="/register" element={!session ? <Register /> : <Navigate to="/" />} />
 
-          <Route path="*" element={
-            <main className="main-content">
-              <Routes>
-                
-                <Route path="/" element={<PrivateRoute><Asistente usuarioId={usuarioId} /></PrivateRoute>} />
-                <Route path="/feed" element={<PrivateRoute><Feed usuarioId={usuarioId} /></PrivateRoute>} />
-                <Route path="/closet" element={<PrivateRoute><Closet refresh={refreshCloset} /></PrivateRoute>} />
-                <Route path="/calendario" element={<PrivateRoute><Calendario usuarioId={usuarioId} /></PrivateRoute>} />
-                <Route path="/perfil" element={<PrivateRoute><Perfil usuarioId={usuarioId} /></PrivateRoute>} />
-                <Route path="/perfil/:username" element={<PrivateRoute><Perfil usuarioId={usuarioId} /></PrivateRoute>} />
-                <Route path="/amigos" element={<PrivateRoute><Amigos usuarioId={usuarioId} /></PrivateRoute>} />
-                <Route path="*" element={<Navigate to="/" />} />
-              </Routes>
-            </main>
-          } />
-        </Routes>
+            <Route path="*" element={
+              <main className="main-content">
+                <Routes>
+                  <Route path="/" element={<PrivateRoute><Asistente usuarioId={usuarioId} /></PrivateRoute>} />
+                  <Route path="/feed" element={<PrivateRoute><Feed usuarioId={usuarioId} /></PrivateRoute>} />
+                  <Route path="/closet" element={<PrivateRoute><Closet refresh={refreshCloset} /></PrivateRoute>} />
+                  <Route path="/calendario" element={<PrivateRoute><Calendario usuarioId={usuarioId} /></PrivateRoute>} />
+                  <Route path="/perfil" element={<PrivateRoute><Perfil usuarioId={usuarioId} /></PrivateRoute>} />
+                  <Route path="/perfil/:username" element={<PrivateRoute><Perfil usuarioId={usuarioId} /></PrivateRoute>} />
+                  <Route path="/amigos" element={<PrivateRoute><Amigos usuarioId={usuarioId} /></PrivateRoute>} />
+                  <Route path="*" element={<Navigate to="/" />} />
+                </Routes>
+              </main>
+            } />
+          </Routes>
+        </React.Suspense>
       </div>
     </Router>
   );
