@@ -234,16 +234,25 @@ export default function Asistente({ usuarioId }) {
     setLoadingManiqui(true);
     setCalConfirmado(false);
     try {
+      const mensajeGeneracion = outfitIds.length > 0
+        ? `${ocas.prompt}. Genera un outfit COMPLETAMENTE DIFERENTE al anterior, usando distintas prendas de mi closet.`
+        : ocas.prompt;
+
       const res = await axios.post(`${API_URL}/api/fashion`, {
         usuario_id: usuarioId,
-        mensaje: ocas.prompt,
+        mensaje: mensajeGeneracion,
         historial: [],
         outfit_ids_anteriores: outfitIds,
       });
+
       if (Array.isArray(res.data?.outfit) && res.data.outfit.length > 0) {
         setOutfit(res.data.outfit);
         setOutfitIds(res.data.outfit.map((p) => p.id));
         setOutfitGuardado(null);
+      } else if (res.data?.outfit_guardado) {
+        setOutfitGuardado(res.data.outfit_guardado);
+        setOutfit([]);
+        setOutfitIds([]);
       }
     } catch (err) {
       console.error(err);
@@ -490,7 +499,7 @@ export default function Asistente({ usuarioId }) {
                           <span className="dot" /><span className="dot" /><span className="dot" />
                         </div>
                       ) : (
-                        outfit.length > 0 ? "🔄 Regenerar outfit" : "✨ Generar outfit"
+                        "✨ Generar outfit"
                       )}
                     </button>
                     {tieneOutfit && (
