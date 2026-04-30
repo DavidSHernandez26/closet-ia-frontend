@@ -273,7 +273,7 @@ export default function Asistente({ usuarioId }) {
   return (
     <>
       <div className="asistente-fondo">
-        <div className="asistente-layout">
+        <div className={`asistente-layout ${modo === "maniqui" ? "layout-maniqui" : ""}`}>
 
           {/* ── CARD PRINCIPAL ── */}
           <div className="asistente-card">
@@ -432,9 +432,18 @@ export default function Asistente({ usuarioId }) {
               /* ── MODO MANIQUÍ ── */
               <div className="maniqui-ctrl">
                 <div className="maniqui-ctrl-body">
-                  <p className="maniqui-ctrl-hint">
-                    Elige una ocasión y genera un outfit completo con tus prendas
-                  </p>
+                  {outfit.length > 0 ? (
+                    <div className="maniqui-inline-display">
+                      <VirtualMannequin outfit={outfit} onSwap={handleSwap} />
+                      <p className="maniqui-swap-hint">
+                        Toca una prenda para cambiarla por algo de tu closet
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="maniqui-ctrl-hint">
+                      Elige una ocasión y genera un outfit completo con tus prendas
+                    </p>
+                  )}
                   <div className="ocasion-chips-wrap maniqui-chips">
                     {ocasiones.map((o) => (
                       <button
@@ -448,13 +457,22 @@ export default function Asistente({ usuarioId }) {
                       </button>
                     ))}
                   </div>
-                  {outfit.length > 0 && (
-                    <p className="maniqui-swap-hint">
-                      Toca una prenda en el maniquí para cambiarla por algo de tu closet
-                    </p>
-                  )}
                 </div>
                 <div className="maniqui-ctrl-footer">
+                  {tieneOutfit && (
+                    <div className="maniqui-cal-row">
+                      {calConfirmado ? (
+                        <p className="cal-confirmado">✅ Guardado en el calendario</p>
+                      ) : (
+                        <button className="btn-add-cal" onClick={() => {
+                          setFechaSeleccionada(new Date().toISOString().split("T")[0]);
+                          setShowCalPicker(true);
+                        }}>
+                          📅 Agregar al calendario
+                        </button>
+                      )}
+                    </div>
+                  )}
                   <button
                     className="btn-generar-outfit"
                     onClick={handleGenerarOutfit}
@@ -473,8 +491,8 @@ export default function Asistente({ usuarioId }) {
             )}
           </div>
 
-          {/* ── PANEL OUTFIT desktop ── */}
-          <div className="outfit-panel">
+          {/* ── PANEL OUTFIT desktop — solo en modo chat ── */}
+          {modo === "chat" && <div className="outfit-panel">
             <div className="outfit-panel-header">
               <div className="outfit-panel-icon">👔</div>
               <h3>Outfit sugerido</h3>
@@ -520,7 +538,7 @@ export default function Asistente({ usuarioId }) {
                 )}
               </div>
             )}
-          </div>
+          </div>}
         </div>
 
         {/* ── Modal calendario ── */}
@@ -576,14 +594,14 @@ export default function Asistente({ usuarioId }) {
       {/* ══════════════════════════════════════
           📱 BOTTOM SHEET — fuera del fondo
       ══════════════════════════════════════ */}
-      {tieneOutfit && (
+      {tieneOutfit && modo === "chat" && (
         <div
           className={`outfit-sheet-backdrop ${showOutfitSheet ? "open" : ""}`}
           onClick={() => setShowOutfitSheet(false)}
         />
       )}
 
-      <div className={`outfit-sheet ${tieneOutfit ? "has-outfit" : ""} ${showOutfitSheet ? "expanded" : ""}`}>
+      <div className={`outfit-sheet ${tieneOutfit && modo === "chat" ? "has-outfit" : ""} ${showOutfitSheet && modo === "chat" ? "expanded" : ""}`}>
 
         {/* Handle — toca para expandir/contraer */}
         <div className="outfit-sheet-handle-wrap" onClick={() => setShowOutfitSheet(!showOutfitSheet)}>
