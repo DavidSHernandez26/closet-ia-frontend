@@ -1,8 +1,8 @@
 .mannequin-wrapper {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 14px;
   width: 100%;
   padding: 8px 0;
 }
@@ -11,15 +11,14 @@
 .mannequin-area {
   display: flex;
   align-items: flex-start;
-  gap: 16px;
-  justify-content: center;
-  width: 100%;
+  gap: 12px;
+  flex-shrink: 0;
 }
 
 .mannequin-container {
   position: relative;
-  width: 180px;
-  height: 360px;
+  width: 150px;
+  height: 300px;
   flex-shrink: 0;
 }
 
@@ -27,10 +26,10 @@
 .mannequin-accesorios-side {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   padding-top: 8px;
-  min-width: 90px;
-  max-width: 100px;
+  min-width: 72px;
+  max-width: 80px;
 }
 
 .accesorios-side-title {
@@ -66,8 +65,8 @@
 }
 
 .accesorio-side-item img {
-  width: 56px;
-  height: 56px;
+  width: 44px;
+  height: 44px;
   object-fit: contain;
   border-radius: 8px;
   background: rgba(15, 3, 38, 0.4);
@@ -174,12 +173,36 @@
 
 .mannequin-prenda:hover .prenda-label { opacity: 1; }
 
+/* ── COLUMNA DERECHA ── */
+.mannequin-right-col {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  max-height: 300px;
+}
+
 /* ── LISTA ── */
 .outfit-lista {
   display: flex;
   flex-direction: column;
   gap: 7px;
-  width: 100%;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+  padding-top: 2px;
+}
+
+.outfit-lista::-webkit-scrollbar { display: none; }
+
+/* ── OVERLAY botón (esquina sup. izq. del maniquí) ── */
+.mannequin-cal-overlay {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  z-index: 20;
 }
 
 .outfit-chip {

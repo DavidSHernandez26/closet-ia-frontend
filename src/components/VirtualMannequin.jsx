@@ -37,7 +37,7 @@ const ETIQUETAS = {
   "accesorio": "Accesorio",
 };
 
-export default function VirtualMannequin({ outfit, onSwap }) {
+export default function VirtualMannequin({ outfit, onSwap, calAction }) {
   if (!outfit || outfit.length === 0) return null;
 
   const prendas = outfit.map((p) => {
@@ -85,6 +85,11 @@ export default function VirtualMannequin({ outfit, onSwap }) {
               </div>
             ))}
           </div>
+
+          {/* ── Botón flotante (ej. calendario) — esquina superior izquierda ── */}
+          {calAction && (
+            <div className="mannequin-cal-overlay">{calAction}</div>
+          )}
         </div>
 
         {/* ── Accesorios laterales (no gorras) ── */}
@@ -106,22 +111,24 @@ export default function VirtualMannequin({ outfit, onSwap }) {
         )}
       </div>
 
-      {/* ── Lista chips ── */}
-      <div className="outfit-lista">
-        {prendas.map((p) => (
-          <div
-            key={p.id}
-            className={`outfit-chip ${onSwap ? "swappable" : ""}`}
-            onClick={() => onSwap && onSwap(p.tipo)}
-          >
-            <img src={p.imagen_url} alt={p.descripcion} />
-            <div className="outfit-chip-info">
-              <span className="outfit-chip-nombre">{p.descripcion?.split(" - ")[0]}</span>
-              <span className="outfit-chip-tipo">{ETIQUETAS[p.tipo] || p.tipo}</span>
+      {/* ── Columna derecha: lista ── */}
+      <div className="mannequin-right-col">
+        <div className="outfit-lista">
+          {prendas.map((p) => (
+            <div
+              key={p.id}
+              className={`outfit-chip ${onSwap ? "swappable" : ""}`}
+              onClick={() => onSwap && onSwap(p.tipo)}
+            >
+              <img src={p.imagen_url} alt={p.descripcion} />
+              <div className="outfit-chip-info">
+                <span className="outfit-chip-nombre">{p.descripcion?.split(" - ")[0]}</span>
+                <span className="outfit-chip-tipo">{ETIQUETAS[p.tipo] || p.tipo}</span>
+              </div>
+              {onSwap && <span className="outfit-chip-swap">↕</span>}
             </div>
-            {onSwap && <span className="outfit-chip-swap">↕</span>}
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );

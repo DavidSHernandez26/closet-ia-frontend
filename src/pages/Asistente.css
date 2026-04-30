@@ -1,16 +1,15 @@
 /* ── FONDO ── */
 .asistente-fondo {
-    position: fixed;
-  top: 64px;        /* ← altura exacta del navbar */
+  position: fixed;
+  top: 64px;
   left: 0;
   right: 0;
   bottom: 0;
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  min-height: calc(100vh - 64px);
   background: var(--purple);
-  padding: 3rem 2rem 2rem;  /* ← antes: padding: 2rem */
+  padding: 0.75rem 2rem 0.75rem;
   overflow: hidden;
 }
 
@@ -26,7 +25,7 @@
 /* ── CARD PRINCIPAL ── */
 .asistente-card {
   width: 100%;
-  height: calc(100vh - 64px - 3rem);  /* ← antes: height: 82vh */
+  height: calc(100vh - 64px - 1.5rem);
   display: flex;
   flex-direction: column;
   background: rgba(12, 4, 28, 0.7);
@@ -518,8 +517,11 @@
     0 0 0 1px rgba(196,181,232,0.03),
     0 24px 60px rgba(0,0,0,0.5),
     inset 0 1px 0 rgba(196,181,232,0.06);
-  overflow-y: auto;
   position: relative;
+  height: calc(100vh - 64px - 1.5rem);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .outfit-panel::before {
@@ -536,6 +538,7 @@
   align-items: center;
   gap: 10px;
   margin-bottom: 18px;
+  flex-shrink: 0;
 }
 
 .outfit-panel-icon {
@@ -571,11 +574,39 @@
   border: 1px dashed rgba(196, 181, 232, 0.1);
   border-radius: 16px;
   background: rgba(196, 181, 232, 0.02);
+  flex-shrink: 0;
 }
 
 .outfit-placeholder-icon { font-size: 2rem; opacity: 0.4; }
 
+/* ── VirtualMannequin fill panel ── */
+.outfit-panel .mannequin-wrapper {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.outfit-panel .mannequin-right-col {
+  max-height: unset;
+  flex: 1;
+  min-height: 0;
+}
+
 /* ── OUTFIT GUARDADO ── */
+.outfit-guardado-wrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  position: relative;
+}
+
+.outfit-guardado-wrap .cal-actions-float {
+  bottom: 0;
+  top: auto;
+}
+
 .outfit-guardado-preview {
   display: flex;
   flex-direction: column;
@@ -618,37 +649,56 @@
 }
 
 /* ── CALENDARIO ── */
-.cal-actions {
-  margin-top: 14px;
-  display: flex;
-  justify-content: center;
+.cal-actions-float {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 5;
 }
 
-.btn-add-cal {
-  background: rgba(196, 181, 232, 0.07);
-  border: 1px solid rgba(196, 181, 232, 0.15);
-  box-shadow: inset 0 1px 0 rgba(196,181,232,0.06);
+/* botón flotante sobre la cuadrícula del sheet (modo chat mobile) */
+.sheet-cal-float {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  z-index: 20;
+}
+
+.btn-add-cal-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(196, 181, 232, 0.2);
+  background: rgba(196, 181, 232, 0.08);
   backdrop-filter: blur(8px);
-  color: rgba(196, 181, 232, 0.7);
-  border-radius: 12px;
-  padding: 10px 18px;
-  width: 100%;
-  font-size: 0.82rem;
-  font-weight: 500;
+  color: rgba(196, 181, 232, 0.8);
+  font-size: 1rem;
   cursor: pointer;
-  transition: all 0.25s ease;
-  font-family: inherit;
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  font-family: inherit;
+  flex-shrink: 0;
 }
 
-.btn-add-cal:hover {
-  background: rgba(196, 181, 232, 0.13);
-  border-color: rgba(196, 181, 232, 0.25);
-  color: #C4B5E8;
-  transform: translateY(-1px);
+.btn-add-cal-icon:hover {
+  background: rgba(196, 181, 232, 0.18);
+  border-color: rgba(196, 181, 232, 0.35);
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(196, 181, 232, 0.2);
+}
+
+.cal-confirmado-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(132, 160, 124, 0.12);
+  border: 1px solid rgba(132, 160, 124, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
 }
 
 .cal-confirmado {
@@ -940,7 +990,7 @@ body.light-mode .outfit-placeholder {
   border-color: rgba(15, 3, 38, 0.08) !important;
 }
 
-body.light-mode .btn-add-cal {
+body.light-mode .btn-add-cal-icon {
   background: rgba(15, 3, 38, 0.05) !important;
   border-color: rgba(15, 3, 38, 0.1) !important;
   color: rgba(15, 3, 38, 0.5) !important;
@@ -1320,8 +1370,14 @@ body.light-mode .ocasion-chip.activa {
   justify-content: center;
 }
 
+.maniqui-generar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .btn-generar-outfit {
-  width: 100%;
+  flex: 1;
   background: linear-gradient(135deg, rgba(196, 181, 232, 0.18), rgba(156, 136, 204, 0.24));
   border: 1px solid rgba(196, 181, 232, 0.28);
   border-radius: 16px;

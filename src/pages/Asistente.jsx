@@ -479,33 +479,31 @@ export default function Asistente({ usuarioId }) {
                   </div>
                 </div>
                 <div className="maniqui-ctrl-footer">
-                  {tieneOutfit && (
-                    <div className="maniqui-cal-row">
-                      {calConfirmado ? (
-                        <p className="cal-confirmado">✅ Guardado en el calendario</p>
+                  <div className="maniqui-generar-row">
+                    <button
+                      className="btn-generar-outfit"
+                      onClick={handleGenerarOutfit}
+                      disabled={loadingManiqui}
+                    >
+                      {loadingManiqui ? (
+                        <div className="chat-loader">
+                          <span className="dot" /><span className="dot" /><span className="dot" />
+                        </div>
                       ) : (
-                        <button className="btn-add-cal" onClick={() => {
+                        outfit.length > 0 ? "🔄 Regenerar outfit" : "✨ Generar outfit"
+                      )}
+                    </button>
+                    {tieneOutfit && (
+                      calConfirmado ? (
+                        <span className="cal-confirmado-badge" title="Guardado en el calendario">✅</span>
+                      ) : (
+                        <button className="btn-add-cal-icon" title="Agregar al calendario" onClick={() => {
                           setFechaSeleccionada(new Date().toISOString().split("T")[0]);
                           setShowCalPicker(true);
-                        }}>
-                          📅 Agregar al calendario
-                        </button>
-                      )}
-                    </div>
-                  )}
-                  <button
-                    className="btn-generar-outfit"
-                    onClick={handleGenerarOutfit}
-                    disabled={loadingManiqui}
-                  >
-                    {loadingManiqui ? (
-                      <div className="chat-loader">
-                        <span className="dot" /><span className="dot" /><span className="dot" />
-                      </div>
-                    ) : (
-                      outfit.length > 0 ? "🔄 Regenerar outfit" : "✨ Generar outfit"
+                        }}>📅</button>
+                      )
                     )}
-                  </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -519,16 +517,30 @@ export default function Asistente({ usuarioId }) {
             </div>
 
             {outfitGuardado ? (
-              <div className="outfit-guardado-preview">
-                <img src={outfitGuardado.imagen_url} alt={outfitGuardado.descripcion} />
-                <p>{outfitGuardado.descripcion}</p>
-                {outfitGuardado.metadata_ia?.prendas?.length > 0 && (
-                  <div className="outfit-guardado-prendas">
-                    {outfitGuardado.metadata_ia.prendas.map((pr, i) => (
-                      <span key={i} className="outfit-guardado-chip">
-                        {pr.nombre} ({pr.color})
-                      </span>
-                    ))}
+              <div className="outfit-guardado-wrap">
+                <div className="outfit-guardado-preview">
+                  <img src={outfitGuardado.imagen_url} alt={outfitGuardado.descripcion} />
+                  <p>{outfitGuardado.descripcion}</p>
+                  {outfitGuardado.metadata_ia?.prendas?.length > 0 && (
+                    <div className="outfit-guardado-prendas">
+                      {outfitGuardado.metadata_ia.prendas.map((pr, i) => (
+                        <span key={i} className="outfit-guardado-chip">
+                          {pr.nombre} ({pr.color})
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {!loading && (
+                  <div className="cal-actions-float">
+                    {calConfirmado ? (
+                      <span className="cal-confirmado-badge" title="Guardado en el calendario">✅</span>
+                    ) : (
+                      <button className="btn-add-cal-icon" title="Agregar al calendario" onClick={() => {
+                        setFechaSeleccionada(new Date().toISOString().split("T")[0]);
+                        setShowCalPicker(true);
+                      }}>📅</button>
+                    )}
                   </div>
                 )}
               </div>
@@ -541,22 +553,17 @@ export default function Asistente({ usuarioId }) {
               <VirtualMannequin
                 outfit={outfit}
                 onSwap={modo === "maniqui" ? handleSwap : undefined}
-              />
-            )}
-
-            {tieneOutfit && !loading && (
-              <div className="cal-actions">
-                {calConfirmado ? (
-                  <p className="cal-confirmado">✅ Guardado en el calendario</p>
-                ) : (
-                  <button className="btn-add-cal" onClick={() => {
-                    setFechaSeleccionada(new Date().toISOString().split("T")[0]);
-                    setShowCalPicker(true);
-                  }}>
-                    📅 Agregar al calendario
-                  </button>
+                calAction={!loading && (
+                  calConfirmado ? (
+                    <span className="cal-confirmado-badge" title="Guardado en el calendario">✅</span>
+                  ) : (
+                    <button className="btn-add-cal-icon" title="Agregar al calendario" onClick={() => {
+                      setFechaSeleccionada(new Date().toISOString().split("T")[0]);
+                      setShowCalPicker(true);
+                    }}>📅</button>
+                  )
                 )}
-              </div>
+              />
             )}
           </div>}
         </div>
@@ -659,46 +666,64 @@ export default function Asistente({ usuarioId }) {
         {/* Contenido expandido */}
         <div className="outfit-sheet-content">
           {outfitGuardado ? (
-            <div className="outfit-guardado-preview">
-              <img src={outfitGuardado.imagen_url} alt={outfitGuardado.descripcion} />
-              <p>{outfitGuardado.descripcion}</p>
-              {outfitGuardado.metadata_ia?.prendas?.length > 0 && (
-                <div className="outfit-guardado-prendas">
-                  {outfitGuardado.metadata_ia.prendas.map((pr, i) => (
-                    <span key={i} className="outfit-guardado-chip">
-                      {pr.nombre} ({pr.color})
-                    </span>
-                  ))}
-                </div>
+            <div style={{ position: "relative" }}>
+              <div className="outfit-guardado-preview">
+                <img src={outfitGuardado.imagen_url} alt={outfitGuardado.descripcion} />
+                <p>{outfitGuardado.descripcion}</p>
+                {outfitGuardado.metadata_ia?.prendas?.length > 0 && (
+                  <div className="outfit-guardado-prendas">
+                    {outfitGuardado.metadata_ia.prendas.map((pr, i) => (
+                      <span key={i} className="outfit-guardado-chip">
+                        {pr.nombre} ({pr.color})
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {calConfirmado ? (
+                <span className="cal-confirmado-badge sheet-cal-float" title="Guardado en el calendario">✅</span>
+              ) : (
+                <button className="btn-add-cal-icon sheet-cal-float" title="Agregar al calendario" onClick={() => {
+                  setFechaSeleccionada(new Date().toISOString().split("T")[0]);
+                  setShowCalPicker(true);
+                }}>📅</button>
               )}
             </div>
           ) : outfit.length > 0 && (
             modo === "maniqui" ? (
-              <VirtualMannequin outfit={outfit} onSwap={handleSwap} />
+              <VirtualMannequin
+                outfit={outfit}
+                onSwap={handleSwap}
+                calAction={calConfirmado ? (
+                  <span className="cal-confirmado-badge" title="Guardado en el calendario">✅</span>
+                ) : (
+                  <button className="btn-add-cal-icon" title="Agregar al calendario" onClick={() => {
+                    setFechaSeleccionada(new Date().toISOString().split("T")[0]);
+                    setShowCalPicker(true);
+                  }}>📅</button>
+                )}
+              />
             ) : (
-              <div className="outfit-sheet-grid">
-                {outfit.map((p, i) => (
-                  <div key={i} className="outfit-sheet-card">
-                    <img src={p.imagen_url} alt={p.descripcion} />
-                    <p>{p.descripcion?.split("(")[0]?.trim()}</p>
-                  </div>
-                ))}
+              <div style={{ position: "relative" }}>
+                <div className="outfit-sheet-grid">
+                  {outfit.map((p, i) => (
+                    <div key={i} className="outfit-sheet-card">
+                      <img src={p.imagen_url} alt={p.descripcion} />
+                      <p>{p.descripcion?.split("(")[0]?.trim()}</p>
+                    </div>
+                  ))}
+                </div>
+                {calConfirmado ? (
+                  <span className="cal-confirmado-badge sheet-cal-float" title="Guardado en el calendario">✅</span>
+                ) : (
+                  <button className="btn-add-cal-icon sheet-cal-float" title="Agregar al calendario" onClick={() => {
+                    setFechaSeleccionada(new Date().toISOString().split("T")[0]);
+                    setShowCalPicker(true);
+                  }}>📅</button>
+                )}
               </div>
             )
           )}
-
-          <div className="cal-actions" style={{ marginTop: 16 }}>
-            {calConfirmado ? (
-              <p className="cal-confirmado">✅ Guardado en el calendario</p>
-            ) : (
-              <button className="btn-add-cal" onClick={() => {
-                setFechaSeleccionada(new Date().toISOString().split("T")[0]);
-                setShowCalPicker(true);
-              }}>
-                📅 Agregar al calendario
-              </button>
-            )}
-          </div>
         </div>
       </div>
     </>
