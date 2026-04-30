@@ -7,11 +7,117 @@
   padding: 8px 0;
 }
 
+/* ── ÁREA: maniquí + accesorios laterales ── */
+.mannequin-area {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  justify-content: center;
+  width: 100%;
+}
+
 .mannequin-container {
   position: relative;
   width: 180px;
   height: 360px;
   flex-shrink: 0;
+}
+
+/* ── PANEL ACCESORIOS LATERAL ── */
+.mannequin-accesorios-side {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 8px;
+  min-width: 90px;
+  max-width: 100px;
+}
+
+.accesorios-side-title {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: rgba(196, 181, 232, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 2px;
+  text-align: center;
+}
+
+.accesorio-side-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: rgba(196, 181, 232, 0.06);
+  border: 1px solid rgba(196, 181, 232, 0.1);
+  border-radius: 12px;
+  padding: 6px;
+  position: relative;
+  transition: all 0.2s ease;
+  cursor: default;
+}
+
+.accesorio-side-item.swappable { cursor: pointer; }
+
+.accesorio-side-item.swappable:hover {
+  border-color: rgba(196, 181, 232, 0.4);
+  background: rgba(196, 181, 232, 0.1);
+  transform: scale(1.04);
+}
+
+.accesorio-side-item img {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: rgba(15, 3, 38, 0.4);
+}
+
+.accesorio-side-item span:not(.accesorio-swap-icon) {
+  font-size: 0.62rem;
+  color: rgba(244, 244, 249, 0.55);
+  text-align: center;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 80px;
+}
+
+.accesorio-swap-icon {
+  position: absolute;
+  top: 3px;
+  right: 5px;
+  font-size: 0.62rem;
+  color: rgba(196, 181, 232, 0.6);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.accesorio-side-item.swappable:hover .accesorio-swap-icon { opacity: 1; }
+
+/* ── CHIP INFO (nombre + tipo) ── */
+.outfit-chip-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+
+.outfit-chip-nombre {
+  font-size: 0.82rem;
+  color: rgba(244, 244, 249, 0.8);
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.outfit-chip-tipo {
+  font-size: 0.68rem;
+  color: rgba(196, 181, 232, 0.5);
+  text-transform: capitalize;
 }
 
 .mannequin-silhouette {
@@ -86,6 +192,7 @@
   padding: 7px 11px;
   transition: all 0.25s ease;
   cursor: default;
+  min-width: 0;
 }
 
 .outfit-chip:hover {

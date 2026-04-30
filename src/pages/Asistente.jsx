@@ -5,13 +5,17 @@ import VirtualMannequin from "../components/VirtualMannequin";
 import { API_URL } from "../config";
 import { supabase } from "../supabase";
 
+// Debe coincidir con getTipo de VirtualMannequin
 function getTipoPrenda(descripcion = "") {
   const d = descripcion.toLowerCase();
   if (d.includes("abrigo") || d.includes("chaqueta") || d.includes("jacket") || d.includes("hoodie") || d.includes("sudadera")) return "abrigo";
-  if (d.includes("gorra") || d.includes("cap") || d.includes("sombrero") || d.includes("accesorio")) return "accesorio";
-  if (d.includes("superior") || d.includes("camiseta") || d.includes("camisa") || d.includes("polo") || d.includes("blusa")) return "parte superior";
-  if (d.includes("inferior") || d.includes("pantalón") || d.includes("pantalon") || d.includes("jean") || d.includes("short") || d.includes("falda")) return "parte inferior";
-  if (d.includes("calzado") || d.includes("tenis") || d.includes("zapato") || d.includes("bota") || d.includes("zapatilla") || d.includes("sandalia")) return "calzado";
+  if (d.includes("gorra") || d.includes("sombrero") || d.includes("gorro") || d.includes("beanie") || d.includes("snapback")) return "gorra";
+  if (d.includes("superior") || d.includes("camiseta") || d.includes("camisa") || d.includes("polo") || d.includes("blusa") || d.includes("playera") || d.includes("top")) return "parte superior";
+  if (d.includes("inferior") || d.includes("pantalón") || d.includes("pantalon") || d.includes("jean") || d.includes("short") || d.includes("falda") || d.includes("pants")) return "parte inferior";
+  if (d.includes("calzado") || d.includes("tenis") || d.includes("zapato") || d.includes("bota") || d.includes("zapatilla") || d.includes("sandalia") || d.includes("sneaker")) return "calzado";
+  // Fallback: usar el tipo almacenado al final de la descripción
+  const tipoAlmacenado = descripcion.split(" - ").pop()?.trim().toLowerCase();
+  if (["calzado","parte superior","parte inferior","accesorio","abrigo"].includes(tipoAlmacenado)) return tipoAlmacenado;
   return "parte superior";
 }
 
@@ -562,33 +566,41 @@ export default function Asistente({ usuarioId }) {
         )}
 
         {/* ── Modal swap (intercambiar prenda) ── */}
-        {swapTipo && (
-          <div className="cal-picker-overlay" onClick={() => setSwapTipo(null)}>
-            <div className="swap-modal" onClick={(e) => e.stopPropagation()}>
-              <button className="cal-picker-close" onClick={() => setSwapTipo(null)}>✕</button>
-              <h3>Cambiar {swapTipo}</h3>
-              <p>Elige una prenda de tu closet</p>
-              {swapLoading ? (
-                <div className="swap-loading">
-                  <div className="chat-loader">
-                    <span className="dot" /><span className="dot" /><span className="dot" />
-                  </div>
-                </div>
-              ) : swapPrendas.length === 0 ? (
-                <p className="swap-empty">No tienes prendas en tu closet.</p>
-              ) : (
-                <div className="swap-grid">
-                  {swapPrendas.map(p => (
-                    <div key={p.id} className="swap-item" onClick={() => handleSeleccionarPrenda(p)}>
-                      <img src={p.imagen_url} alt={p.descripcion} />
-                      <span>{p.descripcion?.split(" - ")[0]}</span>
+        {swapTipo && (() => {
+          const filtradas = swapPrendas.filter(p => getTipoPrenda(p.descripcion || "") === swapTipo);
+          const etiquetas = {
+            "gorra": "gorras", "abrigo": "chaquetas / abrigos",
+            "parte superior": "camisetas", "parte inferior": "pantalones",
+            "calzado": "calzado", "accesorio": "accesorios",
+          };
+          return (
+            <div className="cal-picker-overlay" onClick={() => setSwapTipo(null)}>
+              <div className="swap-modal" onClick={(e) => e.stopPropagation()}>
+                <button className="cal-picker-close" onClick={() => setSwapTipo(null)}>✕</button>
+                <h3>Cambiar {etiquetas[swapTipo] || swapTipo}</h3>
+                <p>Solo se muestran prendas de esta categoría</p>
+                {swapLoading ? (
+                  <div className="swap-loading">
+                    <div className="chat-loader">
+                      <span className="dot" /><span className="dot" /><span className="dot" />
                     </div>
-                  ))}
-                </div>
-              )}
+                  </div>
+                ) : filtradas.length === 0 ? (
+                  <p className="swap-empty">No tienes {etiquetas[swapTipo] || swapTipo} en tu closet.</p>
+                ) : (
+                  <div className="swap-grid">
+                    {filtradas.map(p => (
+                      <div key={p.id} className="swap-item" onClick={() => handleSeleccionarPrenda(p)}>
+                        <img src={p.imagen_url} alt={p.descripcion} />
+                        <span>{p.descripcion?.split(" - ")[0]}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
 
       {/* ══════════════════════════════════════
