@@ -1,7 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import "./Closet.css";
 import { API_URL } from "../config";
+
+const COLOR_HEX = {
+  negro: '#2a2a2e', blanco: '#f0f0f0', azul: '#2563eb', rojo: '#dc2626',
+  verde: '#16a34a', gris: '#9ca3af', beige: '#d2b48c', camel: '#c19a6b',
+  café: '#6b4226', marrón: '#795548', amarillo: '#ca8a04', naranja: '#ea580c',
+  rosa: '#db2777', morado: '#9333ea', crema: '#fef3c7', terracota: '#b45309',
+  mostaza: '#a16207', burdeos: '#991b1b', marino: '#1e3a5f', lila: '#7c3aed',
+  tostado: '#92400e', caqui: '#8b8060', lavanda: '#a78bca',
+};
+
+function normalizarColor(str = '') {
+  return str.toLowerCase().split(/[\/\s,]/)[0].trim();
+}
 
 /* ── Categorías de prendas ── */
 const CATEGORIAS = [
@@ -50,6 +63,9 @@ export default function Closet({ refresh }) {
   const [tabActiva,  setTabActiva]  = useState("prenda");
   const [categoria,  setCategoria]  = useState("todas");
   const [modalItem,  setModalItem]  = useState(null);
+  const [recomendaciones, setRecomendaciones] = useState([]);
+  const [loadingRecs, setLoadingRecs]         = useState(false);
+  const [recsVisible, setRecsVisible]         = useState(false);
 
   useEffect(() => { fetchPrendas(); }, [usuarioId, tabActiva, refresh]);
 
@@ -70,6 +86,19 @@ export default function Closet({ refresh }) {
     }
   }
 
+  async function fetchRecomendaciones() {
+    if (loadingRecs || recomendaciones.length > 0) return;
+    setLoadingRecs(true);
+    try {
+      const res = await axios.post(`${API_URL}/api/recomendaciones-compra`, { usuario_id: usuarioId });
+      setRecomendaciones(res.data?.recomendaciones || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingRecs(false);
+    }
+  }
+
   async function handleDelete(id) {
     if (!window.confirm("¿Eliminar esta prenda?")) return;
     try {
@@ -85,6 +114,38 @@ export default function Closet({ refresh }) {
   const prendasFiltradas = tabActiva === "prenda"
     ? prendas.filter(p => matchCategoria(p, categoria))
     : prendas;
+
+  const prendasSueltas = useMemo(() => prendas.filter(p => p.tipo === "prenda"), [prendas]);
+
+  const colorStats = useMemo(() => {
+    const counts = {};
+    prendasSueltas.forEach(p => {
+      const raw = p.metadata_ia?.color || (p.descripcion?.match(/\(([^)]+)\)/)?.[1] || '');
+      const color = normalizarColor(raw);
+      if (color) counts[color] = (counts[color] || 0) + 1;
+    });
+    return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 6);
+  }, [prendasSueltas]);
+
+  const tipoStats = useMemo(() => {
+    const TIPO_LABELS = {
+      'parte superior': { label: 'Superiores', icon: '👕' },
+      'parte inferior': { label: 'Pantalones', icon: '👖' },
+      'calzado':        { label: 'Calzado',    icon: '👟' },
+      'abrigo':         { label: 'Abrigos',    icon: '🧥' },
+      'accesorio':      { label: 'Accesorios', icon: '👜' },
+    };
+    const counts = {};
+    prendasSueltas.forEach(p => {
+      const t = p.metadata_ia?.tipo || 'otro';
+      counts[t] = (counts[t] || 0) + 1;
+    });
+    return Object.entries(TIPO_LABELS).map(([key, meta]) => ({
+      ...meta, count: counts[key] || 0,
+    })).filter(t => t.count > 0);
+  }, [prendasSueltas]);
+
+  const maxColor = colorStats[0]?.[1] || 1;
 
   return (
     <div className="mac-wrap">
@@ -178,6 +239,76 @@ export default function Closet({ refresh }) {
               <span>Total prendas</span>
               <span>{prendas.length}</span>
             </div>
+
+            {/* ── Estadísticas — solo en prendas ── */}
+            {tabActiva === "prenda" && prendasSueltas.length > 0 && (
+              <>
+                {colorStats.length > 0 && (
+                  <>
+                    <p className="mac-sidebar-section" style={{ marginTop: 16 }}>Colores</p>
+                    <div className="mac-stats-colors">
+                      {colorStats.map(([color, count]) => (
+                        <div key={color} className="mac-stat-color-row">
+                          <span
+                            className="mac-stat-color-dot"
+                            style={{ background: COLOR_HEX[color] || '#888' }}
+                          />
+                          <span className="mac-stat-color-name">{color}</span>
+                          <div className="mac-stat-bar-wrap">
+                            <div
+                              className="mac-stat-bar"
+                              style={{ width: `${(count / maxColor) * 100}%` }}
+                            />
+                          </div>
+                          <span className="mac-stat-count">{count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                {tipoStats.length > 0 && (
+                  <>
+                    <p className="mac-sidebar-section" style={{ marginTop: 14 }}>Tipos</p>
+                    <div className="mac-stats-tipos">
+                      {tipoStats.map(t => (
+                        <div key={t.label} className="mac-stat-tipo-row">
+                          <span>{t.icon}</span>
+                          <span className="mac-stat-tipo-label">{t.label}</span>
+                          <span className="mac-stat-count">{t.count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                <p className="mac-sidebar-section" style={{ marginTop: 14 }}>Comprar</p>
+                {recomendaciones.length === 0 ? (
+                  <button
+                    className="mac-sidebar-item mac-recs-btn"
+                    onClick={() => { setRecsVisible(true); fetchRecomendaciones(); }}
+                    disabled={loadingRecs}
+                  >
+                    {loadingRecs ? (
+                      <span className="mac-recs-loading">
+                        <span className="mac-recs-dot"/><span className="mac-recs-dot"/><span className="mac-recs-dot"/>
+                      </span>
+                    ) : (
+                      <><span>✦</span> Ver sugerencias</>
+                    )}
+                  </button>
+                ) : (
+                  <div className="mac-recs-list">
+                    {recomendaciones.map((r, i) => (
+                      <div key={i} className="mac-rec-item">
+                        <span className="mac-rec-bullet">+</span>
+                        <span>{r}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
           </aside>
 
           {/* Contenido */}

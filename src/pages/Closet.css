@@ -781,3 +781,141 @@ body.light-mode .mac-modal-section-title { color: rgba(15,3,38,0.4); }
   body.light-mode .mac-switch-btn          { color: rgba(15,3,38,0.35); }
   body.light-mode .mac-switch-btn.on       { color: #0F0326; }
 }
+
+/* ══════════════════════════════════════
+   ESTADÍSTICAS EN SIDEBAR
+══════════════════════════════════════ */
+
+/* Colores */
+.mac-stats-colors {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 0 4px;
+}
+
+.mac-stat-color-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.mac-stat-color-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.15);
+}
+
+.mac-stat-color-name {
+  font-size: 0.68rem;
+  color: rgba(244, 244, 249, 0.6);
+  text-transform: capitalize;
+  width: 48px;
+  flex-shrink: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mac-stat-bar-wrap {
+  flex: 1;
+  height: 3px;
+  background: rgba(196, 181, 232, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.mac-stat-bar {
+  height: 100%;
+  background: linear-gradient(90deg, rgba(196,181,232,0.5), rgba(196,181,232,0.25));
+  border-radius: 2px;
+  min-width: 3px;
+  transition: width 0.4s ease;
+}
+
+.mac-stat-count {
+  font-size: 0.65rem;
+  color: rgba(196, 181, 232, 0.4);
+  width: 12px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* Tipos */
+.mac-stats-tipos {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 0 4px;
+}
+
+.mac-stat-tipo-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+}
+
+.mac-stat-tipo-label {
+  flex: 1;
+  color: rgba(244, 244, 249, 0.55);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Recomendaciones */
+.mac-recs-btn {
+  width: 100%;
+  justify-content: center !important;
+  font-size: 0.72rem !important;
+  color: rgba(196, 181, 232, 0.6) !important;
+}
+
+.mac-recs-loading {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+}
+
+.mac-recs-dot {
+  width: 4px;
+  height: 4px;
+  background: rgba(196, 181, 232, 0.5);
+  border-radius: 50%;
+  animation: dotBounce 1.2s infinite ease-in-out;
+}
+
+.mac-recs-dot:nth-child(2) { animation-delay: 0.15s; }
+.mac-recs-dot:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes dotBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30%           { transform: translateY(-3px); opacity: 1; }
+}
+
+.mac-recs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 0 4px;
+}
+
+.mac-rec-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  font-size: 0.70rem;
+  color: rgba(244, 244, 249, 0.55);
+  line-height: 1.35;
+}
+
+.mac-rec-bullet {
+  color: rgba(196, 181, 232, 0.5);
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+}
