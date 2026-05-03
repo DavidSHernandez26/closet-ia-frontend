@@ -9,6 +9,8 @@ import axios from "axios";
 import { supabase } from "./supabase";
 import { API_URL } from "./config";
 import "./App.css";
+import { Capacitor } from "@capacitor/core";
+import { StatusBar, Style } from "@capacitor/status-bar";
 
 import Navbar from "./components/Navbar";
 
@@ -35,6 +37,14 @@ axios.interceptors.request.use((config) => {
 export default function App() {
   const [session, setSession] = useState(null);
   const [loadingSession, setLoadingSession] = useState(true);
+
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      StatusBar.setOverlaysWebView({ overlay: false });
+      StatusBar.setStyle({ style: Style.Dark });
+      StatusBar.setBackgroundColor({ color: "#0F0326" });
+    }
+  }, []);
   const [refreshCloset, setRefreshCloset] = useState(0);
   const [darkMode, setDarkMode] = useState(localStorage.getItem("theme") !== "light");
   const [perfilListo, setPerfilListo] = useState(true);

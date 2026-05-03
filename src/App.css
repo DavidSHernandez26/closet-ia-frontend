@@ -416,7 +416,7 @@ body.light-mode .cal-picker-confirm {
 
   .main-content {
     position: absolute;
-    top: env(safe-area-inset-top);
+    top: 0;
     left: 0;
     right: 0;
     bottom: calc(58px + env(safe-area-inset-bottom));
