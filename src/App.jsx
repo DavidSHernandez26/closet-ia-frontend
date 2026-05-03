@@ -11,6 +11,7 @@ import { API_URL } from "./config";
 import "./App.css";
 import { Capacitor } from "@capacitor/core";
 import { StatusBar, Style } from "@capacitor/status-bar";
+import { App as CapApp } from "@capacitor/app";
 
 import Navbar from "./components/Navbar";
 
@@ -39,11 +40,22 @@ export default function App() {
   const [loadingSession, setLoadingSession] = useState(true);
 
   useEffect(() => {
-    if (Capacitor.isNativePlatform()) {
+    if (!Capacitor.isNativePlatform()) return;
+
+    function applyStatusBar() {
       StatusBar.setOverlaysWebView({ overlay: false });
       StatusBar.setStyle({ style: Style.Dark });
       StatusBar.setBackgroundColor({ color: "#0F0326" });
     }
+
+    applyStatusBar();
+
+    // Re-apply every time the app returns from camera/photos/any native view
+    const listener = CapApp.addListener("appStateChange", ({ isActive }) => {
+      if (isActive) applyStatusBar();
+    });
+
+    return () => { listener.then(h => h.remove()); };
   }, []);
   const [refreshCloset, setRefreshCloset] = useState(0);
   const [darkMode, setDarkMode] = useState(localStorage.getItem("theme") !== "light");
