@@ -32,6 +32,7 @@
     inset 0 -1px 0 rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
+  height: calc(100vh - 64px - 64px);
   min-height: 560px;
   position: relative;
 }
@@ -157,7 +158,7 @@
   display: flex;
   flex: 1;
   overflow: hidden;
-  min-height: 500px;
+  min-height: 0;
 }
 
 /* ── Sidebar — liquid glass ── */
@@ -171,7 +172,11 @@
   flex-direction: column;
   gap: 2px;
   overflow-y: auto;
+  scrollbar-width: none;
+  height: 100%;
 }
+
+.mac-sidebar::-webkit-scrollbar { display: none; }
 
 .mac-sidebar-section {
   font-size: 0.68rem;

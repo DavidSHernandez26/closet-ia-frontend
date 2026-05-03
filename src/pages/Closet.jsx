@@ -115,7 +115,12 @@ export default function Closet({ refresh }) {
     ? prendas.filter(p => matchCategoria(p, categoria))
     : prendas;
 
-  const prendasSueltas = useMemo(() => prendas.filter(p => p.tipo === "prenda"), [prendas]);
+  // When tabActiva === "prenda" the API already filtered; avoid a second filter that
+  // can silently empty the array if Supabase returns a slightly different tipo value.
+  const prendasSueltas = useMemo(
+    () => tabActiva === "prenda" ? prendas : prendas.filter(p => p.tipo === "prenda"),
+    [prendas, tabActiva]
+  );
 
   const colorStats = useMemo(() => {
     const counts = {};
