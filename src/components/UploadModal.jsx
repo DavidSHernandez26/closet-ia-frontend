@@ -3,6 +3,7 @@ import "./UploadModal.css";
 import { supabase } from "../supabase";
 import axios from "axios";
 import { API_URL } from "../config";
+import { useNativeCamera } from "../hooks/useNativeCamera";
 
 const ETAPAS = [
   { hasta: 20,  label: "📤 Subiendo imagen..." },
@@ -23,6 +24,7 @@ export default function UploadModal({ onClose, onUploaded }) {
   const [loading, setLoading] = useState(false);
   const [progreso, setProgreso] = useState(0);
   const intervaloRef = useRef(null);
+  const pickPhoto = useNativeCamera();
 
   function iniciarProgreso() {
     setProgreso(0);
@@ -110,25 +112,22 @@ export default function UploadModal({ onClose, onUploaded }) {
 
         {tipo && (
           <div className="upload-section">
-            <label className="file-label">
-              <input
-                type="file"
-                accept="image/*"
-                style={{ display: "none" }}
-                onChange={(e) => {
-                  const f = e.target.files[0];
-                  if (f) {
-                    setFile(f);
-                    setPreview(URL.createObjectURL(f));
-                    setMensajeIA("");
-                  }
-                }}
-                disabled={loading}
-              />
+            <button
+              className="file-label"
+              disabled={loading}
+              onClick={async () => {
+                const f = await pickPhoto();
+                if (f) {
+                  setFile(f);
+                  setPreview(URL.createObjectURL(f));
+                  setMensajeIA("");
+                }
+              }}
+            >
               <span className="file-text">
-                {file ? file.name : "📂 Haz clic para seleccionar una imagen"}
+                {file ? file.name : "📂 Toca para seleccionar o tomar foto"}
               </span>
-            </label>
+            </button>
 
             {preview && (
               <div className="preview">
