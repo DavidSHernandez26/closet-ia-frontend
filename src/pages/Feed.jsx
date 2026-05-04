@@ -42,6 +42,8 @@ function Avatar({ profile, size = 36 }) {
 export default function Feed({ usuarioId }) {
   const [posts,          setPosts]          = useState([]);
   const [loading,        setLoading]        = useState(true);
+  const [loadingMore,    setLoadingMore]    = useState(false);
+  const [nextCursor,     setNextCursor]     = useState(null);
   const [filtro,         setFiltro]         = useState("todos");
   const [wishlist,       setWishlist]       = useState([]);
   const [loadingWishlist,setLoadingWishlist]= useState(false);
@@ -78,14 +80,29 @@ export default function Feed({ usuarioId }) {
   async function cargarFeed() {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/api/feed`, {
-        params: { usuario_id: usuarioId },
-      });
-      setPosts(res.data || []);
+      const res = await axios.get(`${API_URL}/api/feed`);
+      setPosts(res.data.posts || []);
+      setNextCursor(res.data.nextCursor || null);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function cargarMas() {
+    if (!nextCursor || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const res = await axios.get(`${API_URL}/api/feed`, {
+        params: { before: nextCursor },
+      });
+      setPosts((prev) => [...prev, ...(res.data.posts || [])]);
+      setNextCursor(res.data.nextCursor || null);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingMore(false);
     }
   }
 
@@ -95,9 +112,7 @@ export default function Feed({ usuarioId }) {
   async function cargarWishlist() {
     setLoadingWishlist(true);
     try {
-      const res = await axios.get(`${API_URL}/api/wishlist`, {
-        params: { usuario_id: usuarioId },
-      });
+      const res = await axios.get(`${API_URL}/api/wishlist`);
       setWishlist(res.data || []);
     } catch (err) {
       console.error(err);
@@ -144,7 +159,6 @@ async function cargarSugeridos() {
     try {
       const res = await axios.post(`${API_URL}/api/likes`, {
         post_id: post.id,
-        usuario_id: usuarioId,
       });
       const update = (p) =>
         p.id === post.id
@@ -166,7 +180,6 @@ async function cargarSugeridos() {
   async function handleWishlist(post) {
     try {
       const res = await axios.post(`${API_URL}/api/wishlist`, {
-        usuario_id: usuarioId,
         post_id: post.id,
         imagen_url: post.imagen_url,
         descripcion: post.descripcion,
@@ -209,7 +222,6 @@ async function cargarSugeridos() {
     try {
       const res = await axios.post(`${API_URL}/api/comments`, {
         post_id: postActivo.id,
-        usuario_id: usuarioId,
         texto: nuevoComentario,
       });
       setComentarios((prev) => [...prev, res.data]);
@@ -261,7 +273,6 @@ async function cargarSugeridos() {
     try {
       const fd = new FormData();
       fd.append("imagen", newPost.file);
-      fd.append("usuario_id", usuarioId);
       fd.append("descripcion", newPost.descripcion);
       await axios.post(`${API_URL}/api/posts`, fd, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -445,19 +456,30 @@ async function cargarSugeridos() {
               </p>
             </div>
           ) : (
-            postsFiltrados.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                usuarioId={usuarioId}
-                onLike={() => handleLike(post)}
-                onGuardar={() => handleWishlist(post)}
-                onAbrir={() => abrirPost(post)}
-                onEliminar={() => eliminarPost(post.id)}
-                onNavigate={navigate}
-                formatTime={formatTime}
-              />
-            ))
+            <>
+              {postsFiltrados.map((post) => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  usuarioId={usuarioId}
+                  onLike={() => handleLike(post)}
+                  onGuardar={() => handleWishlist(post)}
+                  onAbrir={() => abrirPost(post)}
+                  onEliminar={() => eliminarPost(post.id)}
+                  onNavigate={navigate}
+                  formatTime={formatTime}
+                />
+              ))}
+              {nextCursor && filtro !== "amigos" && filtro !== "tendencias" && (
+                <button
+                  className="feed-load-more"
+                  onClick={cargarMas}
+                  disabled={loadingMore}
+                >
+                  {loadingMore ? "Cargando..." : "Cargar más"}
+                </button>
+              )}
+            </>
           )}
         </section>
 
