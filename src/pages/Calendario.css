@@ -8,9 +8,10 @@
   box-sizing: border-box;
 }
 
+/* ── HEADER ── */
 .cal-header {
   text-align: center;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
 }
 
 .cal-header h1 {
@@ -71,17 +72,17 @@
   grid-template-columns: repeat(7, 1fr);
   gap: 8px;
   width: 100%;
-  max-width: 900px;
+  max-width: 920px;
 }
 
 .cal-dia-header {
   text-align: center;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 600;
-  color: rgba(196, 181, 232, 0.6);
+  color: rgba(196, 181, 232, 0.5);
   padding: 8px 0;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }
 
 /* ── CELDAS ── */
@@ -89,13 +90,14 @@
   background: rgba(196, 181, 232, 0.04);
   border: 1px solid rgba(196, 181, 232, 0.08);
   border-radius: 14px;
-  min-height: 90px;
-  padding: 8px;
+  min-height: 96px;
+  padding: 8px 6px 6px;
   position: relative;
   transition: all 0.25s ease;
   display: flex;
   flex-direction: column;
   align-items: center;
+  overflow: hidden;
 }
 
 .cal-celda.vacia {
@@ -104,8 +106,8 @@
 }
 
 .cal-celda.hoy {
-  border-color: rgba(196, 181, 232, 0.4);
-  background: rgba(196, 181, 232, 0.08);
+  border-color: rgba(196, 181, 232, 0.45);
+  background: rgba(196, 181, 232, 0.07);
 }
 
 .cal-celda.tiene-outfit,
@@ -114,22 +116,25 @@
 }
 
 .cal-celda.tiene-outfit {
-  border-color: rgba(196, 181, 232, 0.2);
+  border-color: rgba(196, 181, 232, 0.18);
 }
 
 .cal-celda.tiene-outfit:hover,
 .cal-celda.clickable:hover {
-  background: rgba(196, 181, 232, 0.08);
-  border-color: rgba(196, 181, 232, 0.25);
+  background: rgba(196, 181, 232, 0.09);
+  border-color: rgba(196, 181, 232, 0.28);
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
 }
 
 .cal-numero {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 500;
-  color: rgba(244, 244, 249, 0.6);
+  color: rgba(244, 244, 249, 0.55);
   align-self: flex-start;
+  line-height: 1;
+  margin-bottom: 4px;
+  z-index: 1;
 }
 
 .cal-celda.hoy .cal-numero {
@@ -137,90 +142,137 @@
   font-weight: 700;
 }
 
-/* ── PREVIEW OUTFIT ── */
-.cal-outfit-preview {
+/* ── COLLAGE EN CELDA ── */
+.cal-collage {
   width: 100%;
   flex: 1;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 4px;
-}
-
-.cal-outfit-preview img {
-  width: 100%;
-  height: 55px;
-  object-fit: cover;
+  gap: 2px;
   border-radius: 8px;
-  opacity: 0.9;
+  overflow: hidden;
 }
 
-/* ── MODAL ── */
+.cal-collage img {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.cal-collage-1 img {
+  border-radius: 8px;
+  height: 58px;
+}
+
+.cal-collage-2 {
+  height: 58px;
+}
+.cal-collage-2 img {
+  width: 50%;
+  height: 100%;
+}
+
+.cal-collage-3 {
+  height: 58px;
+}
+.cal-collage-main {
+  width: 60%;
+  height: 100%;
+}
+.cal-collage-side {
+  width: 40%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.cal-collage-side img {
+  height: 50%;
+  width: 100%;
+}
+
+/* ── ICONO + en celdas vacías ── */
+.cal-add-icon {
+  font-size: 1.2rem;
+  color: rgba(196, 181, 232, 0.22);
+  margin-top: auto;
+  transition: color 0.2s;
+}
+.cal-celda.clickable:hover .cal-add-icon {
+  color: rgba(196, 181, 232, 0.6);
+}
+
+/* ══════════════════════════════════════════════════════════
+   MODALES — BASE
+══════════════════════════════════════════════════════════ */
 .cal-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 3, 38, 0.8);
-  backdrop-filter: blur(20px);
+  background: rgba(10, 2, 30, 0.82);
+  backdrop-filter: blur(24px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 999;
   padding: 20px;
-  animation: fadeInBg 0.3s ease;
+  animation: fadeInBg 0.25s ease;
 }
 
 .cal-modal {
-  background: rgba(25, 8, 55, 0.97);
+  background: rgba(20, 6, 48, 0.98);
   border: 1px solid rgba(196, 181, 232, 0.15);
   border-radius: 26px;
-  padding: 30px;
-  max-width: 420px;
+  padding: 28px 24px 24px;
+  max-width: 440px;
   width: 100%;
   position: relative;
-  animation: zoomIn 0.35s ease;
+  animation: zoomIn 0.3s ease;
   text-align: center;
 }
 
 .cal-modal h3 {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 600;
   color: #C4B5E8;
-  margin: 0 0 16px;
+  margin: 0 0 14px;
   text-transform: capitalize;
 }
 
 .cal-modal-close {
   position: absolute;
   top: 14px;
-  right: 18px;
-  background: rgba(196, 181, 232, 0.1);
+  right: 16px;
+  background: rgba(196, 181, 232, 0.08);
   border: none;
   border-radius: 50%;
-  color: var(--white);
-  font-size: 18px;
-  width: 32px;
-  height: 32px;
+  color: rgba(244, 244, 249, 0.6);
+  font-size: 16px;
+  width: 30px;
+  height: 30px;
   cursor: pointer;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .cal-modal-close:hover {
-  background: rgba(255, 80, 80, 0.5);
+  background: rgba(255, 80, 80, 0.35);
+  color: #fff;
 }
 
 .cal-modal-img {
   width: 100%;
-  max-height: 280px;
+  max-height: 300px;
   object-fit: cover;
-  border-radius: 16px;
+  border-radius: 18px;
   margin-bottom: 14px;
 }
 
 .cal-modal-desc {
-  font-size: 0.88rem;
-  color: rgba(244, 244, 249, 0.6);
-  margin-bottom: 12px;
-  line-height: 1.4;
+  font-size: 0.87rem;
+  color: rgba(244, 244, 249, 0.55);
+  margin-bottom: 14px;
+  line-height: 1.5;
 }
 
 .cal-modal-prendas {
@@ -236,36 +288,140 @@
   border: 1px solid rgba(196, 181, 232, 0.15);
   border-radius: 8px;
   padding: 4px 10px;
-  font-size: 0.78rem;
+  font-size: 0.77rem;
   color: rgba(244, 244, 249, 0.65);
 }
 
-.cal-btn-eliminar {
-  background: rgba(255, 80, 80, 0.1);
+/* ══════════════════════════════════════════════════════════
+   MODAL DETALLE — rediseño profesional
+══════════════════════════════════════════════════════════ */
+.cal-modal-detalle {
+  max-width: 460px;
+  text-align: left;
+}
+
+/* Cabecera de fecha */
+.cal-detalle-fecha {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(196, 181, 232, 0.1);
+}
+
+.cal-detalle-dia-semana {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #C4B5E8;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.cal-detalle-dia-num {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #F4F4F9;
+  line-height: 1;
+}
+
+.cal-detalle-mes {
+  font-size: 0.9rem;
+  color: rgba(244, 244, 249, 0.45);
+  font-weight: 400;
+}
+
+/* Grid de prendas del outfit */
+.cal-detalle-outfit {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.cal-detalle-prenda-card {
+  background: rgba(196, 181, 232, 0.05);
+  border: 1px solid rgba(196, 181, 232, 0.1);
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.cal-detalle-prenda-card img {
+  width: 100%;
+  height: 130px;
+  object-fit: cover;
+  display: block;
+}
+
+.cal-detalle-prenda-label {
+  font-size: 0.73rem;
+  color: rgba(244, 244, 249, 0.55);
+  padding: 6px 8px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Botones del detalle */
+.cal-btn-eliminar-ghost {
+  width: 100%;
+  padding: 10px;
+  background: transparent;
   border: 1px solid rgba(255, 80, 80, 0.2);
+  border-radius: 12px;
+  color: rgba(255, 107, 107, 0.7);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 4px;
+}
+.cal-btn-eliminar-ghost:hover {
+  background: rgba(255, 80, 80, 0.08);
+  color: #ff6b6b;
+  border-color: rgba(255, 80, 80, 0.35);
+}
+
+.cal-confirm-delete {
+  margin-top: 4px;
+  text-align: center;
+}
+.cal-confirm-delete p {
+  font-size: 0.87rem;
+  color: rgba(244, 244, 249, 0.6);
+  margin-bottom: 10px;
+}
+.cal-confirm-btns {
+  display: flex;
+  gap: 8px;
+}
+.cal-btn-cancelar-del {
+  flex: 1;
+  padding: 10px;
+  background: rgba(196, 181, 232, 0.08);
+  border: 1px solid rgba(196, 181, 232, 0.15);
+  border-radius: 12px;
+  color: rgba(244, 244, 249, 0.7);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.cal-btn-cancelar-del:hover { background: rgba(196, 181, 232, 0.14); }
+
+.cal-btn-eliminar {
+  flex: 1;
+  padding: 10px;
+  background: rgba(255, 80, 80, 0.12);
+  border: 1px solid rgba(255, 80, 80, 0.25);
   color: #ff6b6b;
   border-radius: 12px;
-  padding: 10px 20px;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.25s ease;
-  width: 100%;
 }
-
-.cal-btn-eliminar:hover {
-  background: rgba(255, 80, 80, 0.2);
-}
-
-/* ── ICONO + en celdas vacías ── */
-.cal-add-icon {
-  font-size: 1.2rem;
-  color: rgba(196, 181, 232, 0.25);
-  margin-top: auto;
-  transition: color 0.2s;
-}
-.cal-celda.clickable:hover .cal-add-icon {
-  color: rgba(196, 181, 232, 0.6);
-}
+.cal-btn-eliminar:hover { background: rgba(255, 80, 80, 0.22); }
 
 /* ── OPCIONES AGREGAR ── */
 .cal-agregar-opciones {
@@ -277,7 +433,7 @@
 
 .cal-opcion-btn {
   background: rgba(196, 181, 232, 0.06);
-  border: 1px solid rgba(196, 181, 232, 0.15);
+  border: 1px solid rgba(196, 181, 232, 0.14);
   border-radius: 16px;
   padding: 14px 16px;
   cursor: pointer;
@@ -310,7 +466,7 @@
 
 .cal-opcion-sub {
   font-size: 0.78rem;
-  color: rgba(244, 244, 249, 0.45);
+  color: rgba(244, 244, 249, 0.42);
 }
 
 /* ── MODAL ANCHO (closet picker) ── */
@@ -375,25 +531,25 @@
 .cal-picker-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 3, 38, 0.8);
-  backdrop-filter: blur(20px);
+  background: rgba(10, 2, 30, 0.82);
+  backdrop-filter: blur(24px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
   padding: 20px;
-  animation: fadeInBg 0.3s ease;
+  animation: fadeInBg 0.25s ease;
 }
 
 .cal-picker-modal {
-  background: rgba(25, 8, 55, 0.97);
+  background: rgba(20, 6, 48, 0.98);
   border: 1px solid rgba(196, 181, 232, 0.15);
   border-radius: 26px;
   padding: 30px;
   max-width: 380px;
   width: 100%;
   position: relative;
-  animation: zoomIn 0.35s ease;
+  animation: zoomIn 0.3s ease;
   text-align: center;
 }
 
@@ -463,13 +619,12 @@
   box-shadow: 0 8px 20px rgba(196, 181, 232, 0.3);
 }
 
-/* MODO CLARO */
+/* ── MODO CLARO ── */
 body.light-mode .cal-header h1 {
   background: linear-gradient(90deg, #0F0326, #1a0a40) !important;
   -webkit-background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
 }
-
 body.light-mode .cal-header p { color: rgba(15, 3, 38, 0.55) !important; }
 body.light-mode .cal-nav h2 { color: #0F0326 !important; }
 body.light-mode .cal-nav-btn {
@@ -477,31 +632,39 @@ body.light-mode .cal-nav-btn {
   border-color: rgba(15, 3, 38, 0.15) !important;
   color: #0F0326 !important;
 }
-body.light-mode .cal-dia-header { color: rgba(15, 3, 38, 0.5) !important; }
+body.light-mode .cal-dia-header { color: rgba(15, 3, 38, 0.45) !important; }
 body.light-mode .cal-celda {
-  background: rgba(255, 255, 255, 0.3) !important;
-  border-color: rgba(15, 3, 38, 0.08) !important;
+  background: rgba(255, 255, 255, 0.35) !important;
+  border-color: rgba(15, 3, 38, 0.07) !important;
 }
 body.light-mode .cal-celda.hoy {
   border-color: rgba(15, 3, 38, 0.3) !important;
-  background: rgba(255, 255, 255, 0.5) !important;
+  background: rgba(255, 255, 255, 0.55) !important;
 }
-body.light-mode .cal-numero { color: rgba(15, 3, 38, 0.6) !important; }
+body.light-mode .cal-numero { color: rgba(15, 3, 38, 0.55) !important; }
 body.light-mode .cal-celda.hoy .cal-numero { color: #0F0326 !important; }
 
+/* ── ANIMACIONES ── */
 @keyframes fadeInBg {
   from { opacity: 0; }
-  to { opacity: 1; }
+  to   { opacity: 1; }
 }
 
 @keyframes zoomIn {
   from { opacity: 0; transform: scale(0.88); }
-  to { opacity: 1; transform: scale(1); }
+  to   { opacity: 1; transform: scale(1); }
 }
 
+/* ── RESPONSIVE ── */
 @media (max-width: 768px) {
   .cal-grid { gap: 4px; }
-  .cal-celda { min-height: 65px; padding: 5px; border-radius: 10px; }
-  .cal-numero { font-size: 0.75rem; }
-  .cal-outfit-preview img { height: 36px; }
+  .cal-celda { min-height: 68px; padding: 5px 4px 4px; border-radius: 10px; }
+  .cal-numero { font-size: 0.72rem; }
+  .cal-collage-1 img,
+  .cal-collage-2,
+  .cal-collage-3 { height: 40px; }
+  .cal-detalle-outfit {
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  }
+  .cal-detalle-prenda-card img { height: 100px; }
 }

@@ -82,8 +82,8 @@ export default function Asistente({ usuarioId }) {
 
   // Prefetch prendas al entrar al modo probador para que el swap sea instantáneo
   useEffect(() => {
-    if (modo === "maniqui" && !prendasCacheRef.current && usuarioId) {
-      axios.get(`${API_URL}/api/prendas`, { params: { usuario_id: usuarioId } })
+    if (modo === "maniqui" && !prendasCacheRef.current) {
+      axios.get(`${API_URL}/api/prendas`)
         .then(res => { prendasCacheRef.current = res.data || []; })
         .catch(() => {});
     }
@@ -145,7 +145,6 @@ export default function Asistente({ usuarioId }) {
 
     try {
       const res = await axios.post(`${API_URL}/api/fashion`, {
-        usuario_id: usuarioId,
         mensaje,
         historial: chat.slice(-8),
         outfit_ids_anteriores: outfitIds,
@@ -222,7 +221,7 @@ export default function Asistente({ usuarioId }) {
       } else if (outfit.length > 0) {
         imagen_url  = outfit[0].imagen_url;
         descripcion = outfit.map((p) => p.descripcion?.split("(")[0]?.trim()).join(", ");
-        metadata    = {};
+        metadata    = { outfit: outfit.map(p => ({ imagen_url: p.imagen_url, descripcion: p.descripcion })) };
       } else return;
 
       await axios.post(`${API_URL}/api/calendario`, {
@@ -250,7 +249,6 @@ export default function Asistente({ usuarioId }) {
         : ocas.prompt;
 
       const res = await axios.post(`${API_URL}/api/fashion`, {
-        usuario_id: usuarioId,
         mensaje: mensajeGeneracion,
         historial: [],
         outfit_ids_anteriores: outfitIds,
@@ -281,9 +279,7 @@ export default function Asistente({ usuarioId }) {
     }
     setSwapLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/api/prendas`, {
-        params: { usuario_id: usuarioId },
-      });
+      const res = await axios.get(`${API_URL}/api/prendas`);
       prendasCacheRef.current = res.data || [];
       setSwapPrendas(prendasCacheRef.current);
     } catch (err) {

@@ -7,9 +7,48 @@ import UploadModal from "../components/UploadModal";
 
 const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 const DIAS  = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
+const DIAS_LARGO = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
 
 function getKey(year, month, day) {
   return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+/* Devuelve array de { imagen_url, descripcion } para mostrar en una entrada */
+function getPrendas(entrada) {
+  if (!entrada) return [];
+  if (entrada.metadata?.outfit?.length > 0) return entrada.metadata.outfit;
+  if (entrada.imagen_url) return [{ imagen_url: entrada.imagen_url, descripcion: entrada.descripcion }];
+  return [];
+}
+
+/* Collage de hasta 3 imágenes en la celda */
+function OutfitCollage({ prendas }) {
+  const items = prendas.slice(0, 3);
+  if (items.length === 0) return null;
+  if (items.length === 1) {
+    return (
+      <div className="cal-collage cal-collage-1">
+        <img src={items[0].imagen_url} alt="" />
+      </div>
+    );
+  }
+  if (items.length === 2) {
+    return (
+      <div className="cal-collage cal-collage-2">
+        <img src={items[0].imagen_url} alt="" />
+        <img src={items[1].imagen_url} alt="" />
+      </div>
+    );
+  }
+  return (
+    <div className="cal-collage cal-collage-3">
+      <img src={items[0].imagen_url} alt="" className="cal-collage-main" />
+      <div className="cal-collage-side">
+        <img src={items[1].imagen_url} alt="" />
+        <img src={items[2].imagen_url} alt="" />
+      </div>
+    </div>
+  );
 }
 
 export default function Calendario({ usuarioId }) {
@@ -26,6 +65,7 @@ export default function Calendario({ usuarioId }) {
   const [fechaUpload,   setFechaUpload]   = useState(null);
   const [prendas,       setPrendas]       = useState([]);
   const [loadingCloset, setLoadingCloset] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) =>
@@ -52,9 +92,7 @@ export default function Calendario({ usuarioId }) {
   async function fetchPrendas() {
     setLoadingCloset(true);
     try {
-      const res = await axios.get(`${API_URL}/api/prendas`, {
-        params: { usuario_id: usuarioId },
-      });
+      const res = await axios.get(`${API_URL}/api/prendas`);
       setPrendas(res.data || []);
     } catch (err) {
       console.error(err);
@@ -84,6 +122,7 @@ export default function Calendario({ usuarioId }) {
       });
       await fetchEntradas();
       setModalDetalle(null);
+      setConfirmDelete(false);
     } catch (err) {
       console.error(err);
     }
@@ -104,11 +143,18 @@ export default function Calendario({ usuarioId }) {
   const esHoy = (dia) =>
     dia === hoy.getDate() && mes === hoy.getMonth() && año === hoy.getFullYear();
 
+  /* Número de días con outfit este mes */
+  const diasConOutfit = Object.keys(entradas).length;
+
   return (
     <div className="cal-container">
       <header className="cal-header">
-        <h1>📅 Calendario de Outfits</h1>
-        <p>Planifica tu estilo semana a semana</p>
+        <h1>Calendario de Outfits</h1>
+        <p>
+          {diasConOutfit > 0
+            ? `${diasConOutfit} outfit${diasConOutfit > 1 ? "s" : ""} planeado${diasConOutfit > 1 ? "s" : ""} este mes`
+            : "Planifica tu estilo semana a semana"}
+        </p>
       </header>
 
       <div className="cal-nav">
@@ -122,8 +168,9 @@ export default function Calendario({ usuarioId }) {
 
         {celdas.map((dia, i) => {
           if (!dia) return <div key={`e-${i}`} className="cal-celda vacia" />;
-          const key    = getKey(año, mes, dia);
+          const key     = getKey(año, mes, dia);
           const entrada = entradas[key];
+          const prendasEntry = getPrendas(entrada);
 
           return (
             <div
@@ -132,6 +179,7 @@ export default function Calendario({ usuarioId }) {
               onClick={() => {
                 if (entrada) {
                   setModalDetalle({ key, dia, ...entrada });
+                  setConfirmDelete(false);
                 } else {
                   setModalAgregar({ fecha: key, dia });
                   fetchPrendas();
@@ -140,9 +188,7 @@ export default function Calendario({ usuarioId }) {
             >
               <span className="cal-numero">{dia}</span>
               {entrada ? (
-                <div className="cal-outfit-preview">
-                  <img src={entrada.imagen_url} alt={entrada.descripcion} />
-                </div>
+                <OutfitCollage prendas={prendasEntry} />
               ) : (
                 <span className="cal-add-icon">+</span>
               )}
@@ -152,21 +198,89 @@ export default function Calendario({ usuarioId }) {
       </div>
 
       {/* ── Modal detalle ── */}
-      {modalDetalle && (
-        <div className="cal-modal-overlay" onClick={() => setModalDetalle(null)}>
-          <div className="cal-modal" onClick={e => e.stopPropagation()}>
-            <button className="cal-modal-close" onClick={() => setModalDetalle(null)}>✕</button>
-            <h3>
-              {DIAS[new Date(año, mes, modalDetalle.dia).getDay()]} {modalDetalle.dia} de {MESES[mes]}
-            </h3>
-            <img src={modalDetalle.imagen_url} alt={modalDetalle.descripcion} className="cal-modal-img" />
-            <p className="cal-modal-desc">{modalDetalle.descripcion}</p>
-            <button className="cal-btn-eliminar" onClick={() => eliminar(modalDetalle.id)}>
-              🗑️ Quitar outfit de este día
-            </button>
+      {modalDetalle && (() => {
+        const prendasModal = getPrendas(modalDetalle);
+        const diasSem = DIAS_LARGO[new Date(año, mes, modalDetalle.dia).getDay()];
+        const chips = modalDetalle.metadata?.prendas || [];
+
+        return (
+          <div className="cal-modal-overlay" onClick={() => { setModalDetalle(null); setConfirmDelete(false); }}>
+            <div className="cal-modal cal-modal-detalle" onClick={e => e.stopPropagation()}>
+              <button className="cal-modal-close" onClick={() => { setModalDetalle(null); setConfirmDelete(false); }}>✕</button>
+
+              {/* Cabecera fecha */}
+              <div className="cal-detalle-fecha">
+                <span className="cal-detalle-dia-semana">{diasSem}</span>
+                <span className="cal-detalle-dia-num">{modalDetalle.dia}</span>
+                <span className="cal-detalle-mes">{MESES[mes]}</span>
+              </div>
+
+              {/* Outfit visual */}
+              {prendasModal.length > 1 ? (
+                /* Entrada nueva con metadata.outfit — grid de imágenes */
+                <div className="cal-detalle-outfit">
+                  {prendasModal.map((p, idx) => (
+                    <div key={idx} className="cal-detalle-prenda-card">
+                      <img src={p.imagen_url} alt={p.descripcion} />
+                      <span className="cal-detalle-prenda-label">
+                        {p.descripcion?.split("(")[0]?.trim() || ""}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                /* Entrada vieja o prenda individual — imagen única */
+                <img
+                  src={modalDetalle.imagen_url}
+                  alt={modalDetalle.descripcion}
+                  className="cal-modal-img"
+                />
+              )}
+
+              {/* Chips de prendas — tres fuentes posibles:
+                  1. metadata.prendas  → outfit guardado desde IA (nombre + color)
+                  2. metadata.outfit   → ya visible como grid arriba, no repetir
+                  3. descripción       → entrada vieja: parsear por coma */}
+              {chips.length > 0 ? (
+                <div className="cal-modal-prendas">
+                  {chips.map((pr, i) => (
+                    <span key={i} className="cal-chip">{pr.nombre} · {pr.color}</span>
+                  ))}
+                </div>
+              ) : prendasModal.length <= 1 && modalDetalle.descripcion ? (
+                <div className="cal-modal-prendas">
+                  {modalDetalle.descripcion
+                    .split(",")
+                    .map(s => s.trim())
+                    .filter(Boolean)
+                    .map((parte, i) => (
+                      <span key={i} className="cal-chip">{parte}</span>
+                    ))}
+                </div>
+              ) : null}
+
+              {/* Acciones */}
+              {confirmDelete ? (
+                <div className="cal-confirm-delete">
+                  <p>¿Quitar outfit de este día?</p>
+                  <div className="cal-confirm-btns">
+                    <button className="cal-btn-cancelar-del" onClick={() => setConfirmDelete(false)}>
+                      Cancelar
+                    </button>
+                    <button className="cal-btn-eliminar" onClick={() => eliminar(modalDetalle.id)}>
+                      Sí, quitar
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button className="cal-btn-eliminar-ghost" onClick={() => setConfirmDelete(true)}>
+                  Quitar outfit
+                </button>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ── Modal agregar — elegir método ── */}
       {modalAgregar && (
@@ -174,7 +288,7 @@ export default function Calendario({ usuarioId }) {
           <div className="cal-modal" onClick={e => e.stopPropagation()}>
             <button className="cal-modal-close" onClick={() => setModalAgregar(null)}>✕</button>
             <h3>
-              {DIAS[new Date(año, mes, modalAgregar.dia).getDay()]} {modalAgregar.dia} de {MESES[mes]}
+              {DIAS_LARGO[new Date(año, mes, modalAgregar.dia).getDay()]} {modalAgregar.dia} de {MESES[mes]}
             </h3>
             <p className="cal-modal-desc">¿Qué quieres registrar para este día?</p>
             <div className="cal-agregar-opciones">
@@ -241,9 +355,7 @@ export default function Calendario({ usuarioId }) {
           onUploaded={async () => {
             if (fechaUpload) {
               try {
-                const res = await axios.get(`${API_URL}/api/prendas`, {
-                  params: { usuario_id: usuarioId },
-                });
+                const res = await axios.get(`${API_URL}/api/prendas`);
                 const ultima = res.data?.[0];
                 if (ultima) await guardar(fechaUpload, ultima);
               } catch {}
