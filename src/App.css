@@ -465,8 +465,7 @@ body.light-mode .cal-picker-confirm {
     gap: 16px !important;
   }
   .perfil-acciones { justify-content: center !important; }
-  .perfil-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
-  .perfil-card img { height: 160px !important; }
+  /* Grid 3x3 Instagram — no override, Perfil.css lo maneja */
 
   /* ── Modales ── */
   .cal-modal,
@@ -477,5 +476,4 @@ body.light-mode .cal-picker-confirm {
 
 @media (max-width: 380px) {
   .closet-card { flex: 1 1 100% !important; max-width: 100% !important; }
-  .perfil-grid { grid-template-columns: 1fr !important; }
 }

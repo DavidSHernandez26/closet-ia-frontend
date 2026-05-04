@@ -1074,12 +1074,12 @@ body.light-mode .ocasion-chip.activa {
 @media (max-width: 900px) {
 
   .asistente-fondo {
-    /* absolute dentro de main-content que ya empieza en safe-area-inset-top */
-    position: absolute !important;
+    /* fixed al viewport real — top:0 para no depender del scroll container iOS */
+    position: fixed !important;
     top: 0 !important;
     left: 0 !important;
     right: 0 !important;
-    bottom: 0 !important;
+    bottom: calc(58px + env(safe-area-inset-bottom)) !important;
     padding: 0 !important;
     display: flex !important;
     flex-direction: column !important;
@@ -1091,7 +1091,7 @@ body.light-mode .ocasion-chip.activa {
 
   /* Cuando el sheet de outfit está visible (72px) empujar el fondo hacia arriba */
   .asistente-fondo.sheet-visible {
-    bottom: 72px !important;
+    bottom: calc(130px + env(safe-area-inset-bottom)) !important;
   }
 
   body.light-mode .asistente-fondo { background: var(--green) !important; }
@@ -1117,8 +1117,11 @@ body.light-mode .ocasion-chip.activa {
     flex-direction: column !important;
   }
 
-  /* HUD compacto en mobile */
-  .asistente-hud { padding: 10px 14px !important; }
+  /* HUD: padding-top compensa el safe area (Dynamic Island) desde top:0 */
+  .asistente-hud {
+    padding: 10px 14px !important;
+    padding-top: calc(env(safe-area-inset-top) + 10px) !important;
+  }
 
   .asistente-mac-dot {
     width: 11px !important;
