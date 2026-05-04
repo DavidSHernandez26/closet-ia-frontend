@@ -154,9 +154,48 @@
 .asistente-hud-right {
   min-width: 46px;
   display: flex;
+  align-items: center;
+  gap: 6px;
   justify-content: flex-end;
   flex-shrink: 0;
 }
+
+/* ── Chip clima ── */
+.clima-chip {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background: rgba(196, 181, 232, 0.08);
+  border: 1px solid rgba(196, 181, 232, 0.12);
+  border-radius: 20px;
+  padding: 3px 8px 3px 5px;
+  cursor: default;
+  user-select: none;
+}
+
+.clima-icon { font-size: 0.82rem; line-height: 1; }
+
+.clima-temp {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: rgba(244, 244, 249, 0.85);
+}
+
+.clima-ciudad {
+  font-size: 0.65rem;
+  color: rgba(196, 181, 232, 0.55);
+  max-width: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.light-mode .clima-chip {
+  background: rgba(15, 3, 38, 0.05);
+  border-color: rgba(15, 3, 38, 0.1);
+}
+body.light-mode .clima-temp { color: rgba(15, 3, 38, 0.85); }
+body.light-mode .clima-ciudad { color: rgba(15, 3, 38, 0.45); }
 
 /* Avatar */
 .asistente-avatar {

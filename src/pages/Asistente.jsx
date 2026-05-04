@@ -4,6 +4,7 @@ import "./Asistente.css";
 import VirtualMannequin from "../components/VirtualMannequin";
 import { API_URL } from "../config";
 import { supabase } from "../supabase";
+import { getWeather } from "../services/weatherService";
 
 // Debe coincidir con getTipo de VirtualMannequin
 function getTipoPrenda(descripcion = "") {
@@ -55,6 +56,7 @@ export default function Asistente({ usuarioId }) {
     catch { return null; }
   });
 
+  const [clima, setClima]                         = useState(null);
   const [loading, setLoading]                     = useState(false);
   const [showCalPicker, setShowCalPicker]         = useState(false);
   const [fechaSeleccionada, setFechaSeleccionada] = useState(
@@ -71,6 +73,10 @@ export default function Asistente({ usuarioId }) {
     supabase.auth.getSession().then(({ data }) =>
       setToken(data?.session?.access_token || "")
     );
+  }, []);
+
+  useEffect(() => {
+    getWeather().then(setClima).catch(() => {});
   }, []);
 
   // Prefetch prendas al entrar al modo probador para que el swap sea instantáneo
@@ -140,6 +146,7 @@ export default function Asistente({ usuarioId }) {
         mensaje,
         historial: chat.slice(-8),
         outfit_ids_anteriores: outfitIds,
+        clima: clima?.resumen || null,
       });
 
       setChat((prev) => [...prev, {
@@ -327,9 +334,16 @@ export default function Asistente({ usuarioId }) {
               </div>
 
               <div className="asistente-hud-right">
+                {clima && (
+                  <div className="clima-chip" title={`${clima.label} · Sensación ${clima.feels}°C · Viento ${clima.wind} km/h`}>
+                    <span className="clima-icon">{clima.icon}</span>
+                    <span className="clima-temp">{clima.temp}°</span>
+                    <span className="clima-ciudad">{clima.city}</span>
+                  </div>
+                )}
                 {modo === "chat" && chat.length > 0 && (
                   <button className="btn-clear-chat" onClick={handleClearChat}>
-                    🗑 Limpiar
+                    🗑
                   </button>
                 )}
               </div>

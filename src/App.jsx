@@ -12,6 +12,7 @@ import "./App.css";
 import { Capacitor } from "@capacitor/core";
 import { StatusBar, Style } from "@capacitor/status-bar";
 import { App as CapApp } from "@capacitor/app";
+import { LocalNotifications } from "@capacitor/local-notifications";
 
 import Navbar from "./components/Navbar";
 
@@ -52,6 +53,32 @@ export default function App() {
     const listener = CapApp.addListener("appStateChange", ({ isActive }) => {
       if (isActive) StatusBar.setStyle({ style: Style.Dark });
     });
+
+    // Notificaciones locales — recordatorio diario outfit
+    async function setupNotifications() {
+      const perm = await LocalNotifications.requestPermissions();
+      if (perm.display !== "granted") return;
+
+      const pending = await LocalNotifications.getPending();
+      const yaExiste = pending.notifications.some(n => n.id === 1001);
+      if (yaExiste) return;
+
+      await LocalNotifications.schedule({
+        notifications: [{
+          id: 1001,
+          title: "✦ Closet IA",
+          body: "¿Ya elegiste tu outfit para hoy? 👕",
+          schedule: {
+            every: "day",
+            on: { hour: 8, minute: 0 },
+            allowWhileIdle: true,
+          },
+          sound: "default",
+          smallIcon: "ic_launcher",
+        }],
+      });
+    }
+    setupNotifications();
 
     return () => { listener.then(h => h.remove()); };
   }, []);
