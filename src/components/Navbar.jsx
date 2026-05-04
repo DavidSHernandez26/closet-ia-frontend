@@ -4,6 +4,7 @@ import "./Navbar.css";
 import UploadModal from "./UploadModal";
 import { supabase } from "../supabase";
 import NotifPanel from "./NotifPanel";
+import { haptics } from "../hooks/useHaptics";
 
 export default function Navbar({ onUploaded, darkMode, onToggleTheme, usuarioId }) {
   const location = useLocation();
@@ -96,6 +97,7 @@ export default function Navbar({ onUploaded, darkMode, onToggleTheme, usuarioId 
             key={l.path}
             to={l.path}
             className={`navbar-mobile-item ${isActive(l.path) ? "active" : ""}`}
+            onClick={() => haptics.light()}
           >
             <span className="navbar-mobile-icon">{l.icon}</span>
             <span className="navbar-mobile-label">{l.label}</span>
@@ -103,7 +105,7 @@ export default function Navbar({ onUploaded, darkMode, onToggleTheme, usuarioId 
         ))}
         <button
           className={`navbar-mobile-item navbar-mobile-upload`}
-          onClick={handleUploadClick}
+          onClick={() => { haptics.medium(); handleUploadClick(); }}
         >
           <span className="navbar-mobile-icon">📸</span>
           <span className="navbar-mobile-label">Subir</span>

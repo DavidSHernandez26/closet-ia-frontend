@@ -13,6 +13,8 @@ import { Capacitor } from "@capacitor/core";
 import { StatusBar, Style } from "@capacitor/status-bar";
 import { App as CapApp } from "@capacitor/app";
 import { LocalNotifications } from "@capacitor/local-notifications";
+import { SplashScreen } from "@capacitor/splash-screen";
+import { Keyboard } from "@capacitor/keyboard";
 
 import Navbar from "./components/Navbar";
 
@@ -48,6 +50,13 @@ export default function App() {
     // calcula directo del hardware y nunca se resetea al volver de cámara/fotos.
     StatusBar.setOverlaysWebView({ overlay: true });
     StatusBar.setStyle({ style: Style.Dark });
+
+    // Ocultar splash screen suavemente después de que la app cargue
+    SplashScreen.hide({ fadeOutDuration: 300 });
+
+    // Teclado — en iOS el teclado nunca tapa el input (scroll nativo)
+    Keyboard.setAccessoryBarVisible({ isVisible: false });
+    Keyboard.setScroll({ isDisabled: false });
 
     // Restaurar solo el estilo (iconos blancos) al volver de cualquier vista nativa
     const listener = CapApp.addListener("appStateChange", ({ isActive }) => {

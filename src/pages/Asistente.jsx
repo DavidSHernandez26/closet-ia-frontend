@@ -5,6 +5,7 @@ import VirtualMannequin from "../components/VirtualMannequin";
 import { API_URL } from "../config";
 import { supabase } from "../supabase";
 import { getWeather } from "../services/weatherService";
+import { haptics } from "../hooks/useHaptics";
 
 // Debe coincidir con getTipo de VirtualMannequin
 function getTipoPrenda(descripcion = "") {
@@ -120,6 +121,7 @@ export default function Asistente({ usuarioId }) {
   ];
 
   function handleOcasion(ocas) {
+    haptics.light();
     if (ocasionActiva?.id === ocas.id) {
       setOcasionActiva(null);
       setMensaje("");
@@ -132,6 +134,7 @@ export default function Asistente({ usuarioId }) {
 
   async function handleRecommend() {
     if (!mensaje.trim() || loading) return;
+    haptics.medium();
 
     const userMessage = { role: "user", text: mensaje };
     setChat((prev) => [...prev, userMessage]);
@@ -149,6 +152,7 @@ export default function Asistente({ usuarioId }) {
         clima: clima?.resumen || null,
       });
 
+      haptics.success();
       setChat((prev) => [...prev, {
         role: "assistant",
         text: res.data?.respuesta || "No hubo respuesta.",

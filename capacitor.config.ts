@@ -11,6 +11,20 @@ const config: CapacitorConfig = {
     Camera: {
       presentationStyle: 'popover',
     },
+    SplashScreen: {
+      launchShowDuration: 1500,
+      launchAutoHide: false,
+      backgroundColor: '#0F0326',
+      androidSplashResourceName: 'splash',
+      androidScaleType: 'CENTER_CROP',
+      showSpinner: false,
+      splashFullScreen: true,
+      splashImmersive: true,
+    },
+    Keyboard: {
+      resize: 'ionic' as any,
+      resizeOnFullScreen: true,
+    },
   },
 };
 

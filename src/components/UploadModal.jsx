@@ -4,6 +4,7 @@ import { supabase } from "../supabase";
 import axios from "axios";
 import { API_URL } from "../config";
 import { useNativeCamera } from "../hooks/useNativeCamera";
+import { haptics } from "../hooks/useHaptics";
 
 const ETAPAS = [
   { hasta: 20,  label: "📤 Subiendo imagen..." },
@@ -67,6 +68,7 @@ export default function UploadModal({ onClose, onUploaded }) {
       });
 
       completarProgreso();
+      haptics.success();
       setMensajeIA(res.data?.mensaje ? `✅ ${res.data.mensaje}` : "✅ Imagen analizada correctamente.");
       if (onUploaded) onUploaded();
       setTimeout(() => { setFile(null); setPreview(""); setTipo(""); setProgreso(0); }, 1500);
