@@ -1,13 +1,9 @@
 User-agent: *
 Allow: /
-Allow: /login
-Allow: /register
-Disallow: /closet
-Disallow: /asistente
-Disallow: /calendario
-Disallow: /perfil
-Disallow: /amigos
-Disallow: /feed
-Disallow: /setup-perfil
+
+# Evitar crawl de archivos estáticos innecesarios
+Disallow: /static/
+Disallow: /*.json$
+Disallow: /*.map$
 
 Sitemap: https://closetia.app/sitemap.xml
