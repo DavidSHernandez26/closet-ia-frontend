@@ -271,69 +271,65 @@ body.light-mode .theme-toggle-btn {
     align-items: center;
     justify-content: center;
     gap: 3px;
-    padding: 8px 2px;
-    border-radius: 0;
+    padding: 6px 2px 8px;
+    border-radius: 14px;
     text-decoration: none;
     color: rgba(244, 244, 249, 0.35);
-    transition: color 0.2s ease, background 0.2s ease;
+    transition: color 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                background 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                transform 0.12s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     border: none;
     background: transparent;
     cursor: pointer;
     font-family: inherit;
     min-width: 0;
     position: relative;
-    /* Toque más fácil en móvil */
     -webkit-tap-highlight-color: transparent;
+    margin: 6px 2px;
   }
 
-  /* Indicador activo — línea superior */
-  .navbar-mobile-item.active::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 20%;
-    right: 20%;
-    height: 2px;
-    border-radius: 0 0 2px 2px;
-    background: #C4B5E8;
-  }
-
+  /* Pill activa — fondo suave como iOS */
   .navbar-mobile-item.active {
     color: #C4B5E8;
+    background: rgba(196, 181, 232, 0.12);
   }
 
   .navbar-mobile-item:active {
+    transform: scale(0.92);
     background: rgba(196, 181, 232, 0.08);
   }
 
   .navbar-mobile-icon {
-    font-size: 1.25rem;
+    font-size: 1.22rem;
     line-height: 1;
-    transition: transform 0.15s ease;
+    display: block;
+    transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
 
+  /* Rebote de icono al activarse */
   .navbar-mobile-item.active .navbar-mobile-icon {
-    transform: scale(1.1) translateY(-1px);
+    animation: iconBounce 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   }
 
   .navbar-mobile-label {
-    font-size: 0.58rem;
-    font-weight: 500;
-    letter-spacing: 0.02em;
+    font-size: 0.57rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 56px;
     text-align: center;
+    transition: opacity 0.2s ease;
+  }
+
+  .navbar-mobile-item:not(.active) .navbar-mobile-label {
+    opacity: 0.7;
+    font-weight: 400;
   }
 
   .navbar-mobile-upload {
-    color: rgba(196, 181, 232, 0.5);
-  }
-
-  .navbar-mobile-upload.active,
-  .navbar-mobile-upload:active {
-    color: #C4B5E8;
+    color: rgba(196, 181, 232, 0.55);
   }
 }
 

@@ -84,10 +84,10 @@ export default function UploadModal({ onClose, onUploaded }) {
 
   return (
     <div
-      className="upload-overlay"
+      className="upload-overlay fade-in"
       onClick={(e) => e.target.classList.contains("upload-overlay") && onClose()}
     >
-      <div className="upload-modal">
+      <div className="upload-modal modal-spring">
         <button className="close-upload" onClick={onClose}>✕</button>
 
         <h2>📸 Subir Imagen</h2>

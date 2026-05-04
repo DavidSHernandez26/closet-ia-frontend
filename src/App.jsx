@@ -4,11 +4,13 @@ import {
   Routes,
   Route,
   Navigate,
+  useLocation,
 } from "react-router-dom";
 import axios from "axios";
 import { supabase } from "./supabase";
 import { API_URL } from "./config";
 import "./App.css";
+import "./styles/animations.css";
 import { Capacitor } from "@capacitor/core";
 import { StatusBar, Style } from "@capacitor/status-bar";
 import { App as CapApp } from "@capacitor/app";
@@ -176,6 +178,24 @@ export default function App() {
     <div className="loading-screen"><p>Cargando...</p></div>
   );
 
+  function AnimatedRoutes({ usuarioId, refreshCloset, PrivateRoute }) {
+    const location = useLocation();
+    return (
+      <div key={location.pathname} className="page-enter" style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+        <Routes location={location}>
+          <Route path="/" element={<PrivateRoute><Asistente usuarioId={usuarioId} /></PrivateRoute>} />
+          <Route path="/feed" element={<PrivateRoute><Feed usuarioId={usuarioId} /></PrivateRoute>} />
+          <Route path="/closet" element={<PrivateRoute><Closet refresh={refreshCloset} /></PrivateRoute>} />
+          <Route path="/calendario" element={<PrivateRoute><Calendario usuarioId={usuarioId} /></PrivateRoute>} />
+          <Route path="/perfil" element={<PrivateRoute><Perfil usuarioId={usuarioId} /></PrivateRoute>} />
+          <Route path="/perfil/:username" element={<PrivateRoute><Perfil usuarioId={usuarioId} /></PrivateRoute>} />
+          <Route path="/amigos" element={<PrivateRoute><Amigos usuarioId={usuarioId} /></PrivateRoute>} />
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </div>
+    );
+  }
+
   return (
     <Router>
       <div className="app-container">
@@ -195,16 +215,11 @@ export default function App() {
 
             <Route path="*" element={
               <main className="main-content">
-                <Routes>
-                  <Route path="/" element={<PrivateRoute><Asistente usuarioId={usuarioId} /></PrivateRoute>} />
-                  <Route path="/feed" element={<PrivateRoute><Feed usuarioId={usuarioId} /></PrivateRoute>} />
-                  <Route path="/closet" element={<PrivateRoute><Closet refresh={refreshCloset} /></PrivateRoute>} />
-                  <Route path="/calendario" element={<PrivateRoute><Calendario usuarioId={usuarioId} /></PrivateRoute>} />
-                  <Route path="/perfil" element={<PrivateRoute><Perfil usuarioId={usuarioId} /></PrivateRoute>} />
-                  <Route path="/perfil/:username" element={<PrivateRoute><Perfil usuarioId={usuarioId} /></PrivateRoute>} />
-                  <Route path="/amigos" element={<PrivateRoute><Amigos usuarioId={usuarioId} /></PrivateRoute>} />
-                  <Route path="*" element={<Navigate to="/" />} />
-                </Routes>
+                <AnimatedRoutes
+                  usuarioId={usuarioId}
+                  refreshCloset={refreshCloset}
+                  PrivateRoute={PrivateRoute}
+                />
               </main>
             } />
           </Routes>

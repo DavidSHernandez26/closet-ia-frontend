@@ -342,7 +342,7 @@ export default function Closet({ refresh }) {
                 {prendasFiltradas.map(p => (
                   <div
                     key={p.id}
-                    className="mac-thumb"
+                    className="mac-thumb stagger-item"
                     onClick={() => setModalItem(p)}
                   >
                     <img src={p.imagen_url} alt={p.descripcion} />
@@ -360,8 +360,8 @@ export default function Closet({ refresh }) {
 
       {/* Modal */}
       {modalItem && (
-        <div className="mac-modal-overlay" onClick={() => setModalItem(null)}>
-          <div className="mac-modal" onClick={e => e.stopPropagation()}>
+        <div className="mac-modal-overlay fade-in" onClick={() => setModalItem(null)}>
+          <div className="mac-modal modal-spring" onClick={e => e.stopPropagation()}>
             <div className="mac-modal-bar">
               <div className="mac-dots">
                 <span className="mac-dot red"    onClick={() => setModalItem(null)} style={{ cursor: "pointer" }} />
