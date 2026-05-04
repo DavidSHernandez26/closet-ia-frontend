@@ -42,17 +42,15 @@ export default function App() {
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
 
-    function applyStatusBar() {
-      StatusBar.setOverlaysWebView({ overlay: false });
-      StatusBar.setStyle({ style: Style.Dark });
-      StatusBar.setBackgroundColor({ color: "#0F0326" });
-    }
+    // overlay:true = WebView cubre toda la pantalla incluido el status bar.
+    // El offset real lo maneja CSS con env(safe-area-inset-top), que WebKit
+    // calcula directo del hardware y nunca se resetea al volver de cámara/fotos.
+    StatusBar.setOverlaysWebView({ overlay: true });
+    StatusBar.setStyle({ style: Style.Dark });
 
-    applyStatusBar();
-
-    // Re-apply every time the app returns from camera/photos/any native view
+    // Restaurar solo el estilo (iconos blancos) al volver de cualquier vista nativa
     const listener = CapApp.addListener("appStateChange", ({ isActive }) => {
-      if (isActive) applyStatusBar();
+      if (isActive) StatusBar.setStyle({ style: Style.Dark });
     });
 
     return () => { listener.then(h => h.remove()); };
