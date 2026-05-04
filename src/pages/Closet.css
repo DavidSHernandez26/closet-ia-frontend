@@ -8,7 +8,7 @@
   align-items: flex-start;
   justify-content: center;
   min-height: 100vh;
-  padding: 32px 24px 80px;
+  padding: 32px 20px 80px;
   box-sizing: border-box;
   width: 100%;
 }
@@ -18,7 +18,7 @@
 ══════════════════════════════════ */
 .mac-window {
   width: 100%;
-  max-width: 1320px;
+  max-width: 1800px;
   border-radius: 16px;
   overflow: hidden;
   background: rgba(12, 4, 28, 0.72);
@@ -282,8 +282,14 @@
 }
 
 @media (min-width: 1280px) {
-  .mac-grid { grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); }
+  .mac-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
   .mac-sidebar { width: 210px; }
+}
+
+@media (min-width: 1600px) {
+  .mac-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+  .mac-sidebar { width: 230px; }
+  .mac-content { padding: 20px; }
 }
 
 /* ── Thumbnail — liquid glass overlay ── */

@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 100px 5vw 60px;
+  padding: 80px 2vw 60px;
   min-height: 100vh;
   width: 100%;
   box-sizing: border-box;
@@ -72,7 +72,7 @@
   grid-template-columns: repeat(7, 1fr);
   gap: 8px;
   width: 100%;
-  max-width: 1100px;
+  max-width: none;
 }
 
 .cal-dia-header {
@@ -696,12 +696,21 @@ body.light-mode .cal-celda.hoy .cal-numero { color: #0F0326 !important; }
 
 /* ── DESKTOP GRANDE ── */
 @media (min-width: 1280px) {
-  .cal-grid { max-width: 1260px; gap: 10px; }
+  .cal-grid { gap: 10px; }
   .cal-celda { min-height: 130px; border-radius: 16px; }
   .cal-collage-1 img,
   .cal-collage-2,
-  .cal-collage-3 { height: 88px; }
+  .cal-collage-3 { height: 90px; }
   .cal-header h1 { font-size: 2.6rem; }
+}
+
+@media (min-width: 1600px) {
+  .cal-grid { gap: 12px; }
+  .cal-celda { min-height: 160px; border-radius: 18px; padding: 10px 8px 8px; }
+  .cal-collage-1 img,
+  .cal-collage-2,
+  .cal-collage-3 { height: 112px; }
+  .cal-numero { font-size: 0.95rem; }
 }
 
 /* ── RESPONSIVE ── */
