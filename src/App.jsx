@@ -12,11 +12,6 @@ import { API_URL } from "./config";
 import "./App.css";
 import "./styles/animations.css";
 import { Capacitor } from "@capacitor/core";
-import { StatusBar, Style } from "@capacitor/status-bar";
-import { App as CapApp } from "@capacitor/app";
-import { LocalNotifications } from "@capacitor/local-notifications";
-import { SplashScreen } from "@capacitor/splash-screen";
-import { Keyboard } from "@capacitor/keyboard";
 
 import Navbar from "./components/Navbar";
 
@@ -47,58 +42,70 @@ export default function App() {
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
 
-    // overlay:true = WebView cubre toda la pantalla incluido el status bar.
-    // El offset real lo maneja CSS con env(safe-area-inset-top), que WebKit
-    // calcula directo del hardware y nunca se resetea al volver de cámara/fotos.
-    StatusBar.setOverlaysWebView({ overlay: true });
-    StatusBar.setStyle({ style: Style.Dark });
+    let cleanup = () => {};
 
-    // Ocultar splash screen suavemente después de que la app cargue
-    SplashScreen.hide({ fadeOutDuration: 300 });
+    async function initNative() {
+      const [
+        { StatusBar, Style },
+        { App: CapApp },
+        { LocalNotifications },
+        { SplashScreen },
+        { Keyboard },
+      ] = await Promise.all([
+        import("@capacitor/status-bar"),
+        import("@capacitor/app"),
+        import("@capacitor/local-notifications"),
+        import("@capacitor/splash-screen"),
+        import("@capacitor/keyboard"),
+      ]);
 
-    // Teclado — en iOS el teclado nunca tapa el input (scroll nativo)
-    Keyboard.setAccessoryBarVisible({ isVisible: false });
-    Keyboard.setScroll({ isDisabled: false });
+      StatusBar.setOverlaysWebView({ overlay: true });
+      StatusBar.setStyle({ style: Style.Dark });
+      SplashScreen.hide({ fadeOutDuration: 300 });
+      Keyboard.setAccessoryBarVisible({ isVisible: false });
+      Keyboard.setScroll({ isDisabled: false });
 
-    // Restaurar solo el estilo (iconos blancos) al volver de cualquier vista nativa
-    const listener = CapApp.addListener("appStateChange", ({ isActive }) => {
-      if (isActive) StatusBar.setStyle({ style: Style.Dark });
-    });
-
-    // Notificaciones locales — recordatorio diario outfit
-    async function setupNotifications() {
-      const perm = await LocalNotifications.requestPermissions();
-      if (perm.display !== "granted") return;
-
-      const pending = await LocalNotifications.getPending();
-      const yaExiste = pending.notifications.some(n => n.id === 1001);
-      if (yaExiste) return;
-
-      // Calcular el próximo 8:00am para usar at + repeats (más confiable que every+on)
-      const next8am = new Date();
-      next8am.setHours(8, 0, 0, 0);
-      if (next8am <= new Date()) {
-        next8am.setDate(next8am.getDate() + 1);
-      }
-
-      await LocalNotifications.schedule({
-        notifications: [{
-          id: 1001,
-          title: "✦ Closet IA",
-          body: "¿Ya elegiste tu outfit para hoy? 👕",
-          schedule: {
-            at: next8am,
-            repeats: true,
-            allowWhileIdle: true,
-          },
-          sound: undefined,
-          smallIcon: "ic_stat_icon_config_sample",
-        }],
+      const listenerHandle = CapApp.addListener("appStateChange", ({ isActive }) => {
+        if (isActive) StatusBar.setStyle({ style: Style.Dark });
       });
-    }
-    setupNotifications();
 
-    return () => { listener.then(h => h.remove()); };
+      async function setupNotifications() {
+        const perm = await LocalNotifications.requestPermissions();
+        if (perm.display !== "granted") return;
+
+        const pending = await LocalNotifications.getPending();
+        const yaExiste = pending.notifications.some(n => n.id === 1001);
+        if (yaExiste) return;
+
+        const next8am = new Date();
+        next8am.setHours(8, 0, 0, 0);
+        if (next8am <= new Date()) {
+          next8am.setDate(next8am.getDate() + 1);
+        }
+
+        await LocalNotifications.schedule({
+          notifications: [{
+            id: 1001,
+            title: "✦ Closet IA",
+            body: "¿Ya elegiste tu outfit para hoy? 👕",
+            schedule: {
+              at: next8am,
+              repeats: true,
+              allowWhileIdle: true,
+            },
+            sound: undefined,
+            smallIcon: "ic_stat_icon_config_sample",
+          }],
+        });
+      }
+      setupNotifications();
+
+      cleanup = () => { listenerHandle.then(h => h.remove()); };
+    }
+
+    initNative();
+
+    return () => cleanup();
   }, []);
   const [refreshCloset, setRefreshCloset] = useState(0);
   const [darkMode, setDarkMode] = useState(localStorage.getItem("theme") !== "light");

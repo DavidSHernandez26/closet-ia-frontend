@@ -1,19 +1,11 @@
 import { Capacitor } from '@capacitor/core';
-import { Camera, CameraSource, CameraResultType } from '@capacitor/camera';
 
-/**
- * Returns a function that opens camera/gallery natively on iOS/Android,
- * or falls back to a hidden <input type="file"> on web.
- *
- * Usage:
- *   const pickPhoto = useNativeCamera();
- *   const file = await pickPhoto();  // returns a File object
- */
 export function useNativeCamera() {
   const isNative = Capacitor.isNativePlatform();
 
   async function pickPhoto() {
     if (isNative) {
+      const { Camera, CameraSource, CameraResultType } = await import('@capacitor/camera');
       const photo = await Camera.getPhoto({
         source: CameraSource.Prompt,
         resultType: CameraResultType.Base64,

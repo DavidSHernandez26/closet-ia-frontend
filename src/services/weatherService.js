@@ -1,5 +1,4 @@
 import { Capacitor } from '@capacitor/core';
-import { Geolocation } from '@capacitor/geolocation';
 
 const WEATHER_CODES = {
   0:  { label: 'Despejado',           icon: '☀️' },
@@ -33,6 +32,7 @@ function getWeatherInfo(code) {
 
 async function getCoordinates() {
   if (Capacitor.isNativePlatform()) {
+    const { Geolocation } = await import('@capacitor/geolocation');
     const perm = await Geolocation.requestPermissions();
     if (perm.location !== 'granted') throw new Error('permiso_denegado');
     const pos = await Geolocation.getCurrentPosition({ timeout: 10000 });
