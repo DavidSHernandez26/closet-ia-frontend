@@ -1036,10 +1036,10 @@ body.light-mode .ocasion-chip.activa {
 
   .asistente-fondo {
     position: fixed !important;
-    top: 0 !important;
+    top: env(safe-area-inset-top) !important;
     left: 0 !important;
     right: 0 !important;
-    bottom: calc(58px + env(safe-area-inset-bottom) + 72px) !important;
+    bottom: calc(58px + env(safe-area-inset-bottom)) !important;
     padding: 8px 10px 0 !important;
     display: flex !important;
     flex-direction: column !important;
