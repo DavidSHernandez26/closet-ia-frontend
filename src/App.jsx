@@ -63,18 +63,25 @@ export default function App() {
       const yaExiste = pending.notifications.some(n => n.id === 1001);
       if (yaExiste) return;
 
+      // Calcular el próximo 8:00am para usar at + repeats (más confiable que every+on)
+      const next8am = new Date();
+      next8am.setHours(8, 0, 0, 0);
+      if (next8am <= new Date()) {
+        next8am.setDate(next8am.getDate() + 1);
+      }
+
       await LocalNotifications.schedule({
         notifications: [{
           id: 1001,
           title: "✦ Closet IA",
           body: "¿Ya elegiste tu outfit para hoy? 👕",
           schedule: {
-            every: "day",
-            on: { hour: 8, minute: 0 },
+            at: next8am,
+            repeats: true,
             allowWhileIdle: true,
           },
-          sound: "default",
-          smallIcon: "ic_launcher",
+          sound: undefined,
+          smallIcon: "ic_stat_icon_config_sample",
         }],
       });
     }
