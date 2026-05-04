@@ -72,7 +72,7 @@
   grid-template-columns: repeat(7, 1fr);
   gap: 8px;
   width: 100%;
-  max-width: 920px;
+  max-width: 1100px;
 }
 
 .cal-dia-header {
@@ -90,7 +90,7 @@
   background: rgba(196, 181, 232, 0.04);
   border: 1px solid rgba(196, 181, 232, 0.08);
   border-radius: 14px;
-  min-height: 96px;
+  min-height: 108px;
   padding: 8px 6px 6px;
   position: relative;
   transition: all 0.25s ease;
@@ -161,11 +161,11 @@
 
 .cal-collage-1 img {
   border-radius: 8px;
-  height: 58px;
+  height: 70px;
 }
 
 .cal-collage-2 {
-  height: 58px;
+  height: 70px;
 }
 .cal-collage-2 img {
   width: 50%;
@@ -173,7 +173,7 @@
 }
 
 .cal-collage-3 {
-  height: 58px;
+  height: 70px;
 }
 .cal-collage-main {
   width: 60%;
@@ -692,6 +692,16 @@ body.light-mode .cal-celda.hoy .cal-numero { color: #0F0326 !important; }
 @keyframes zoomIn {
   from { opacity: 0; transform: scale(0.88); }
   to   { opacity: 1; transform: scale(1); }
+}
+
+/* ── DESKTOP GRANDE ── */
+@media (min-width: 1280px) {
+  .cal-grid { max-width: 1260px; gap: 10px; }
+  .cal-celda { min-height: 130px; border-radius: 16px; }
+  .cal-collage-1 img,
+  .cal-collage-2,
+  .cal-collage-3 { height: 88px; }
+  .cal-header h1 { font-size: 2.6rem; }
 }
 
 /* ── RESPONSIVE ── */

@@ -1073,6 +1073,19 @@ body.light-mode .sidebar-follow:hover { background: rgba(15, 3, 38, 0.08); }
 }
 
 /* ══════════════════════════════════════════════════════════
+   DESKTOP WIDE — 1280px+
+══════════════════════════════════════════════════════════ */
+@media (min-width: 1280px) {
+  .feed-container { padding: 36px 56px 96px; }
+
+  .feed-inner {
+    grid-template-columns: 250px minmax(0, 680px) 300px;
+    max-width: 1440px;
+    column-gap: 36px;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
    MODO CLARO — overrides
 ══════════════════════════════════════════════════════════ */
 body.light-mode .feed-new-input {
