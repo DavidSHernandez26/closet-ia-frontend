@@ -619,6 +619,45 @@
   box-shadow: 0 8px 20px rgba(196, 181, 232, 0.3);
 }
 
+/* ── MANIQUÍ EN MODAL ── */
+.cal-mannequin-wrap {
+  width: 100%;
+  max-height: 480px;
+  overflow-y: auto;
+  margin-bottom: 8px;
+  border-radius: 18px;
+  background: rgba(196, 181, 232, 0.03);
+  border: 1px solid rgba(196, 181, 232, 0.08);
+}
+
+/* Ocultar la lista de chips de abajo del maniquí en este contexto */
+.cal-mannequin-wrap .outfit-lista {
+  display: none;
+}
+
+/* Loading dots */
+.cal-outfit-loading {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding: 40px 0;
+}
+
+.cal-loading-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(196, 181, 232, 0.5);
+  animation: calDotPulse 1.2s ease-in-out infinite;
+}
+.cal-loading-dot:nth-child(2) { animation-delay: 0.2s; }
+.cal-loading-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes calDotPulse {
+  0%, 80%, 100% { transform: scale(0.7); opacity: 0.4; }
+  40%           { transform: scale(1);   opacity: 1; }
+}
+
 /* ── MODO CLARO ── */
 body.light-mode .cal-header h1 {
   background: linear-gradient(90deg, #0F0326, #1a0a40) !important;

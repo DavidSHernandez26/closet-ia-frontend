@@ -221,7 +221,10 @@ export default function Asistente({ usuarioId }) {
       } else if (outfit.length > 0) {
         imagen_url  = outfit[0].imagen_url;
         descripcion = outfit.map((p) => p.descripcion?.split("(")[0]?.trim()).join(", ");
-        metadata    = { outfit: outfit.map(p => ({ imagen_url: p.imagen_url, descripcion: p.descripcion })) };
+        metadata    = {
+          outfit_ids: outfit.map(p => p.id),
+          outfit: outfit.map(p => ({ id: p.id, imagen_url: p.imagen_url, descripcion: p.descripcion })),
+        };
       } else return;
 
       await axios.post(`${API_URL}/api/calendario`, {

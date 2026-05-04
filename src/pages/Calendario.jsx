@@ -4,6 +4,7 @@ import axios from "axios";
 import { API_URL } from "../config";
 import { supabase } from "../supabase";
 import UploadModal from "../components/UploadModal";
+import VirtualMannequin from "../components/VirtualMannequin";
 
 const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 const DIAS  = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
@@ -59,6 +60,8 @@ export default function Calendario({ usuarioId }) {
   const [token, setToken] = useState("");
 
   const [modalDetalle,  setModalDetalle]  = useState(null);
+  const [modalOutfit,   setModalOutfit]   = useState(null);   // prendas para VirtualMannequin
+  const [loadingOutfit, setLoadingOutfit] = useState(false);
   const [modalAgregar,  setModalAgregar]  = useState(null);
   const [modalCloset,   setModalCloset]   = useState(null);
   const [showUpload,    setShowUpload]    = useState(false);
@@ -88,6 +91,31 @@ export default function Calendario({ usuarioId }) {
   }, [usuarioId, año, mes]);
 
   useEffect(() => { fetchEntradas(); }, [fetchEntradas]);
+
+  async function abrirDetalle(entrada, dia) {
+    setModalDetalle({ dia, ...entrada });
+    setConfirmDelete(false);
+    setModalOutfit(null);
+
+    // 1. Tiene metadata.outfit con imágenes → usarlo directo
+    if (entrada.metadata?.outfit?.length > 0) {
+      setModalOutfit(entrada.metadata.outfit);
+      return;
+    }
+
+    // 2. Tiene outfit_ids → buscar prendas del closet por ID
+    const ids = entrada.metadata?.outfit_ids;
+    if (ids?.length > 0) {
+      setLoadingOutfit(true);
+      try {
+        const res = await axios.get(`${API_URL}/api/prendas`);
+        const todas = res.data || [];
+        const coincidentes = todas.filter(p => ids.includes(p.id));
+        if (coincidentes.length > 0) setModalOutfit(coincidentes);
+      } catch {}
+      finally { setLoadingOutfit(false); }
+    }
+  }
 
   async function fetchPrendas() {
     setLoadingCloset(true);
@@ -122,6 +150,7 @@ export default function Calendario({ usuarioId }) {
       });
       await fetchEntradas();
       setModalDetalle(null);
+      setModalOutfit(null);
       setConfirmDelete(false);
     } catch (err) {
       console.error(err);
@@ -178,8 +207,7 @@ export default function Calendario({ usuarioId }) {
               className={`cal-celda ${esHoy(dia) ? "hoy" : ""} ${entrada ? "tiene-outfit" : "clickable"}`}
               onClick={() => {
                 if (entrada) {
-                  setModalDetalle({ key, dia, ...entrada });
-                  setConfirmDelete(false);
+                  abrirDetalle(entrada, dia);
                 } else {
                   setModalAgregar({ fecha: key, dia });
                   fetchPrendas();
@@ -199,14 +227,13 @@ export default function Calendario({ usuarioId }) {
 
       {/* ── Modal detalle ── */}
       {modalDetalle && (() => {
-        const prendasModal = getPrendas(modalDetalle);
         const diasSem = DIAS_LARGO[new Date(año, mes, modalDetalle.dia).getDay()];
         const chips = modalDetalle.metadata?.prendas || [];
 
         return (
-          <div className="cal-modal-overlay" onClick={() => { setModalDetalle(null); setConfirmDelete(false); }}>
+          <div className="cal-modal-overlay" onClick={() => { setModalDetalle(null); setModalOutfit(null); setConfirmDelete(false); }}>
             <div className="cal-modal cal-modal-detalle" onClick={e => e.stopPropagation()}>
-              <button className="cal-modal-close" onClick={() => { setModalDetalle(null); setConfirmDelete(false); }}>✕</button>
+              <button className="cal-modal-close" onClick={() => { setModalDetalle(null); setModalOutfit(null); setConfirmDelete(false); }}>✕</button>
 
               {/* Cabecera fecha */}
               <div className="cal-detalle-fecha">
@@ -216,20 +243,17 @@ export default function Calendario({ usuarioId }) {
               </div>
 
               {/* Outfit visual */}
-              {prendasModal.length > 1 ? (
-                /* Entrada nueva con metadata.outfit — grid de imágenes */
-                <div className="cal-detalle-outfit">
-                  {prendasModal.map((p, idx) => (
-                    <div key={idx} className="cal-detalle-prenda-card">
-                      <img src={p.imagen_url} alt={p.descripcion} />
-                      <span className="cal-detalle-prenda-label">
-                        {p.descripcion?.split("(")[0]?.trim() || ""}
-                      </span>
-                    </div>
-                  ))}
+              {loadingOutfit ? (
+                <div className="cal-outfit-loading">
+                  <span className="cal-loading-dot" /><span className="cal-loading-dot" /><span className="cal-loading-dot" />
+                </div>
+              ) : modalOutfit?.length > 0 ? (
+                /* Maniquí virtual con todas las prendas */
+                <div className="cal-mannequin-wrap">
+                  <VirtualMannequin outfit={modalOutfit} />
                 </div>
               ) : (
-                /* Entrada vieja o prenda individual — imagen única */
+                /* Fallback: imagen única */
                 <img
                   src={modalDetalle.imagen_url}
                   alt={modalDetalle.descripcion}
@@ -237,27 +261,20 @@ export default function Calendario({ usuarioId }) {
                 />
               )}
 
-              {/* Chips de prendas — tres fuentes posibles:
-                  1. metadata.prendas  → outfit guardado desde IA (nombre + color)
-                  2. metadata.outfit   → ya visible como grid arriba, no repetir
-                  3. descripción       → entrada vieja: parsear por coma */}
-              {chips.length > 0 ? (
+              {/* Chips: metadata.prendas (outfit IA) o descripción parseada */}
+              {!modalOutfit?.length && (chips.length > 0 ? (
                 <div className="cal-modal-prendas">
                   {chips.map((pr, i) => (
                     <span key={i} className="cal-chip">{pr.nombre} · {pr.color}</span>
                   ))}
                 </div>
-              ) : prendasModal.length <= 1 && modalDetalle.descripcion ? (
+              ) : modalDetalle.descripcion ? (
                 <div className="cal-modal-prendas">
                   {modalDetalle.descripcion
-                    .split(",")
-                    .map(s => s.trim())
-                    .filter(Boolean)
-                    .map((parte, i) => (
-                      <span key={i} className="cal-chip">{parte}</span>
-                    ))}
+                    .split(",").map(s => s.trim()).filter(Boolean)
+                    .map((parte, i) => <span key={i} className="cal-chip">{parte}</span>)}
                 </div>
-              ) : null}
+              ) : null)}
 
               {/* Acciones */}
               {confirmDelete ? (
