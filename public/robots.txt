@@ -1,3 +1,13 @@
-# https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Allow: /
+Allow: /login
+Allow: /register
+Disallow: /closet
+Disallow: /asistente
+Disallow: /calendario
+Disallow: /perfil
+Disallow: /amigos
+Disallow: /feed
+Disallow: /setup-perfil
+
+Sitemap: https://closetia.app/sitemap.xml
