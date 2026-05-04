@@ -13,6 +13,7 @@
    TRANSICIÓN DE PÁGINA
 ════════════════════════════════ */
 .page-enter {
+  width: 100%;
   animation: pageEnter 0.22s ease both;
 }
 
