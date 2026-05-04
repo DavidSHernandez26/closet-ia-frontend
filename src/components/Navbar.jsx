@@ -54,7 +54,12 @@ export default function Navbar({ onUploaded, darkMode, onToggleTheme, usuarioId 
             onClick={() => navigate("/")}
             style={{ cursor: "pointer" }}
           >
-            Closet IA
+            <img
+              src="/icon-192.png"
+              alt="Be: Confident"
+              className="navbar-logo-icon"
+            />
+            Be: Confident
           </h1>
         </div>
 

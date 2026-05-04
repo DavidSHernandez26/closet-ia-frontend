@@ -36,6 +36,9 @@
 .navbar-left { display: flex; align-items: center; }
 
 .navbar-left .navbar-title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
   font-weight: 700;
   font-size: 1.1rem;
   background: linear-gradient(90deg, #F4F4F9, #C4B5E8);
@@ -44,6 +47,15 @@
   user-select: none;
   margin: 0;
   letter-spacing: -0.02em;
+}
+
+.navbar-logo-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  flex-shrink: 0;
+  /* el -webkit-text-fill heredado del padre rompería la imagen, neutralizar */
+  -webkit-text-fill-color: initial;
 }
 
 /* ── CENTER NAV ── */

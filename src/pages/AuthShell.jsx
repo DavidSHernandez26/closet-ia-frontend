@@ -20,7 +20,7 @@ export default function AuthShell({
     </>
   ),
   heroBody = "Photograph what you own. Let Be: Confident build your virtual closet and suggest outfits that actually feel like you.",
-  logoSrc = "/logo-green.png",
+  logoSrc = "/icon-192.png",
 }) {
   return (
     <main className="be-stage">
