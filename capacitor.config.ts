@@ -11,6 +11,11 @@ const config: CapacitorConfig = {
     Camera: {
       presentationStyle: 'popover',
     },
+    StatusBar: {
+      overlaysWebView: true,
+      style: 'dark',
+      backgroundColor: '#00000000',
+    },
     SplashScreen: {
       launchShowDuration: 1500,
       launchAutoHide: false,
