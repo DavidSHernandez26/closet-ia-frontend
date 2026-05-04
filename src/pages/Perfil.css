@@ -190,7 +190,7 @@
 .perfil-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; width: 100%; }
 
 .perfil-card { aspect-ratio: 1; overflow: hidden; cursor: pointer; background: rgba(196,181,232,0.05); position: relative; }
-.perfil-card img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s ease; }
+.perfil-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s ease; }
 .perfil-card:hover img { transform: scale(1.05); }
 
 .perfil-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 50px 20px; text-align: center; width: 100%; color: rgba(244,244,249,0.35); font-size: 0.9rem; }

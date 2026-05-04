@@ -43,8 +43,8 @@ a,
 button:active,
 a:active,
 [role="button"]:active {
-  transform: scale(0.96);
-  opacity: 0.85;
+  transform: scale(0.98);
+  opacity: 0.93;
 }
 
 /* Excluir elementos que ya tienen su propia transform (mannequin, chips hover) */

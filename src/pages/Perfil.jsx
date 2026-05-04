@@ -251,7 +251,7 @@ export default function Perfil({ usuarioId }) {
               <div className="perfil-grid">
                 {items.map(p => (
                   <div key={p.id} className="perfil-card" onClick={() => setModalItem(p)}>
-                    <img src={p.imagen_url || p.post?.imagen_url} alt={p.descripcion} />
+                    <img src={p.imagen_url || p.post?.imagen_url} alt={p.descripcion} loading="lazy" decoding="async" />
                   </div>
                 ))}
               </div>

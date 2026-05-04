@@ -312,7 +312,7 @@ export default function Asistente({ usuarioId }) {
 
   return (
     <>
-      <div className="asistente-fondo">
+      <div className={`asistente-fondo ${tieneOutfit && modo === "chat" ? "sheet-visible" : ""}`}>
         <div className={`asistente-layout ${modo === "maniqui" ? "layout-maniqui" : ""}`}>
 
           {/* ── CARD PRINCIPAL ── */}
