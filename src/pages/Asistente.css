@@ -426,6 +426,21 @@ body.light-mode .cfd-hint { color: rgba(15, 3, 38, 0.6); }
   flex-shrink: 0;
 }
 
+/* Hint de clima — acento especial */
+.chat-hint--clima {
+  border-color: rgba(196, 181, 232, 0.22);
+  background: rgba(196, 181, 232, 0.09);
+  color: rgba(244, 244, 249, 0.75);
+}
+.chat-hint--clima .chat-hint-arrow {
+  color: rgba(196, 181, 232, 0.6);
+}
+.chat-hint--clima:hover {
+  background: rgba(196, 181, 232, 0.14);
+  border-color: rgba(196, 181, 232, 0.3);
+  color: rgba(244, 244, 249, 0.9);
+}
+
 /* ── MENSAJE ROW ── */
 .chat-message-row {
   display: flex;
@@ -504,6 +519,31 @@ body.light-mode .cfd-hint { color: rgba(15, 3, 38, 0.6); }
   border: 1px solid rgba(196, 181, 232, 0.08);
   border-bottom-left-radius: 5px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.03);
+}
+
+/* ── Formato markdown del chat ── */
+.chat-bubble.assistant .chat-para {
+  margin: 0 0 6px;
+  line-height: 1.65;
+}
+.chat-bubble.assistant .chat-para:last-child { margin-bottom: 0; }
+
+.chat-bubble.assistant .chat-item {
+  display: flex;
+  gap: 6px;
+  margin: 3px 0;
+  line-height: 1.55;
+  padding-left: 2px;
+}
+.chat-bubble.assistant .chat-item::before {
+  content: none; /* el · ya está en el JSX */
+}
+.chat-bubble.assistant strong {
+  color: rgba(196, 181, 232, 0.95);
+  font-weight: 700;
+}
+body.light-mode .chat-bubble.assistant strong {
+  color: rgba(15, 3, 38, 0.85);
 }
 
 /* ── LOADER ── */

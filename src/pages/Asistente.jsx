@@ -151,20 +151,20 @@ export default function Asistente({ usuarioId }) {
     }
   }
 
-  async function handleRecommend() {
-    if (!mensaje.trim() || loading) return;
+  async function handleRecommend(textoDirecto) {
+    const texto = typeof textoDirecto === "string" ? textoDirecto : mensaje;
+    if (!texto.trim() || loading) return;
     haptics.medium();
 
-    const userMessage = { role: "user", text: mensaje };
-    setChat((prev) => [...prev, userMessage]);
-    setMensaje("");
+    setChat((prev) => [...prev, { role: "user", text: texto }]);
+    if (!textoDirecto) setMensaje("");
     setOcasionActiva(null);
     setLoading(true);
     setCalConfirmado(false);
 
     try {
       const res = await axios.post(`${API_URL}/api/fashion`, {
-        mensaje,
+        mensaje: texto,
         historial: chat.slice(-8),
         outfit_ids_anteriores: outfitIds,
         clima: clima?.resumen || null,
@@ -224,10 +224,14 @@ export default function Asistente({ usuarioId }) {
     localStorage.removeItem(STORAGE_OUTFIT_GUARDADO);
   }
 
-  function handleHint(text) {
-    setMensaje(text);
-    setOcasionActiva(null);
-    textareaRef.current?.focus();
+  function handleHint(hint) {
+    if (hint.autoSend) {
+      handleRecommend(hint.prompt);
+    } else {
+      setMensaje(hint.prompt);
+      setOcasionActiva(null);
+      textareaRef.current?.focus();
+    }
   }
 
   async function handleGuardarCalendario() {
@@ -322,11 +326,36 @@ export default function Asistente({ usuarioId }) {
 
   const tieneOutfit = outfit.length > 0 || !!outfitGuardado;
 
-  const hints = [
-    "Arma un outfit para una cita nocturna",
-    "¿Qué me pongo para ir a la oficina?",
-    "Algo casual para el fin de semana",
-  ];
+  const hints = React.useMemo(() => {
+    const climaLabel  = clima ? `${clima.icon} ${clima.temp}° en ${clima.city} · ¿Qué me pongo hoy?` : "Outfit para hoy según el clima";
+    const climaPrompt = clima
+      ? `El clima en ${clima.city} está a ${clima.temp}°C (sensación ${clima.feels}°C) con ${clima.label.toLowerCase()}. Arma un outfit completo de mi closet perfectamente adaptado para estas condiciones de hoy.`
+      : "Arma un outfit para hoy según el clima actual";
+    return [
+      { label: climaLabel,                            prompt: climaPrompt,                                            autoSend: true  },
+      { label: "¿Qué me pongo para trabajar?",        prompt: "Necesito un outfit profesional para ir a trabajar hoy", autoSend: false },
+      { label: "Algo casual para el fin de semana",   prompt: "Arma un look casual y cómodo para el fin de semana",   autoSend: false },
+    ];
+  }, [clima]);
+
+  function parseChat(text) {
+    if (!text) return null;
+    const normalized = text.replace(/ - \*\*/g, "\n- **").trim();
+    return normalized.split("\n").map((line, i) => {
+      if (!line.trim()) return <br key={i} />;
+      const isBullet = line.trimStart().startsWith("- ");
+      const content  = isBullet ? line.trimStart().slice(2) : line;
+      const segments = content.split(/(\*\*[^*]+\*\*)/g);
+      const rendered = segments.map((seg, j) =>
+        seg.startsWith("**") && seg.endsWith("**")
+          ? <strong key={j}>{seg.slice(2, -2)}</strong>
+          : seg
+      );
+      return isBullet
+        ? <div key={i} className="chat-item">· {rendered}</div>
+        : <p key={i} className="chat-para">{rendered}</p>;
+    });
+  }
 
   return (
     <>
@@ -426,9 +455,13 @@ export default function Asistente({ usuarioId }) {
                       <p className="chat-placeholder-title">Tu estilista personal con IA</p>
                       <div className="chat-placeholder-hints">
                         {hints.map((h, i) => (
-                          <button key={i} className="chat-hint" onClick={() => handleHint(h)}>
-                            <span>"{h}"</span>
-                            <span className="chat-hint-arrow">→</span>
+                          <button
+                            key={i}
+                            className={`chat-hint ${h.autoSend ? "chat-hint--clima" : ""}`}
+                            onClick={() => handleHint(h)}
+                          >
+                            <span>{h.label}</span>
+                            <span className="chat-hint-arrow">{h.autoSend ? "✦" : "→"}</span>
                           </button>
                         ))}
                       </div>
@@ -444,7 +477,7 @@ export default function Asistente({ usuarioId }) {
                             {msg.role === "assistant" ? "Asistente" : "Tú"}
                           </span>
                           <div className={`chat-bubble ${msg.role}`}>
-                            {msg.text}
+                            {msg.role === "assistant" ? parseChat(msg.text) : msg.text}
                           </div>
                         </div>
                       </div>
