@@ -84,11 +84,17 @@ export default function Asistente({ usuarioId }) {
 
     const vv = window.visualViewport;
 
-    // Safari web: ajusta bottom del fondo cuando el viewport no se encoge
+    // Ajusta bottom del fondo cuando el teclado abre (iOS Safari + Capacitor sin resize:ionic)
+    // IMPORTANTE: el CSS tiene !important en bottom, hay que usar setProperty con 'important'
     const onVVResize = () => {
       const kbHeight = Math.max(0, window.innerHeight - vv.height);
-      if (fondoRef.current)
-        fondoRef.current.style.bottom = kbHeight > 80 ? `${kbHeight}px` : "";
+      if (fondoRef.current) {
+        if (kbHeight > 80) {
+          fondoRef.current.style.setProperty("bottom", `${kbHeight}px`, "important");
+        } else {
+          fondoRef.current.style.removeProperty("bottom");
+        }
+      }
       scrollBottom();
     };
     if (vv) vv.addEventListener("resize", onVVResize);
