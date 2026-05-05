@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   --purple: #0F0326;
   --purple-accent: #C4B5E8;
