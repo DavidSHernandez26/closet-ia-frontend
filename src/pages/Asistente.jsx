@@ -78,26 +78,29 @@ export default function Asistente({ usuarioId }) {
   // Teclado estilo WhatsApp: sube al abrir, baja al cerrar
   useEffect(() => {
     const scrollBottom = () => {
-      if (chatBoxRef.current) {
-        chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
-      }
+      const el = chatBoxRef.current;
+      if (!el) return;
+      el.scrollTop = el.scrollHeight;
     };
 
     const vv = window.visualViewport;
     if (!vv) return;
 
+    let timer = null;
     const onVVResize = () => {
-      // kbHeight > 0 solo en Safari/web; en Capacitor (resize:ionic) siempre es 0
       const kbHeight = Math.max(0, window.innerHeight - vv.height);
       if (fondoRef.current) {
         fondoRef.current.style.bottom = kbHeight > 80 ? `${kbHeight}px` : "";
       }
-      // En ambos casos (Capacitor y Safari) scroll al último mensaje
-      requestAnimationFrame(scrollBottom);
+      clearTimeout(timer);
+      timer = setTimeout(scrollBottom, 50);
     };
 
     vv.addEventListener("resize", onVVResize);
-    return () => vv.removeEventListener("resize", onVVResize);
+    return () => {
+      vv.removeEventListener("resize", onVVResize);
+      clearTimeout(timer);
+    };
   }, []);
 
   useEffect(() => {
@@ -587,10 +590,10 @@ export default function Asistente({ usuarioId }) {
                       }}
                       onKeyDown={handleKeyDown}
                       onFocus={() => {
-                        requestAnimationFrame(() => {
+                        setTimeout(() => {
                           if (chatBoxRef.current)
                             chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
-                        });
+                        }, 300);
                       }}
                       disabled={loading}
                       rows={1}

@@ -143,6 +143,7 @@ export default function Navbar({ onUploaded, darkMode, onToggleTheme, usuarioId 
               to={l.path}
               className={`navbar-mobile-item ${isActive(l.path) ? "active" : ""}`}
               onClick={() => haptics.light()}
+              onTouchEnd={resetDock}
             >
               <span className="navbar-mobile-icon">{l.icon}</span>
               <span className="navbar-mobile-label">{l.label}</span>
@@ -153,6 +154,7 @@ export default function Navbar({ onUploaded, darkMode, onToggleTheme, usuarioId 
             ref={(el) => { dockItemRefs.current["__upload"] = el; }}
             className="navbar-mobile-item navbar-mobile-upload"
             onClick={() => { haptics.medium(); handleUploadClick(); }}
+            onTouchEnd={resetDock}
           >
             <span className="navbar-mobile-icon">📸</span>
             <span className="navbar-mobile-label">Subir</span>
