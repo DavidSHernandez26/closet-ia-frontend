@@ -72,6 +72,26 @@ export default function Asistente({ usuarioId }) {
   const textareaRef      = useRef(null);
   const prendasCacheRef  = useRef(null);
   const forecastRef      = useRef(null);
+  const fondoRef         = useRef(null);
+
+  // Empuja el layout hacia arriba cuando aparece el teclado en iOS Safari
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const onVVResize = () => {
+      const keyboardH = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      if (fondoRef.current) {
+        fondoRef.current.style.bottom = keyboardH > 50
+          ? `${keyboardH}px`
+          : "";
+      }
+      if (keyboardH > 50) {
+        setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+      }
+    };
+    vv.addEventListener("resize", onVVResize);
+    return () => vv.removeEventListener("resize", onVVResize);
+  }, []);
 
   useEffect(() => {
     if (!showForecast) return;
@@ -382,7 +402,7 @@ export default function Asistente({ usuarioId }) {
 
   return (
     <>
-      <div className={`asistente-fondo ${tieneOutfit && modo === "chat" ? "sheet-visible" : ""}`}>
+      <div ref={fondoRef} className={`asistente-fondo ${tieneOutfit && modo === "chat" ? "sheet-visible" : ""}`}>
         <div className={`asistente-layout ${modo === "maniqui" ? "layout-maniqui" : ""}`}>
 
           {/* ── CARD PRINCIPAL ── */}
