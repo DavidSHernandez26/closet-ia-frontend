@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { motion } from "framer-motion";
+import { motion, useAnimation } from "framer-motion";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import "./Navbar.css";
 import UploadModal from "./UploadModal";
@@ -7,13 +7,38 @@ import { supabase } from "../supabase";
 import NotifPanel from "./NotifPanel";
 import { haptics } from "../hooks/useHaptics";
 
+// Icono con bounce "gota de agua" — la secuencia siempre termina en estado normal
+// useAnimation garantiza que la animación corre hasta el final sin importar si el
+// componente padre navega o re-renderiza (a diferencia de whileTap que pierde el
+// evento touchend cuando hay navegación en iOS)
+function DockIcon({ children }) {
+  const controls = useAnimation();
+
+  const bounce = () => {
+    controls
+      .start({ scale: 1.38, y: -11, transition: { duration: 0.08, ease: "easeOut" } })
+      .then(() =>
+        controls.start({
+          scale: 1,
+          y: 0,
+          transition: { type: "spring", stiffness: 480, damping: 13 },
+        })
+      );
+  };
+
+  return (
+    <motion.span className="navbar-mobile-icon" animate={controls} onTouchStart={bounce}>
+      {children}
+    </motion.span>
+  );
+}
+
 export default function Navbar({ onUploaded, darkMode, onToggleTheme, usuarioId }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [user, setUser] = useState(null);
 
-  // Dock magnification refs (mobile)
   const dockRef = useRef(null);
   const dockItemRefs = useRef({});
 
@@ -49,7 +74,7 @@ export default function Navbar({ onUploaded, darkMode, onToggleTheme, usuarioId 
     { path: "/perfil",     label: "Perfil",      icon: "👤" },
   ];
 
-  // Dock magnification (mobile)
+  // Magnificación tipo dock macOS al deslizar el dedo
   const applyDockScale = useCallback((clientX) => {
     Object.values(dockItemRefs.current).forEach((item) => {
       if (!item) return;
@@ -73,7 +98,6 @@ export default function Navbar({ onUploaded, darkMode, onToggleTheme, usuarioId 
       if (item) item.style.transform = "";
     });
   }, []);
-
 
   return (
     <>
@@ -146,11 +170,7 @@ export default function Navbar({ onUploaded, darkMode, onToggleTheme, usuarioId 
               onClick={() => haptics.light()}
               onTouchEnd={resetDock}
             >
-              <motion.span
-                className="navbar-mobile-icon"
-                whileTap={{ scale: 1.4, y: -10 }}
-                transition={{ type: "spring", stiffness: 500, damping: 12 }}
-              >{l.icon}</motion.span>
+              <DockIcon>{l.icon}</DockIcon>
               <span className="navbar-mobile-label">{l.label}</span>
               {isActive(l.path) && <span className="navbar-mobile-dot" />}
             </Link>
@@ -161,11 +181,7 @@ export default function Navbar({ onUploaded, darkMode, onToggleTheme, usuarioId 
             onClick={() => { haptics.medium(); handleUploadClick(); }}
             onTouchEnd={resetDock}
           >
-            <motion.span
-              className="navbar-mobile-icon"
-              whileTap={{ scale: 1.4, y: -10 }}
-              transition={{ type: "spring", stiffness: 500, damping: 12 }}
-            >📸</motion.span>
+            <DockIcon>📸</DockIcon>
             <span className="navbar-mobile-label">Subir</span>
           </button>
         </div>
