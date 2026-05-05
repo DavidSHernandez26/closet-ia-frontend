@@ -79,26 +79,31 @@ export default function Asistente({ usuarioId }) {
   useEffect(() => {
     const scrollBottom = () => {
       const el = chatBoxRef.current;
-      if (!el) return;
-      el.scrollTop = el.scrollHeight;
+      if (el) el.scrollTop = el.scrollHeight;
     };
 
     const vv = window.visualViewport;
-    if (!vv) return;
-
     let timer = null;
-    const onVVResize = () => {
-      const kbHeight = Math.max(0, window.innerHeight - vv.height);
-      if (fondoRef.current) {
-        fondoRef.current.style.bottom = kbHeight > 80 ? `${kbHeight}px` : "";
+
+    const handleResize = () => {
+      // Safari web: mover el fondo encima del teclado cuando el viewport no se encoge
+      if (vv) {
+        const kbHeight = Math.max(0, window.innerHeight - vv.height);
+        if (fondoRef.current)
+          fondoRef.current.style.bottom = kbHeight > 80 ? `${kbHeight}px` : "";
       }
       clearTimeout(timer);
-      timer = setTimeout(scrollBottom, 50);
+      timer = setTimeout(scrollBottom, 100);
     };
 
-    vv.addEventListener("resize", onVVResize);
+    // visualViewport.resize → Safari web
+    // window.resize → Capacitor (el webview se encoge físicamente)
+    if (vv) vv.addEventListener("resize", handleResize);
+    window.addEventListener("resize", handleResize);
+
     return () => {
-      vv.removeEventListener("resize", onVVResize);
+      if (vv) vv.removeEventListener("resize", handleResize);
+      window.removeEventListener("resize", handleResize);
       clearTimeout(timer);
     };
   }, []);
@@ -140,7 +145,8 @@ export default function Asistente({ usuarioId }) {
   useEffect(() => { localStorage.setItem(STORAGE_OUTFIT_GUARDADO, JSON.stringify(outfitGuardado)); }, [outfitGuardado]);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const el = chatBoxRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
   }, [chat, loading]);
 
   useEffect(() => {
