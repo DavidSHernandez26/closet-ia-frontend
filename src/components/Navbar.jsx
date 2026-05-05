@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { motion } from "framer-motion";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import "./Navbar.css";
 import UploadModal from "./UploadModal";
@@ -73,15 +74,6 @@ export default function Navbar({ onUploaded, darkMode, onToggleTheme, usuarioId 
     });
   }, []);
 
-  const bounceItem = useCallback((el) => {
-    if (!el) return;
-    const icon = el.querySelector(".navbar-mobile-icon");
-    if (!icon) return;
-    icon.classList.remove("dock-bounce");
-    void icon.offsetWidth; // fuerza reflow para reiniciar animación
-    icon.classList.add("dock-bounce");
-    icon.addEventListener("animationend", () => icon.classList.remove("dock-bounce"), { once: true });
-  }, []);
 
   return (
     <>
@@ -152,10 +144,13 @@ export default function Navbar({ onUploaded, darkMode, onToggleTheme, usuarioId 
               to={l.path}
               className={`navbar-mobile-item ${isActive(l.path) ? "active" : ""}`}
               onClick={() => haptics.light()}
-              onTouchStart={(e) => bounceItem(e.currentTarget)}
               onTouchEnd={resetDock}
             >
-              <span className="navbar-mobile-icon">{l.icon}</span>
+              <motion.span
+                className="navbar-mobile-icon"
+                whileTap={{ scale: 1.4, y: -10 }}
+                transition={{ type: "spring", stiffness: 500, damping: 12 }}
+              >{l.icon}</motion.span>
               <span className="navbar-mobile-label">{l.label}</span>
               {isActive(l.path) && <span className="navbar-mobile-dot" />}
             </Link>
@@ -164,10 +159,13 @@ export default function Navbar({ onUploaded, darkMode, onToggleTheme, usuarioId 
             ref={(el) => { dockItemRefs.current["__upload"] = el; }}
             className="navbar-mobile-item navbar-mobile-upload"
             onClick={() => { haptics.medium(); handleUploadClick(); }}
-            onTouchStart={(e) => bounceItem(e.currentTarget)}
             onTouchEnd={resetDock}
           >
-            <span className="navbar-mobile-icon">📸</span>
+            <motion.span
+              className="navbar-mobile-icon"
+              whileTap={{ scale: 1.4, y: -10 }}
+              transition={{ type: "spring", stiffness: 500, damping: 12 }}
+            >📸</motion.span>
             <span className="navbar-mobile-label">Subir</span>
           </button>
         </div>
