@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Capacitor } from "@capacitor/core";
 import axios from "axios";
 import "./Asistente.css";
 import VirtualMannequin from "../components/VirtualMannequin";
@@ -82,24 +83,61 @@ export default function Asistente({ usuarioId }) {
       if (el) el.scrollTop = el.scrollHeight;
     };
 
-    const vv = window.visualViewport;
-
-    // Ajusta bottom del fondo cuando el teclado abre (iOS Safari + Capacitor sin resize:ionic)
-    // IMPORTANTE: el CSS tiene !important en bottom, hay que usar setProperty con 'important'
-    const onVVResize = () => {
-      const kbHeight = Math.max(0, window.innerHeight - vv.height);
-      if (fondoRef.current) {
-        if (kbHeight > 80) {
-          fondoRef.current.style.setProperty("bottom", `${kbHeight}px`, "important");
-        } else {
-          fondoRef.current.style.removeProperty("bottom");
-        }
+    const setBottom = (px) => {
+      if (!fondoRef.current) return;
+      if (px > 0) {
+        fondoRef.current.style.bottom = `${px}px`; // inline style gana sobre CSS sin !important
+      } else {
+        fondoRef.current.style.bottom = "";         // restaura el valor CSS
       }
-      scrollBottom();
     };
-    if (vv) vv.addEventListener("resize", onVVResize);
 
-    // Capacitor: el webview se encoge → chat-box se encoge → ResizeObserver dispara
+    let cleanupNative = () => {};
+
+    if (Capacitor.isNativePlatform()) {
+      // Capacitor nativo: usar eventos del Keyboard plugin (da la altura exacta desde la capa nativa)
+      import("@capacitor/keyboard").then(({ Keyboard }) => {
+        let heightBeforeKb = window.innerHeight;
+
+        const h1 = Keyboard.addListener("keyboardWillShow", (info) => {
+          heightBeforeKb = window.innerHeight;
+          setBottom(info.keyboardHeight);
+        });
+
+        const h2 = Keyboard.addListener("keyboardDidShow", () => {
+          // Si resize:ionic funcionó, el viewport ya se encogió → limpiar el inline style
+          // y dejar que el CSS (bottom:76px) funcione en el viewport más pequeño
+          if (window.innerHeight < heightBeforeKb - 50) {
+            setBottom(0);
+          }
+          scrollBottom();
+        });
+
+        const h3 = Keyboard.addListener("keyboardWillHide", () => {
+          setBottom(0);
+        });
+
+        cleanupNative = () => {
+          h1.then(h => h.remove());
+          h2.then(h => h.remove());
+          h3.then(h => h.remove());
+        };
+      });
+    } else {
+      // Safari web: visualViewport da la diferencia entre viewport layout y visual
+      const vv = window.visualViewport;
+      if (vv) {
+        const onVVResize = () => {
+          const kbH = Math.max(0, window.innerHeight - vv.height);
+          setBottom(kbH > 80 ? kbH : 0);
+          scrollBottom();
+        };
+        vv.addEventListener("resize", onVVResize);
+        cleanupNative = () => vv.removeEventListener("resize", onVVResize);
+      }
+    }
+
+    // ResizeObserver: scroll al fondo cuando el chat-box se encoge (teclado en Capacitor)
     let ro = null;
     const target = chatBoxRef.current;
     if (target && typeof ResizeObserver !== "undefined") {
@@ -108,7 +146,7 @@ export default function Asistente({ usuarioId }) {
     }
 
     return () => {
-      if (vv) vv.removeEventListener("resize", onVVResize);
+      cleanupNative();
       if (ro) ro.disconnect();
     };
   }, []);

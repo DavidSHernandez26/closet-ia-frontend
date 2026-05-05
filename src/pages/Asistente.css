@@ -1241,7 +1241,7 @@ body.light-mode .ocasion-chip.activa {
     top: env(safe-area-inset-top) !important;
     left: 0 !important;
     right: 0 !important;
-    bottom: calc(76px + env(safe-area-inset-bottom)) !important;
+    bottom: calc(76px + env(safe-area-inset-bottom));
     padding: 0 !important;
     display: flex !important;
     flex-direction: column !important;
@@ -1253,7 +1253,7 @@ body.light-mode .ocasion-chip.activa {
 
   /* Cuando el globo de outfit está visible (60px + 8px gap) empujar el fondo hacia arriba */
   .asistente-fondo.sheet-visible {
-    bottom: calc(152px + env(safe-area-inset-bottom)) !important;
+    bottom: calc(152px + env(safe-area-inset-bottom));
   }
 
   body.light-mode .asistente-fondo { background: var(--green) !important; }
