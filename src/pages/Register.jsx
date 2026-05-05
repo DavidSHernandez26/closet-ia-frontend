@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { Check, X, Loader2 } from "lucide-react";
 import AuthShell from "./AuthShell";
 import "./AuthShell.css";
-import "./Register.css";
 
 export default function Register() {
   const [email, setEmail] = useState("");
