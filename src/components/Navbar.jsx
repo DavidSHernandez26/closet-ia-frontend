@@ -132,6 +132,7 @@ export default function Navbar({ onUploaded, darkMode, onToggleTheme, usuarioId 
           ref={dockRef}
           onMouseMove={(e) => applyDockScale(e.clientX)}
           onMouseLeave={resetDock}
+          onTouchStart={(e) => { if (e.touches[0]) applyDockScale(e.touches[0].clientX); }}
           onTouchMove={(e) => { if (e.touches[0]) applyDockScale(e.touches[0].clientX); }}
           onTouchEnd={resetDock}
         >

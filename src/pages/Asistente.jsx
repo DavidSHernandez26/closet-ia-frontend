@@ -559,6 +559,11 @@ export default function Asistente({ usuarioId }) {
                         }
                       }}
                       onKeyDown={handleKeyDown}
+                      onFocus={() => {
+                        setTimeout(() => {
+                          chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+                        }, 350);
+                      }}
                       disabled={loading}
                       rows={1}
                     />

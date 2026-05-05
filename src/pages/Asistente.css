@@ -1364,7 +1364,7 @@ body.light-mode .ocasion-chip.activa {
     display: block;
     position: fixed;
     inset: 0;
-    bottom: calc(58px + env(safe-area-inset-bottom));
+    bottom: calc(76px + env(safe-area-inset-bottom));
     background: rgba(10, 2, 26, 0.5);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
@@ -1380,7 +1380,7 @@ body.light-mode .ocasion-chip.activa {
     display: block;
     position: fixed;
     left: 0; right: 0;
-    bottom: calc(58px + env(safe-area-inset-bottom));
+    bottom: calc(76px + env(safe-area-inset-bottom));
     z-index: 160;
     background: rgba(14, 4, 34, 0.98);
     border: 1px solid rgba(196, 181, 232, 0.12);
@@ -1395,11 +1395,11 @@ body.light-mode .ocasion-chip.activa {
     max-height: 50dvh;
   }
 
-  .outfit-sheet.has-outfit  { transform: translateY(calc(100% - 72px)); }
+  .outfit-sheet.has-outfit  { transform: translateY(calc(100% - 48px)); }
   .outfit-sheet.expanded    { transform: translateY(0); }
 
   .outfit-sheet-handle-wrap {
-    padding: 8px 16px 10px;
+    padding: 6px 16px 6px;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
@@ -1407,22 +1407,22 @@ body.light-mode .ocasion-chip.activa {
   }
 
   .outfit-sheet-handle {
-    width: 36px; height: 4px;
-    background: rgba(196, 181, 232, 0.3);
+    width: 32px; height: 3px;
+    background: rgba(196, 181, 232, 0.25);
     border-radius: 2px;
-    margin: 0 auto 10px;
+    margin: 0 auto 5px;
   }
 
-  .outfit-sheet-preview-bar  { display: flex; align-items: center; gap: 12px; }
+  .outfit-sheet-preview-bar  { display: flex; align-items: center; gap: 10px; }
   .outfit-sheet-thumbs       { display: flex; }
 
   .outfit-sheet-thumb {
-    width: 42px; height: 42px;
-    border-radius: 12px;
+    width: 28px; height: 28px;
+    border-radius: 8px;
     object-fit: cover;
     border: 2px solid rgba(14, 4, 34, 0.9);
-    margin-left: -8px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    margin-left: -6px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
   }
 
   .outfit-sheet-thumb:first-child { margin-left: 0; }
@@ -1454,7 +1454,7 @@ body.light-mode .ocasion-chip.activa {
     touch-action: pan-y !important;
     -ms-touch-action: pan-y !important;
     scrollbar-width: none;
-    max-height: calc(50dvh - 72px);
+    max-height: calc(50dvh - 48px);
   }
 
   .outfit-sheet-content::-webkit-scrollbar { display: none; }
