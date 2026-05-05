@@ -83,28 +83,27 @@ export default function Asistente({ usuarioId }) {
     };
 
     const vv = window.visualViewport;
-    let timer = null;
 
-    const handleResize = () => {
-      // Safari web: mover el fondo encima del teclado cuando el viewport no se encoge
-      if (vv) {
-        const kbHeight = Math.max(0, window.innerHeight - vv.height);
-        if (fondoRef.current)
-          fondoRef.current.style.bottom = kbHeight > 80 ? `${kbHeight}px` : "";
-      }
-      clearTimeout(timer);
-      timer = setTimeout(scrollBottom, 100);
+    // Safari web: ajusta bottom del fondo cuando el viewport no se encoge
+    const onVVResize = () => {
+      const kbHeight = Math.max(0, window.innerHeight - vv.height);
+      if (fondoRef.current)
+        fondoRef.current.style.bottom = kbHeight > 80 ? `${kbHeight}px` : "";
+      scrollBottom();
     };
+    if (vv) vv.addEventListener("resize", onVVResize);
 
-    // visualViewport.resize → Safari web
-    // window.resize → Capacitor (el webview se encoge físicamente)
-    if (vv) vv.addEventListener("resize", handleResize);
-    window.addEventListener("resize", handleResize);
+    // Capacitor: el webview se encoge → chat-box se encoge → ResizeObserver dispara
+    let ro = null;
+    const target = chatBoxRef.current;
+    if (target && typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(scrollBottom);
+      ro.observe(target);
+    }
 
     return () => {
-      if (vv) vv.removeEventListener("resize", handleResize);
-      window.removeEventListener("resize", handleResize);
-      clearTimeout(timer);
+      if (vv) vv.removeEventListener("resize", onVVResize);
+      if (ro) ro.disconnect();
     };
   }, []);
 

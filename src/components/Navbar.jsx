@@ -73,6 +73,16 @@ export default function Navbar({ onUploaded, darkMode, onToggleTheme, usuarioId 
     });
   }, []);
 
+  const bounceItem = useCallback((el) => {
+    if (!el) return;
+    const icon = el.querySelector(".navbar-mobile-icon");
+    if (!icon) return;
+    icon.classList.remove("dock-bounce");
+    void icon.offsetWidth; // fuerza reflow para reiniciar animación
+    icon.classList.add("dock-bounce");
+    icon.addEventListener("animationend", () => icon.classList.remove("dock-bounce"), { once: true });
+  }, []);
+
   return (
     <>
       {/* ── DESKTOP: Floating Capsule ── */}
@@ -132,7 +142,6 @@ export default function Navbar({ onUploaded, darkMode, onToggleTheme, usuarioId 
           ref={dockRef}
           onMouseMove={(e) => applyDockScale(e.clientX)}
           onMouseLeave={resetDock}
-          onTouchStart={(e) => { if (e.touches[0]) applyDockScale(e.touches[0].clientX); }}
           onTouchMove={(e) => { if (e.touches[0]) applyDockScale(e.touches[0].clientX); }}
           onTouchEnd={resetDock}
         >
@@ -143,6 +152,7 @@ export default function Navbar({ onUploaded, darkMode, onToggleTheme, usuarioId 
               to={l.path}
               className={`navbar-mobile-item ${isActive(l.path) ? "active" : ""}`}
               onClick={() => haptics.light()}
+              onTouchStart={(e) => bounceItem(e.currentTarget)}
               onTouchEnd={resetDock}
             >
               <span className="navbar-mobile-icon">{l.icon}</span>
@@ -154,6 +164,7 @@ export default function Navbar({ onUploaded, darkMode, onToggleTheme, usuarioId 
             ref={(el) => { dockItemRefs.current["__upload"] = el; }}
             className="navbar-mobile-item navbar-mobile-upload"
             onClick={() => { haptics.medium(); handleUploadClick(); }}
+            onTouchStart={(e) => bounceItem(e.currentTarget)}
             onTouchEnd={resetDock}
           >
             <span className="navbar-mobile-icon">📸</span>
