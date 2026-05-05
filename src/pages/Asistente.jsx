@@ -100,10 +100,14 @@ export default function Asistente({ usuarioId }) {
   }, [chat, loading]);
 
   useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "24px";
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
-    }
+    const el = textareaRef.current;
+    if (!el) return;
+    // requestAnimationFrame evita el reflow forzado (write→read síncrono)
+    const raf = requestAnimationFrame(() => {
+      el.style.height = "24px";
+      el.style.height = `${el.scrollHeight}px`;
+    });
+    return () => cancelAnimationFrame(raf);
   }, [mensaje]);
 
   useEffect(() => {
