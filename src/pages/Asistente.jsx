@@ -338,6 +338,14 @@ export default function Asistente({ usuarioId }) {
     ];
   }, [clima]);
 
+  function parseBold(text) {
+    return text.split(/(\*\*[^*]+\*\*)/g).map((seg, j) =>
+      seg.startsWith("**") && seg.endsWith("**")
+        ? <strong key={j}>{seg.slice(2, -2)}</strong>
+        : seg
+    );
+  }
+
   function parseChat(text) {
     if (!text) return null;
     const normalized = text.replace(/ - \*\*/g, "\n- **").trim();
@@ -345,15 +353,30 @@ export default function Asistente({ usuarioId }) {
       if (!line.trim()) return <br key={i} />;
       const isBullet = line.trimStart().startsWith("- ");
       const content  = isBullet ? line.trimStart().slice(2) : line;
-      const segments = content.split(/(\*\*[^*]+\*\*)/g);
-      const rendered = segments.map((seg, j) =>
-        seg.startsWith("**") && seg.endsWith("**")
-          ? <strong key={j}>{seg.slice(2, -2)}</strong>
-          : seg
-      );
-      return isBullet
-        ? <div key={i} className="chat-item">· {rendered}</div>
-        : <p key={i} className="chat-para">{rendered}</p>;
+
+      if (isBullet) {
+        // Patrón **Label**: descripción → label en su propia línea
+        const m = content.match(/^\*\*([^*]+)\*\*[:\s]\s*(.*)/s);
+        if (m) {
+          return (
+            <div key={i} className="chat-item">
+              <span className="chat-item-dot">·</span>
+              <div className="chat-item-body">
+                <strong className="chat-item-label">{m[1]}:</strong>
+                {m[2] && <span className="chat-item-desc">{m[2]}</span>}
+              </div>
+            </div>
+          );
+        }
+        return (
+          <div key={i} className="chat-item">
+            <span className="chat-item-dot">·</span>
+            <span>{parseBold(content)}</span>
+          </div>
+        );
+      }
+
+      return <p key={i} className="chat-para">{parseBold(content)}</p>;
     });
   }
 

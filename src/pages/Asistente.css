@@ -538,13 +538,42 @@ body.light-mode .cfd-hint { color: rgba(15, 3, 38, 0.6); }
 .chat-bubble.assistant .chat-item::before {
   content: none; /* el · ya está en el JSX */
 }
-.chat-bubble.assistant strong {
+.chat-bubble.assistant strong,
+.chat-bubble.assistant .chat-item-label {
   color: rgba(196, 181, 232, 0.95);
   font-weight: 700;
 }
-body.light-mode .chat-bubble.assistant strong {
+body.light-mode .chat-bubble.assistant strong,
+body.light-mode .chat-bubble.assistant .chat-item-label {
   color: rgba(15, 3, 38, 0.85);
 }
+
+/* ── Chat item dot/body/label/desc ── */
+.chat-item-dot {
+  color: rgba(196, 181, 232, 0.55);
+  flex-shrink: 0;
+  line-height: 1.55;
+  user-select: none;
+}
+.chat-item-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.chat-item-label {
+  display: block;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+.chat-item-desc {
+  display: block;
+  color: rgba(244, 244, 249, 0.72);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+body.light-mode .chat-item-dot  { color: rgba(80, 50, 140, 0.5); }
+body.light-mode .chat-item-desc { color: rgba(15, 3, 38, 0.65); }
 
 /* ── LOADER ── */
 .chat-loader {
@@ -1328,6 +1357,7 @@ body.light-mode .ocasion-chip.activa {
   .chat-msg-content          { max-width: 88% !important; }
   .chat-bubble               { font-size: 0.88rem !important; }
   .chat-placeholder-hints    { max-width: 100%; }
+  .chat-item-desc            { font-size: 0.82rem !important; }
 
   /* BOTTOM SHEET */
   .outfit-sheet-backdrop {
