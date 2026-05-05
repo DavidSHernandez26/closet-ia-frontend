@@ -209,31 +209,22 @@
   line-height: 1;
 }
 
-/* ── Dropdown pronóstico ── */
-.clima-forecast-dropdown {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
+/* ── Pronóstico inline ── */
+.forecast-inline {
   display: flex;
-  gap: 6px;
-  background: rgba(12, 4, 28, 0.92);
-  backdrop-filter: blur(24px) saturate(160%);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
-  border: 1px solid rgba(196, 181, 232, 0.14);
-  border-radius: 16px;
-  padding: 10px;
-  z-index: 100;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(196,181,232,0.05);
-  animation: fadeUp 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
-  white-space: nowrap;
+  gap: 8px;
+  padding: 10px 16px 12px;
+  border-bottom: 1px solid rgba(196, 181, 232, 0.08);
+  animation: fadeUp 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  flex-shrink: 0;
 }
 
 .cfd-card {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 3px;
-  min-width: 70px;
   padding: 8px 6px;
   background: rgba(196, 181, 232, 0.05);
   border: 1px solid rgba(196, 181, 232, 0.08);
@@ -289,10 +280,8 @@ body.light-mode .clima-chip--open {
 }
 body.light-mode .clima-temp   { color: rgba(15, 3, 38, 0.85); }
 body.light-mode .clima-ciudad { color: rgba(15, 3, 38, 0.65); }
-body.light-mode .clima-forecast-dropdown {
-  background: rgba(255, 255, 255, 0.96);
-  border-color: rgba(15, 3, 38, 0.1);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.12), 0 0 0 1px rgba(15,3,38,0.06);
+body.light-mode .forecast-inline {
+  border-color: rgba(15, 3, 38, 0.08);
 }
 body.light-mode .cfd-card {
   background: rgba(15, 3, 38, 0.04);
@@ -1239,6 +1228,24 @@ body.light-mode .ocasion-chip.activa {
     font-size: 0.78rem !important;
     border-radius: 7px !important;
   }
+
+  /* Pronóstico inline móvil */
+  .forecast-inline {
+    padding: 8px 12px 10px !important;
+    gap: 6px !important;
+  }
+  .cfd-card {
+    padding: 7px 4px !important;
+    border-radius: 10px !important;
+  }
+  .cfd-icon  { font-size: 1rem !important; }
+  .cfd-max   { font-size: 0.72rem !important; }
+  .cfd-min   { font-size: 0.6rem !important; }
+  .cfd-hint  { font-size: 0.52rem !important; }
+  .cfd-lluvia { font-size: 0.5rem !important; }
+
+  /* Chip clima compacto en móvil */
+  .clima-ciudad { max-width: 48px !important; }
 
   /* Chat */
   .chat-box {

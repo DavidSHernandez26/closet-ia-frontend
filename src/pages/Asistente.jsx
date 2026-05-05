@@ -76,9 +76,10 @@ export default function Asistente({ usuarioId }) {
   useEffect(() => {
     if (!showForecast) return;
     function onClickOutside(e) {
-      if (forecastRef.current && !forecastRef.current.contains(e.target)) {
-        setShowForecast(false);
-      }
+      // Cierra si el clic no es en el strip ni en el chip (que tiene clase clima-chip)
+      const enStrip = forecastRef.current?.contains(e.target);
+      const enChip  = e.target.closest?.(".clima-chip");
+      if (!enStrip && !enChip) setShowForecast(false);
     }
     document.addEventListener("mousedown", onClickOutside);
     return () => document.removeEventListener("mousedown", onClickOutside);
@@ -358,7 +359,6 @@ export default function Asistente({ usuarioId }) {
                 {clima && (
                   <div
                     className={`clima-chip ${showForecast ? "clima-chip--open" : ""}`}
-                    ref={forecastRef}
                     onClick={() => clima.forecast?.length && setShowForecast(p => !p)}
                     title={`${clima.label} · Sensación ${clima.feels}°C · Viento ${clima.wind} km/h`}
                   >
@@ -367,25 +367,6 @@ export default function Asistente({ usuarioId }) {
                     <span className="clima-ciudad">{clima.city}</span>
                     {clima.forecast?.length > 0 && (
                       <span className="clima-chevron">{showForecast ? "▴" : "▾"}</span>
-                    )}
-
-                    {showForecast && (
-                      <div className="clima-forecast-dropdown" onClick={e => e.stopPropagation()}>
-                        {clima.forecast.map((day, i) => (
-                          <div key={i} className="cfd-card">
-                            <span className="cfd-dia">{day.dia}</span>
-                            <span className="cfd-icon">{day.icon}</span>
-                            <div className="cfd-temps">
-                              <span className="cfd-max">{day.maxTemp}°</span>
-                              <span className="cfd-min">{day.minTemp}°</span>
-                            </div>
-                            <span className="cfd-hint">{day.outfitHint}</span>
-                            {day.lluvia >= 40 && (
-                              <span className="cfd-lluvia">💧{day.lluvia}%</span>
-                            )}
-                          </div>
-                        ))}
-                      </div>
                     )}
                   </div>
                 )}
@@ -396,6 +377,26 @@ export default function Asistente({ usuarioId }) {
                 )}
               </div>
             </div>
+
+            {/* ── Pronóstico inline (se abre al hacer clic en el chip de clima) ── */}
+            {showForecast && clima?.forecast?.length > 0 && (
+              <div className="forecast-inline" ref={forecastRef}>
+                {clima.forecast.map((day, i) => (
+                  <div key={i} className="cfd-card">
+                    <span className="cfd-dia">{day.dia}</span>
+                    <span className="cfd-icon">{day.icon}</span>
+                    <div className="cfd-temps">
+                      <span className="cfd-max">{day.maxTemp}°</span>
+                      <span className="cfd-min">{day.minTemp}°</span>
+                    </div>
+                    <span className="cfd-hint">{day.outfitHint}</span>
+                    {day.lluvia >= 40 && (
+                      <span className="cfd-lluvia">💧{day.lluvia}%</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* ── Modo toggle ── */}
             <div className="modo-toggle-wrap">
