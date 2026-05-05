@@ -69,26 +69,33 @@ export default function Asistente({ usuarioId }) {
   const [showForecast, setShowForecast] = useState(false);
 
   const chatEndRef       = useRef(null);
+  const chatBoxRef       = useRef(null);
   const textareaRef      = useRef(null);
   const prendasCacheRef  = useRef(null);
   const forecastRef      = useRef(null);
   const fondoRef         = useRef(null);
 
-  // Empuja el layout hacia arriba cuando aparece el teclado en iOS Safari
+  // Teclado estilo WhatsApp: sube al abrir, baja al cerrar
   useEffect(() => {
-    const vv = window.visualViewport;
-    if (!vv) return;
-    const onVVResize = () => {
-      const keyboardH = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
-      if (fondoRef.current) {
-        fondoRef.current.style.bottom = keyboardH > 50
-          ? `${keyboardH}px`
-          : "";
-      }
-      if (keyboardH > 50) {
-        setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+    const scrollBottom = () => {
+      if (chatBoxRef.current) {
+        chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
       }
     };
+
+    const vv = window.visualViewport;
+    if (!vv) return;
+
+    const onVVResize = () => {
+      // kbHeight > 0 solo en Safari/web; en Capacitor (resize:ionic) siempre es 0
+      const kbHeight = Math.max(0, window.innerHeight - vv.height);
+      if (fondoRef.current) {
+        fondoRef.current.style.bottom = kbHeight > 80 ? `${kbHeight}px` : "";
+      }
+      // En ambos casos (Capacitor y Safari) scroll al último mensaje
+      requestAnimationFrame(scrollBottom);
+    };
+
     vv.addEventListener("resize", onVVResize);
     return () => vv.removeEventListener("resize", onVVResize);
   }, []);
@@ -491,7 +498,7 @@ export default function Asistente({ usuarioId }) {
             {modo === "chat" ? (
               <>
                 {/* Mensajes */}
-                <div className="chat-box">
+                <div className="chat-box" ref={chatBoxRef}>
                   {chat.length === 0 ? (
                     <div className="chat-placeholder">
                       <div className="chat-placeholder-icon">✦</div>
@@ -580,9 +587,10 @@ export default function Asistente({ usuarioId }) {
                       }}
                       onKeyDown={handleKeyDown}
                       onFocus={() => {
-                        setTimeout(() => {
-                          chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-                        }, 350);
+                        requestAnimationFrame(() => {
+                          if (chatBoxRef.current)
+                            chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
+                        });
                       }}
                       disabled={loading}
                       rows={1}

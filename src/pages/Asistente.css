@@ -1252,9 +1252,9 @@ body.light-mode .ocasion-chip.activa {
     background: var(--purple) !important;
   }
 
-  /* Cuando el sheet de outfit está visible (48px) empujar el fondo hacia arriba */
+  /* Cuando el globo de outfit está visible (60px + 8px gap) empujar el fondo hacia arriba */
   .asistente-fondo.sheet-visible {
-    bottom: calc(124px + env(safe-area-inset-bottom)) !important;
+    bottom: calc(152px + env(safe-area-inset-bottom)) !important;
   }
 
   body.light-mode .asistente-fondo { background: var(--green) !important; }
@@ -1379,45 +1379,63 @@ body.light-mode .ocasion-chip.activa {
   .outfit-sheet {
     display: block;
     position: fixed;
-    left: 0; right: 0;
-    bottom: calc(76px + env(safe-area-inset-bottom));
+    left: 12px; right: 12px;
+    bottom: calc(76px + env(safe-area-inset-bottom) + 8px);
     z-index: 160;
-    background: rgba(14, 4, 34, 0.98);
-    border: 1px solid rgba(196, 181, 232, 0.12);
-    border-bottom: none;
-    border-radius: 22px 22px 0 0;
-    box-shadow: 0 -8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(196,181,232,0.08);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    transform: translateY(100%);
-    transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+    background: rgba(14, 4, 34, 0.97);
+    border: 1px solid rgba(196, 181, 232, 0.18);
+    border-radius: 16px;
+    box-shadow:
+      0 8px 32px rgba(0,0,0,0.55),
+      0 2px 8px rgba(0,0,0,0.3),
+      inset 0 1px 0 rgba(196,181,232,0.1);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
     overflow: hidden;
-    max-height: 50dvh;
+    max-height: 0;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(6px);
+    transition:
+      max-height 0.4s cubic-bezier(0.32, 0.72, 0, 1),
+      opacity 0.25s ease,
+      transform 0.3s ease;
   }
 
-  .outfit-sheet.has-outfit  { transform: translateY(calc(100% - 48px)); }
-  .outfit-sheet.expanded    { transform: translateY(0); }
+  .outfit-sheet.has-outfit {
+    max-height: 60px;
+    opacity: 1;
+    pointer-events: all;
+    transform: translateY(0);
+  }
+
+  .outfit-sheet.expanded { max-height: 50dvh; }
 
   .outfit-sheet-handle-wrap {
-    padding: 6px 16px 6px;
+    height: 60px;
+    padding: 8px 14px;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
     flex-shrink: 0;
   }
 
   .outfit-sheet-handle {
-    width: 32px; height: 3px;
+    width: 28px; height: 3px;
     background: rgba(196, 181, 232, 0.25);
     border-radius: 2px;
-    margin: 0 auto 5px;
+    margin: 0 auto;
   }
 
   .outfit-sheet-preview-bar  { display: flex; align-items: center; gap: 10px; }
   .outfit-sheet-thumbs       { display: flex; }
 
   .outfit-sheet-thumb {
-    width: 28px; height: 28px;
+    width: 30px; height: 30px;
     border-radius: 8px;
     object-fit: cover;
     border: 2px solid rgba(14, 4, 34, 0.9);
