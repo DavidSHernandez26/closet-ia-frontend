@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import "./UploadModal.css";
 import { supabase } from "../supabase";
 import axios from "axios";
@@ -35,28 +35,38 @@ const ETAPAS = [
   { hasta: 100, label: "✅ ¡Listo!" },
 ];
 
-function etapaLabel(progreso) {
-  return ETAPAS.find(e => progreso <= e.hasta)?.label || "✅ ¡Listo!";
+function etapaLabel(p) {
+  return ETAPAS.find(e => p <= e.hasta)?.label || "✅ ¡Listo!";
 }
 
 export default function UploadModal({ onClose, onUploaded }) {
-  const [tipo, setTipo] = useState("");
-  const [file, setFile] = useState(null);
-  const [preview, setPreview] = useState("");
+  const [step, setStep]           = useState(1);
+  const [type, setType]           = useState(null);
+  const [file, setFile]           = useState(null);
+  const [preview, setPreview]     = useState(null);
+  const [dragActive, setDragActive] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [progreso, setProgreso]   = useState(0);
   const [mensajeIA, setMensajeIA] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [progreso, setProgreso] = useState(0);
   const intervaloRef = useRef(null);
-  const pickPhoto = useNativeCamera();
+  const pickPhoto    = useNativeCamera();
+
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  useEffect(() => () => clearInterval(intervaloRef.current), []);
+  useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
 
   function iniciarProgreso() {
     setProgreso(0);
     intervaloRef.current = setInterval(() => {
       setProgreso(prev => {
         if (prev >= 90) { clearInterval(intervaloRef.current); return 90; }
-        // Avanza rápido al inicio, lento en el medio (simula el proceso real)
-        const incremento = prev < 20 ? 4 : prev < 65 ? 0.8 : 0.3;
-        return Math.min(prev + incremento, 90);
+        const inc = prev < 20 ? 4 : prev < 65 ? 0.8 : 0.3;
+        return Math.min(prev + inc, 90);
       });
     }, 200);
   }
@@ -66,13 +76,40 @@ export default function UploadModal({ onClose, onUploaded }) {
     setProgreso(100);
   }
 
-  useEffect(() => () => clearInterval(intervaloRef.current), []);
+  const pickType = (t) => { setType(t); setStep(2); };
 
-  async function handleUpload() {
-    if (!file || !tipo) return alert("Selecciona el tipo y una imagen antes de subir.");
+  const handleFile = async (f) => {
+    if (!f) return;
+    if (!f.type.startsWith("image/")) { alert("Por favor sube una imagen (.jpg, .png, .webp)"); return; }
+    if (f.size > 10 * 1024 * 1024)   { alert("La imagen debe pesar menos de 10MB"); return; }
+    const compressed = await comprimirImagen(f);
+    if (preview) URL.revokeObjectURL(preview);
+    setFile(compressed);
+    setPreview(URL.createObjectURL(compressed));
+    setMensajeIA("");
+  };
 
+  const onDrop = (e) => {
+    e.preventDefault();
+    setDragActive(false);
+    handleFile(e.dataTransfer.files?.[0]);
+  };
+
+  const handlePickPhoto = async () => {
+    const f = await pickPhoto();
+    if (f) handleFile(f);
+  };
+
+  const reset = () => {
+    if (preview) URL.revokeObjectURL(preview);
+    setFile(null);
+    setPreview(null);
+  };
+
+  async function onSubmit() {
+    if (!file || !type) return;
     try {
-      setLoading(true);
+      setUploading(true);
       setMensajeIA("");
       iniciarProgreso();
 
@@ -82,7 +119,7 @@ export default function UploadModal({ onClose, onUploaded }) {
       const formData = new FormData();
       formData.append("imagen", file);
       formData.append("usuario_id", user.id);
-      formData.append("tipo", tipo);
+      formData.append("tipo", type);
       formData.append("genero", "unisex");
 
       const res = await axios.post(`${API_URL}/api/subir-prenda`, formData, {
@@ -93,107 +130,180 @@ export default function UploadModal({ onClose, onUploaded }) {
       haptics.success();
       setMensajeIA(res.data?.mensaje ? `✅ ${res.data.mensaje}` : "✅ Imagen analizada correctamente.");
       if (onUploaded) onUploaded();
-      setTimeout(() => { setFile(null); setPreview(""); setTipo(""); setProgreso(0); }, 1500);
+      setTimeout(() => { reset(); setType(null); setStep(1); setProgreso(0); }, 1500);
     } catch (err) {
       console.error("❌ Error:", err);
       clearInterval(intervaloRef.current);
       setProgreso(0);
       setMensajeIA("⚠️ Ocurrió un error al subir o analizar la imagen.");
     } finally {
-      setLoading(false);
+      setUploading(false);
     }
   }
 
   return (
-    <div
-      className="upload-overlay fade-in"
-      onClick={(e) => e.target.classList.contains("upload-overlay") && onClose()}
-    >
-      <div className="upload-modal modal-spring">
-        <button className="close-upload" onClick={onClose}>✕</button>
+    <div className="up-overlay" onClick={onClose}>
+      <div className="up-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
 
-        <h2>📸 Subir Imagen</h2>
-        <p className="sub-text">
-          Selecciona el tipo de imagen y deja que la IA la analice y organice tu closet.
-        </p>
+        {/* ── Header ── */}
+        <header className="up-header">
+          <div className="up-header-left">
+            <span className="up-traffic">
+              <span className="up-light up-light-r" />
+              <span className="up-light up-light-y" />
+              <span className="up-light up-light-g" />
+            </span>
+          </div>
+          <div className="up-step-indicator">
+            <span className={`up-step ${step >= 1 ? "active" : ""}`}>
+              <span className="up-step-num">1</span>
+              <span className="up-step-label">Tipo</span>
+            </span>
+            <span className="up-step-bar">
+              <span className={`up-step-fill ${step >= 2 ? "full" : ""}`} />
+            </span>
+            <span className={`up-step ${step >= 2 ? "active" : ""}`}>
+              <span className="up-step-num">2</span>
+              <span className="up-step-label">Imagen</span>
+            </span>
+          </div>
+          <button className="up-close" onClick={onClose} aria-label="Cerrar">✕</button>
+        </header>
 
-        <div className="modal-options">
-          <button
-            className={`option-btn ${tipo === "prenda" ? "active" : ""}`}
-            onClick={() => setTipo("prenda")}
-            disabled={loading}
-          >
-            👕 Prenda individual
-          </button>
-          <button
-            className={`option-btn ${tipo === "outfit" ? "active" : ""}`}
-            onClick={() => setTipo("outfit")}
-            disabled={loading}
-          >
-            🧥 Outfit completo
-          </button>
+        {/* ── Body ── */}
+        <div className="up-body">
+
+          {/* Step 1 — elegir tipo */}
+          {step === 1 && (
+            <div className="up-step-1">
+              <h2 className="up-title">Subir al closet</h2>
+              <p className="up-sub">
+                ¿Qué quieres que la IA analice? Selecciona una opción para continuar.
+              </p>
+
+              <div className="up-type-grid">
+                <button className="up-type-card" onClick={() => pickType("prenda")}>
+                  <div className="up-type-icon up-type-icon-lilac">
+                    <span className="up-type-emoji">👕</span>
+                    <span className="up-type-glow" />
+                  </div>
+                  <div className="up-type-text">
+                    <h3>Prenda individual</h3>
+                    <p>Una sola pieza · la IA detecta categoría, color y estilo</p>
+                  </div>
+                  <span className="up-arrow">→</span>
+                </button>
+
+                <button className="up-type-card" onClick={() => pickType("outfit")}>
+                  <div className="up-type-icon up-type-icon-sage">
+                    <span className="up-type-emoji">🧥</span>
+                    <span className="up-type-glow" />
+                  </div>
+                  <div className="up-type-text">
+                    <h3>Outfit completo</h3>
+                    <p>Look entero · la IA separa cada prenda en tu closet</p>
+                  </div>
+                  <span className="up-arrow">→</span>
+                </button>
+              </div>
+
+              <div className="up-tip">
+                <span className="up-tip-dot" />
+                <span>Funciona mejor con fondo claro y la prenda extendida</span>
+              </div>
+            </div>
+          )}
+
+          {/* Step 2 — subir imagen */}
+          {step === 2 && (
+            <div className="up-step-2">
+              <h2 className="up-title">
+                {type === "prenda" ? "Subir prenda" : "Subir outfit"}
+              </h2>
+              <p className="up-sub">
+                {type === "prenda"
+                  ? "Foto de una sola prenda — la IA la categorizará."
+                  : "Foto del look completo — la IA detectará cada pieza."}
+              </p>
+
+              {!preview ? (
+                <div
+                  className={`up-drop ${dragActive ? "drag" : ""}`}
+                  onClick={handlePickPhoto}
+                  onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
+                  onDragLeave={() => setDragActive(false)}
+                  onDrop={onDrop}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === "Enter" && handlePickPhoto()}
+                >
+                  <div className="up-drop-icon">
+                    <span>📸</span>
+                    <span className="up-drop-pulse" />
+                  </div>
+                  <h3 className="up-drop-title">Arrastra una imagen aquí</h3>
+                  <p className="up-drop-sub">o toca para seleccionar · JPG / PNG / WEBP · máx 10MB</p>
+                  <span className="up-drop-cta">Seleccionar archivo</span>
+                </div>
+              ) : (
+                <div className="up-preview-wrap">
+                  <div className="up-preview">
+                    <img src={preview} alt="Preview" />
+                    <button
+                      className="up-preview-clear"
+                      onClick={reset}
+                      title="Cambiar"
+                      disabled={uploading}
+                    >↻</button>
+                  </div>
+                  <div className="up-preview-meta">
+                    <div className="up-preview-name">{file.name}</div>
+                    <div className="up-preview-size">{(file.size / 1024 / 1024).toFixed(2)} MB</div>
+                  </div>
+                </div>
+              )}
+
+              {uploading && (
+                <div className="progress-wrap">
+                  <div className="progress-header">
+                    <span className="progress-label">{etapaLabel(progreso)}</span>
+                    <span className="progress-pct">{Math.round(progreso)}%</span>
+                  </div>
+                  <div className="progress-track">
+                    <div className="progress-fill" style={{ width: `${progreso}%` }} />
+                  </div>
+                </div>
+              )}
+
+              {mensajeIA && <p className="mensaje-ia">{mensajeIA}</p>}
+            </div>
+          )}
+
         </div>
 
-        {tipo && (
-          <div className="upload-section">
+        {/* ── Footer ── */}
+        <footer className="up-footer">
+          {step === 2 && (
             <button
-              className="file-label"
-              disabled={loading}
-              onClick={async () => {
-                const f = await pickPhoto();
-                if (f) {
-                  const compressed = await comprimirImagen(f);
-                  setFile(compressed);
-                  setPreview(URL.createObjectURL(compressed));
-                  setMensajeIA("");
-                }
-              }}
+              className="up-btn up-btn-ghost"
+              onClick={() => { reset(); setMensajeIA(""); setStep(1); }}
+              disabled={uploading}
             >
-              <span className="file-text">
-                {file ? file.name : "📂 Toca para seleccionar o tomar foto"}
-              </span>
+              ← Atrás
             </button>
-
-            {preview && (
-              <div className="preview">
-                <img src={preview} alt="preview" className="preview-img" />
-                {!loading && (
-                  <button
-                    className="remove-btn"
-                    onClick={() => { setPreview(""); setFile(null); }}
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-            )}
-
+          )}
+          <span style={{ flex: 1 }} />
+          {step === 2 && (
             <button
-              className="btn-subir"
-              onClick={handleUpload}
-              disabled={loading || !file}
+              className="up-btn up-btn-primary"
+              onClick={onSubmit}
+              disabled={!file || uploading}
             >
-              {loading ? "Procesando..." : "🚀 Subir imagen"}
+              {uploading ? <span className="up-spinner" /> : "Subir y analizar →"}
             </button>
+          )}
+        </footer>
 
-            {loading && (
-              <div className="progress-wrap">
-                <div className="progress-header">
-                  <span className="progress-label">{etapaLabel(progreso)}</span>
-                  <span className="progress-pct">{Math.round(progreso)}%</span>
-                </div>
-                <div className="progress-track">
-                  <div
-                    className="progress-fill"
-                    style={{ width: `${progreso}%` }}
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {mensajeIA && <p className="mensaje-ia">{mensajeIA}</p>}
       </div>
     </div>
   );
