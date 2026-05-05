@@ -24,6 +24,7 @@ const Amigos      = React.lazy(() => import("./pages/Amigos"));
 const SetupPerfil = React.lazy(() => import("./pages/SetupPerfil"));
 const Login       = React.lazy(() => import("./pages/Login"));
 const Register    = React.lazy(() => import("./pages/Register"));
+const Waitlist    = React.lazy(() => import("./pages/Waitlist"));
 const Feed        = React.lazy(() => import("./pages/Feed"));
 
 // Token cacheado — se actualiza sincrónicamente desde onAuthStateChange
@@ -171,7 +172,7 @@ export default function App() {
   }
 
   function PrivateRoute({ children }) {
-    if (!session) return <Navigate to="/login" replace />;
+    if (!session) return <Navigate to="/waitlist" replace />;
     if (!perfilListo) return (
       <SetupPerfil
         usuarioId={usuarioId}
@@ -217,6 +218,7 @@ export default function App() {
 
         <React.Suspense fallback={<PageFallback />}>
           <Routes>
+            <Route path="/waitlist" element={!session ? <Waitlist /> : <Navigate to="/" />} />
             <Route path="/login" element={!session ? <Login /> : <Navigate to="/" />} />
             <Route path="/register" element={!session ? <Register /> : <Navigate to="/" />} />
 
