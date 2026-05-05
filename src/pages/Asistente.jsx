@@ -6,7 +6,6 @@ import { API_URL } from "../config";
 import { supabase } from "../supabase";
 import { getWeather } from "../services/weatherService";
 import { haptics } from "../hooks/useHaptics";
-import ForecastStrip from "../components/ForecastStrip";
 
 // Debe coincidir con getTipo de VirtualMannequin
 function getTipoPrenda(descripcion = "") {
@@ -67,9 +66,23 @@ export default function Asistente({ usuarioId }) {
   const [calConfirmado, setCalConfirmado] = useState(false);
   const [ocasionActiva, setOcasionActiva] = useState(null);
 
+  const [showForecast, setShowForecast] = useState(false);
+
   const chatEndRef       = useRef(null);
   const textareaRef      = useRef(null);
-  const prendasCacheRef  = useRef(null);   // cache de prendas para el swap modal
+  const prendasCacheRef  = useRef(null);
+  const forecastRef      = useRef(null);
+
+  useEffect(() => {
+    if (!showForecast) return;
+    function onClickOutside(e) {
+      if (forecastRef.current && !forecastRef.current.contains(e.target)) {
+        setShowForecast(false);
+      }
+    }
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, [showForecast]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) =>
@@ -343,10 +356,37 @@ export default function Asistente({ usuarioId }) {
 
               <div className="asistente-hud-right">
                 {clima && (
-                  <div className="clima-chip" title={`${clima.label} · Sensación ${clima.feels}°C · Viento ${clima.wind} km/h`}>
+                  <div
+                    className={`clima-chip ${showForecast ? "clima-chip--open" : ""}`}
+                    ref={forecastRef}
+                    onClick={() => clima.forecast?.length && setShowForecast(p => !p)}
+                    title={`${clima.label} · Sensación ${clima.feels}°C · Viento ${clima.wind} km/h`}
+                  >
                     <span className="clima-icon">{clima.icon}</span>
                     <span className="clima-temp">{clima.temp}°</span>
                     <span className="clima-ciudad">{clima.city}</span>
+                    {clima.forecast?.length > 0 && (
+                      <span className="clima-chevron">{showForecast ? "▴" : "▾"}</span>
+                    )}
+
+                    {showForecast && (
+                      <div className="clima-forecast-dropdown" onClick={e => e.stopPropagation()}>
+                        {clima.forecast.map((day, i) => (
+                          <div key={i} className="cfd-card">
+                            <span className="cfd-dia">{day.dia}</span>
+                            <span className="cfd-icon">{day.icon}</span>
+                            <div className="cfd-temps">
+                              <span className="cfd-max">{day.maxTemp}°</span>
+                              <span className="cfd-min">{day.minTemp}°</span>
+                            </div>
+                            <span className="cfd-hint">{day.outfitHint}</span>
+                            {day.lluvia >= 40 && (
+                              <span className="cfd-lluvia">💧{day.lluvia}%</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
                 {modo === "chat" && chat.length > 0 && (
@@ -374,10 +414,6 @@ export default function Asistente({ usuarioId }) {
                 </button>
               </div>
             </div>
-
-            {modo === "chat" && clima?.forecast && (
-              <ForecastStrip forecast={clima.forecast} />
-            )}
 
             {modo === "chat" ? (
               <>

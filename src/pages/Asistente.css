@@ -174,8 +174,15 @@
   border: 1px solid rgba(196, 181, 232, 0.12);
   border-radius: 20px;
   padding: 3px 8px 3px 5px;
-  cursor: default;
+  cursor: pointer;
   user-select: none;
+  position: relative;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+.clima-chip:hover,
+.clima-chip--open {
+  background: rgba(196, 181, 232, 0.14);
+  border-color: rgba(196, 181, 232, 0.22);
 }
 
 .clima-icon { font-size: 0.82rem; line-height: 1; }
@@ -195,12 +202,106 @@
   white-space: nowrap;
 }
 
+.clima-chevron {
+  font-size: 0.55rem;
+  color: rgba(196, 181, 232, 0.6);
+  margin-left: 1px;
+  line-height: 1;
+}
+
+/* ── Dropdown pronóstico ── */
+.clima-forecast-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  display: flex;
+  gap: 6px;
+  background: rgba(12, 4, 28, 0.92);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid rgba(196, 181, 232, 0.14);
+  border-radius: 16px;
+  padding: 10px;
+  z-index: 100;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(196,181,232,0.05);
+  animation: fadeUp 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  white-space: nowrap;
+}
+
+.cfd-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 70px;
+  padding: 8px 6px;
+  background: rgba(196, 181, 232, 0.05);
+  border: 1px solid rgba(196, 181, 232, 0.08);
+  border-radius: 12px;
+}
+
+.cfd-dia {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(196, 181, 232, 0.75);
+}
+
+.cfd-icon { font-size: 1.1rem; line-height: 1; margin: 1px 0; }
+
+.cfd-temps {
+  display: flex;
+  gap: 4px;
+  align-items: baseline;
+}
+.cfd-max {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: rgba(244, 244, 249, 0.92);
+}
+.cfd-min {
+  font-size: 0.65rem;
+  color: rgba(244, 244, 249, 0.4);
+}
+
+.cfd-hint {
+  font-size: 0.56rem;
+  color: rgba(196, 181, 232, 0.7);
+  text-align: center;
+  line-height: 1.3;
+}
+
+.cfd-lluvia {
+  font-size: 0.55rem;
+  color: rgba(130, 180, 255, 0.8);
+}
+
+/* ── Light mode ── */
 body.light-mode .clima-chip {
   background: rgba(15, 3, 38, 0.05);
   border-color: rgba(15, 3, 38, 0.1);
 }
-body.light-mode .clima-temp { color: rgba(15, 3, 38, 0.85); }
+body.light-mode .clima-chip:hover,
+body.light-mode .clima-chip--open {
+  background: rgba(15, 3, 38, 0.09);
+  border-color: rgba(15, 3, 38, 0.18);
+}
+body.light-mode .clima-temp   { color: rgba(15, 3, 38, 0.85); }
 body.light-mode .clima-ciudad { color: rgba(15, 3, 38, 0.65); }
+body.light-mode .clima-forecast-dropdown {
+  background: rgba(255, 255, 255, 0.96);
+  border-color: rgba(15, 3, 38, 0.1);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.12), 0 0 0 1px rgba(15,3,38,0.06);
+}
+body.light-mode .cfd-card {
+  background: rgba(15, 3, 38, 0.04);
+  border-color: rgba(15, 3, 38, 0.08);
+}
+body.light-mode .cfd-dia  { color: rgba(15, 3, 38, 0.6); }
+body.light-mode .cfd-max  { color: rgba(15, 3, 38, 0.9); }
+body.light-mode .cfd-min  { color: rgba(15, 3, 38, 0.4); }
+body.light-mode .cfd-hint { color: rgba(15, 3, 38, 0.6); }
 
 /* Avatar */
 .asistente-avatar {
