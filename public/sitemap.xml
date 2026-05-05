@@ -3,7 +3,7 @@
 
   <!-- Página principal / landing -->
   <url>
-    <loc>https://closetia.app/</loc>
+    <loc>https://beconfident.site/</loc>
     <lastmod>2026-05-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
@@ -11,13 +11,13 @@
 
   <!-- Registro e ingreso -->
   <url>
-    <loc>https://closetia.app/login</loc>
+    <loc>https://beconfident.site/login</loc>
     <lastmod>2026-05-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://closetia.app/register</loc>
+    <loc>https://beconfident.site/register</loc>
     <lastmod>2026-05-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>

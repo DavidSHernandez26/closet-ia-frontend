@@ -188,7 +188,7 @@
 
 .clima-ciudad {
   font-size: 0.65rem;
-  color: rgba(196, 181, 232, 0.55);
+  color: rgba(196, 181, 232, 0.85);
   max-width: 60px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -200,7 +200,7 @@ body.light-mode .clima-chip {
   border-color: rgba(15, 3, 38, 0.1);
 }
 body.light-mode .clima-temp { color: rgba(15, 3, 38, 0.85); }
-body.light-mode .clima-ciudad { color: rgba(15, 3, 38, 0.45); }
+body.light-mode .clima-ciudad { color: rgba(15, 3, 38, 0.65); }
 
 /* Avatar */
 .asistente-avatar {
@@ -227,7 +227,7 @@ body.light-mode .clima-ciudad { color: rgba(15, 3, 38, 0.45); }
 
 .asistente-header-info p {
   font-size: 0.72rem;
-  color: rgba(244, 244, 249, 0.38);
+  color: rgba(244, 244, 249, 0.65);
   margin: 0;
   display: flex;
   align-items: center;
@@ -387,8 +387,8 @@ body.light-mode .clima-ciudad { color: rgba(15, 3, 38, 0.45); }
   padding: 0 4px;
 }
 
-.chat-message-row.assistant .chat-msg-sender { color: rgba(196, 181, 232, 0.5); }
-.chat-message-row.user .chat-msg-sender      { color: rgba(244, 244, 249, 0.35); }
+.chat-message-row.assistant .chat-msg-sender { color: rgba(196, 181, 232, 0.8); }
+.chat-message-row.user .chat-msg-sender      { color: rgba(244, 244, 249, 0.65); }
 
 /* ── BURBUJAS ── */
 .chat-bubble {
@@ -964,13 +964,13 @@ body.light-mode .asistente-avatar {
 }
 
 body.light-mode .asistente-header-info h1 { color: #0F0326 !important; }
-body.light-mode .asistente-header-info p  { color: rgba(15, 3, 38, 0.45) !important; }
+body.light-mode .asistente-header-info p  { color: rgba(15, 3, 38, 0.65) !important; }
 body.light-mode .asistente-status-dot     { background: #4a7a42 !important; box-shadow: 0 0 6px #4a7a42 !important; }
 
 body.light-mode .chat-hint {
   background: rgba(15, 3, 38, 0.04) !important;
   border-color: rgba(15, 3, 38, 0.08) !important;
-  color: rgba(15, 3, 38, 0.5) !important;
+  color: rgba(15, 3, 38, 0.65) !important;
 }
 
 body.light-mode .chat-hint:hover {
@@ -1059,7 +1059,7 @@ body.light-mode .cal-confirmado { color: #4a7a42 !important; }
 body.light-mode .ocasion-chip {
   background: rgba(15, 3, 38, 0.05) !important;
   border-color: rgba(15, 3, 38, 0.1) !important;
-  color: rgba(15, 3, 38, 0.45) !important;
+  color: rgba(15, 3, 38, 0.65) !important;
 }
 
 body.light-mode .ocasion-chip:hover:not(:disabled) {
@@ -1257,7 +1257,7 @@ body.light-mode .ocasion-chip.activa {
   }
 
   .outfit-sheet-sub {
-    font-size: 0.74rem; color: rgba(244, 244, 249, 0.4); margin: 0;
+    font-size: 0.74rem; color: rgba(244, 244, 249, 0.65); margin: 0;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
 
@@ -1307,7 +1307,7 @@ body.light-mode .ocasion-chip.activa {
   body.light-mode .outfit-sheet         { background: rgba(255, 255, 255, 0.98) !important; border-color: rgba(15, 3, 38, 0.1) !important; }
   body.light-mode .outfit-sheet-handle  { background: rgba(15, 3, 38, 0.18) !important; }
   body.light-mode .outfit-sheet-title   { color: #0F0326 !important; }
-  body.light-mode .outfit-sheet-sub     { color: rgba(15, 3, 38, 0.4) !important; }
+  body.light-mode .outfit-sheet-sub     { color: rgba(15, 3, 38, 0.6) !important; }
   body.light-mode .outfit-sheet-arrow   { color: rgba(15, 3, 38, 0.4) !important; }
   body.light-mode .outfit-sheet-card    { background: rgba(15,3,38,0.04) !important; border-color: rgba(15,3,38,0.08) !important; }
   body.light-mode .outfit-sheet-card p  { color: rgba(15,3,38,0.55) !important; }

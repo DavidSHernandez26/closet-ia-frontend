@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import "./Closet.css";
 import { API_URL } from "../config";
+import { supaImg } from "../utils/imgUrl";
 
 const COLOR_HEX = {
   negro: '#2a2a2e', blanco: '#f0f0f0', azul: '#2563eb', rojo: '#dc2626',
@@ -345,7 +346,7 @@ export default function Closet({ refresh }) {
                     className="mac-thumb stagger-item"
                     onClick={() => setModalItem(p)}
                   >
-                    <img src={p.imagen_url} alt={p.descripcion} />
+                    <img src={supaImg(p.imagen_url, 400)} alt={p.descripcion} loading="lazy" decoding="async" />
                     <button
                       className="mac-thumb-del"
                       onClick={e => { e.stopPropagation(); handleDelete(p.id); }}
@@ -374,7 +375,7 @@ export default function Closet({ refresh }) {
             </div>
             <div className="mac-modal-body">
               <div className="mac-modal-img">
-                <img src={modalItem.imagen_url} alt={modalItem.descripcion} />
+                <img src={supaImg(modalItem.imagen_url, 900)} alt={modalItem.descripcion} decoding="async" />
               </div>
               <div className="mac-modal-info">
                 <span className="mac-modal-tipo">

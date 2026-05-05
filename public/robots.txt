@@ -6,4 +6,4 @@ Disallow: /static/
 Disallow: /*.json$
 Disallow: /*.map$
 
-Sitemap: https://closetia.app/sitemap.xml
+Sitemap: https://beconfident.site/sitemap.xml

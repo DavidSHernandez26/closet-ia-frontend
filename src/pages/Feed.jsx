@@ -3,6 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "./Feed.css";
 import { API_URL } from "../config";
+import { supaImg } from "../utils/imgUrl";
 
 /* ─────────────────────────────────────
    Chips de navegación principal
@@ -26,7 +27,7 @@ function Avatar({ profile, size = 36 }) {
       style={{ width: size, height: size, fontSize: size * 0.38 }}
     >
       {profile?.avatar_url ? (
-        <img src={profile.avatar_url} alt={profile.username} />
+        <img src={supaImg(profile.avatar_url, 80)} alt={profile.username} loading="lazy" decoding="async" />
       ) : (
         <span>
           {(profile?.nombre || profile?.username || "?")[0].toUpperCase()}
@@ -413,7 +414,7 @@ async function cargarSugeridos() {
                     className="feed-wishlist-item"
                     onClick={() => item.post && abrirPost(item.post)}
                   >
-                    <img src={item.imagen_url} alt={item.descripcion} />
+                    <img src={supaImg(item.imagen_url, 400)} alt={item.descripcion} loading="lazy" decoding="async" />
                     <div className="feed-wishlist-overlay">
                       <p>
                         {item.post?.profile?.username &&
@@ -529,8 +530,10 @@ async function cargarSugeridos() {
                 >
                   <div className="sidebar-avatar-thumb">
                     <img
-                      src={post.imagen_url}
+                      src={supaImg(post.imagen_url, 200)}
                       alt={post.descripcion}
+                      loading="lazy"
+                      decoding="async"
                     />
                   </div>
                   <div className="sidebar-text">
@@ -557,7 +560,7 @@ async function cargarSugeridos() {
 
             {/* Imagen izquierda */}
             <div className="feed-modal-img">
-              <img src={postActivo.imagen_url} alt={postActivo.descripcion} />
+              <img src={supaImg(postActivo.imagen_url, 900)} alt={postActivo.descripcion} decoding="async" />
             </div>
 
             {/* Panel derecho */}
@@ -739,9 +742,11 @@ function PostCard({
         aria-label="Ver post"
       >
         <img
-          src={post.imagen_url}
+          src={supaImg(post.imagen_url, 800)}
           alt={post.descripcion}
           className="feed-post-img"
+          loading="lazy"
+          decoding="async"
         />
       </div>
 

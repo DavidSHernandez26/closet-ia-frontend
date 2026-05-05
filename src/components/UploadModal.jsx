@@ -6,6 +6,28 @@ import { API_URL } from "../config";
 import { useNativeCamera } from "../hooks/useNativeCamera";
 import { haptics } from "../hooks/useHaptics";
 
+async function comprimirImagen(file, maxWidth = 1200, quality = 0.82) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const ratio = Math.min(1, maxWidth / img.naturalWidth);
+      const canvas = document.createElement("canvas");
+      canvas.width  = Math.round(img.naturalWidth  * ratio);
+      canvas.height = Math.round(img.naturalHeight * ratio);
+      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(
+        (blob) => resolve(blob ? new File([blob], file.name.replace(/\.[^.]+$/, ".webp"), { type: "image/webp" }) : file),
+        "image/webp",
+        quality,
+      );
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+    img.src = url;
+  });
+}
+
 const ETAPAS = [
   { hasta: 20,  label: "📤 Subiendo imagen..." },
   { hasta: 65,  label: "✂️ Removiendo fondo..." },
@@ -120,8 +142,9 @@ export default function UploadModal({ onClose, onUploaded }) {
               onClick={async () => {
                 const f = await pickPhoto();
                 if (f) {
-                  setFile(f);
-                  setPreview(URL.createObjectURL(f));
+                  const compressed = await comprimirImagen(f);
+                  setFile(compressed);
+                  setPreview(URL.createObjectURL(compressed));
                   setMensajeIA("");
                 }
               }}
