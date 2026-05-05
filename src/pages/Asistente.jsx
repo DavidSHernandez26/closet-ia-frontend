@@ -6,6 +6,7 @@ import { API_URL } from "../config";
 import { supabase } from "../supabase";
 import { getWeather } from "../services/weatherService";
 import { haptics } from "../hooks/useHaptics";
+import ForecastStrip from "../components/ForecastStrip";
 
 // Debe coincidir con getTipo de VirtualMannequin
 function getTipoPrenda(descripcion = "") {
@@ -369,6 +370,10 @@ export default function Asistente({ usuarioId }) {
                 </button>
               </div>
             </div>
+
+            {modo === "chat" && clima?.forecast && (
+              <ForecastStrip forecast={clima.forecast} />
+            )}
 
             {modo === "chat" ? (
               <>
