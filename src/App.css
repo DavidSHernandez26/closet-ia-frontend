@@ -423,7 +423,7 @@ body.light-mode .cal-picker-confirm {
     top: env(safe-area-inset-top);
     left: 0;
     right: 0;
-    bottom: calc(58px + env(safe-area-inset-bottom));
+    bottom: calc(76px + env(safe-area-inset-bottom));
     overflow-y: scroll;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
