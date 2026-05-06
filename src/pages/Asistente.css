@@ -346,6 +346,8 @@ body.light-mode .cfd-hint { color: rgba(15, 3, 38, 0.6); }
   display: flex;
   flex-direction: column;
   gap: 6px;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 .chat-box::-webkit-scrollbar       { width: 4px; }

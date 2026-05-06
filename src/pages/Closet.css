@@ -268,6 +268,8 @@
   scrollbar-width: thin;
   scrollbar-color: rgba(196, 181, 232, 0.15) transparent;
   background: rgba(8, 2, 20, 0.3);
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 .mac-content::-webkit-scrollbar       { width: 5px; }
@@ -742,8 +744,16 @@ body.light-mode .mac-modal-section-title { color: rgba(15,3,38,0.4); }
    RESPONSIVE
 ══════════════════════════════════ */
 @media (max-width: 768px) {
-  .mac-wrap    { padding: 12px 0 80px; }
-  .mac-window  { border-radius: 12px; min-height: unset; }
+  .mac-wrap {
+    padding: 0;
+    height: 100%;
+    min-height: unset;
+  }
+  .mac-window {
+    height: 100%;
+    border-radius: 0;
+    min-height: unset;
+  }
   .mac-sidebar { display: none; }
 
   .mac-grid {
