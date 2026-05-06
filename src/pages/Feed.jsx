@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { EffectCards, Autoplay } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/effect-cards";
 import "./Feed.css";
 import { API_URL } from "../config";
 import { supaImg } from "../utils/imgUrl";
@@ -324,6 +329,17 @@ async function cargarSugeridos() {
             </button>
           ))}
         </nav>
+
+        {/* ── CARRUSEL DE OUTFITS ── */}
+        {filtro !== "guardados" && !loading && postsFiltrados.length > 0 && (
+          <FeedCarousel
+            posts={postsFiltrados}
+            usuarioId={usuarioId}
+            onLike={handleLike}
+            onGuardar={handleWishlist}
+            onAbrir={abrirPost}
+          />
+        )}
 
         {/* ── NUEVO POST (visible en todos los filtros excepto guardados) ── */}
         {filtro !== "guardados" && (
@@ -698,6 +714,73 @@ async function cargarSugeridos() {
         </div>
       )}
     </div>
+  );
+}
+
+/* ─────────────────────────────────────
+   FeedCarousel — carrusel de outfits
+   Muestra posts con like/guardar opcionales
+───────────────────────────────────── */
+function FeedCarousel({ posts, usuarioId, onLike, onGuardar, onAbrir }) {
+  if (!posts || posts.length === 0) return null;
+  const slides = posts.slice(0, 12);
+
+  return (
+    <motion.div
+      className="feed-carousel-wrap"
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: 0.2 }}
+    >
+      <p className="feed-carousel-hint">Desliza para explorar · las acciones son opcionales</p>
+      <Swiper
+        effect="cards"
+        grabCursor
+        loop={slides.length > 2}
+        modules={[EffectCards, Autoplay]}
+        className="feed-carousel-swiper"
+      >
+        {slides.map((post) => (
+          <SwiperSlide key={post.id} className="feed-carousel-slide">
+            <img
+              src={supaImg(post.imagen_url, 600)}
+              alt={post.descripcion || "outfit"}
+              className="feed-carousel-img"
+              loading="lazy"
+              decoding="async"
+              onClick={() => onAbrir(post)}
+            />
+            {/* Overlay: usuario */}
+            <div className="feed-carousel-user">
+              <span>@{post.profile?.username}</span>
+            </div>
+            {/* Acciones opcionales */}
+            <div className="feed-carousel-actions">
+              <button
+                className={`feed-carousel-btn ${post.liked_by_me ? "active-like" : ""}`}
+                onClick={(e) => { e.stopPropagation(); onLike(post); }}
+                aria-label="Me gusta"
+              >
+                <svg viewBox="0 0 24 24" fill={post.liked_by_me ? "currentColor" : "none"} stroke="currentColor">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+                <span>Me gusta{post.likes_count > 0 ? ` · ${post.likes_count}` : ""}</span>
+              </button>
+              <button
+                className={`feed-carousel-btn ${post.saved_by_me ? "active-save" : ""}`}
+                onClick={(e) => { e.stopPropagation(); onGuardar(post); }}
+                aria-label="Guardar"
+              >
+                <svg viewBox="0 0 24 24" fill={post.saved_by_me ? "currentColor" : "none"} stroke="currentColor">
+                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                </svg>
+                <span>Guardar</span>
+              </button>
+            </div>
+          </SwiperSlide>
+        ))}
+      </Swiper>
+    </motion.div>
   );
 }
 

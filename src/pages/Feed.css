@@ -359,6 +359,115 @@ body.light-mode .feed-empty-sub   { color: rgba(15, 3, 38, 0.35); }
 }
 
 /* ══════════════════════════════════════════════════════════
+   FEED CAROUSEL — Swiper EffectCards
+══════════════════════════════════════════════════════════ */
+.feed-carousel-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 28px;
+}
+
+.feed-carousel-hint {
+  font-size: 11px;
+  opacity: 0.38;
+  letter-spacing: 0.02em;
+  text-align: center;
+  margin: 0;
+}
+
+body.light-mode .feed-carousel-hint { color: var(--purple); }
+
+.feed-carousel-swiper {
+  width: 220px;
+  height: 340px;
+  padding-bottom: 8px !important;
+}
+
+.feed-carousel-slide {
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+  cursor: grab;
+}
+
+.feed-carousel-slide:active { cursor: grabbing; }
+
+.feed-carousel-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.feed-carousel-user {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 11px;
+  color: #fff;
+  font-weight: 500;
+  pointer-events: none;
+}
+
+.feed-carousel-actions {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  background: linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 100%);
+}
+
+.feed-carousel-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 7px 0;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.feed-carousel-btn svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2;
+  flex-shrink: 0;
+}
+
+.feed-carousel-btn:active { transform: scale(0.95); }
+
+.feed-carousel-btn.active-like {
+  background: rgba(255, 60, 90, 0.35);
+  border-color: rgba(255, 60, 90, 0.5);
+  color: #ff6b8a;
+}
+
+.feed-carousel-btn.active-save {
+  background: rgba(196, 181, 232, 0.35);
+  border-color: rgba(196, 181, 232, 0.5);
+  color: var(--accent);
+}
+
+/* ══════════════════════════════════════════════════════════
    POST CARD — glass morphism
 ══════════════════════════════════════════════════════════ */
 .feed-post {
