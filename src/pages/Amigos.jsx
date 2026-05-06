@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Users, Mail, Sparkles, Search, UserPlus, Check } from "lucide-react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "./Perfil.css";   // ← cambia Amigos.css por Perfil.css (archivo unificado)
@@ -96,9 +97,9 @@ export default function Amigos({ usuarioId }) {
   }
 
   const tabs = [
-    { id: "amigos",      label: "Amigos",      icon: "👫", badge: amigos.length     },
-    { id: "solicitudes", label: "Solicitudes",  icon: "📩", badge: solicitudes.length },
-    { id: "sugeridos",   label: "Sugeridos",    icon: "✦",  badge: 0                 },
+    { id: "amigos",      label: "Amigos",      Icon: Users,    badge: amigos.length      },
+    { id: "solicitudes", label: "Solicitudes",  Icon: Mail,     badge: solicitudes.length },
+    { id: "sugeridos",   label: "Sugeridos",    Icon: Sparkles, badge: 0                  },
   ];
 
   return (
@@ -111,7 +112,7 @@ export default function Amigos({ usuarioId }) {
       {/* ── Buscador ── */}
       <div className="amigos-search-wrap">
         <div className="amigos-search">
-          <span className="amigos-search-icon">🔍</span>
+          <Search size={15} className="amigos-search-icon" />
           <input
             type="text"
             placeholder="Buscar por @username..."
@@ -157,7 +158,7 @@ export default function Amigos({ usuarioId }) {
             className={`amigos-tab ${tab === t.id ? "activa" : ""}`}
             onClick={() => setTab(t.id)}
           >
-            <span>{t.icon}</span>
+            <t.Icon size={14} />
             <span>{t.label}</span>
             {t.badge > 0 && <span className="amigos-badge">{t.badge}</span>}
           </button>
@@ -169,7 +170,7 @@ export default function Amigos({ usuarioId }) {
         <div className="amigos-lista">
           {amigos.length === 0 ? (
             <div className="amigos-empty">
-              <span className="amigos-empty-icon">👥</span>
+              <Users size={36} className="amigos-empty-icon" />
               <p className="amigos-empty-title">Aún no tienes amigos</p>
               <p className="amigos-empty-sub">Busca usuarios o explora la pestaña Sugeridos</p>
             </div>
@@ -202,7 +203,7 @@ export default function Amigos({ usuarioId }) {
         <div className="amigos-lista">
           {solicitudes.length === 0 ? (
             <div className="amigos-empty">
-              <span className="amigos-empty-icon">📩</span>
+              <Mail size={36} className="amigos-empty-icon" />
               <p className="amigos-empty-title">Sin solicitudes pendientes</p>
               <p className="amigos-empty-sub">Cuando alguien te envíe una solicitud aparecerá aquí</p>
             </div>
@@ -218,7 +219,7 @@ export default function Amigos({ usuarioId }) {
                 </div>
                 <div className="amigos-item-actions">
                   <button className="amigos-btn-aceptar" onClick={() => responderSolicitud(s.id, "accepted")}>
-                    ✓ Aceptar
+                    <Check size={13} /> Aceptar
                   </button>
                   <button className="amigos-btn-rechazar" onClick={() => responderSolicitud(s.id, "rejected")} title="Rechazar">
                     ✕
@@ -235,7 +236,7 @@ export default function Amigos({ usuarioId }) {
         <div className="amigos-lista">
           {sugeridos.length === 0 ? (
             <div className="amigos-empty">
-              <span className="amigos-empty-icon">✦</span>
+              <Sparkles size={36} className="amigos-empty-icon" />
               <p className="amigos-empty-title">Sin sugerencias por ahora</p>
               <p className="amigos-empty-sub">A medida que más usuarios se unan aparecerán aquí</p>
             </div>
@@ -257,7 +258,7 @@ export default function Amigos({ usuarioId }) {
                       onClick={() => !enviada && enviarSolicitud(s)}
                       disabled={enviada}
                     >
-                      {enviada ? "⏳ Enviado" : "➕ Seguir"}
+                      {enviada ? "Enviado" : <><UserPlus size={13} /> Seguir</>}
                     </button>
                   </div>
                 </div>

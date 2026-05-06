@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { LayoutGrid, Users, TrendingUp, Bookmark, Trash2, Heart, MessageCircle } from "lucide-react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -15,10 +16,10 @@ import { supaImg } from "../utils/imgUrl";
    "guardados" activa la vista de wishlist
 ───────────────────────────────────── */
 const FILTROS = [
-  { id: "todos",      label: "Todos",      icon: "✦" },
-  { id: "amigos",     label: "Amigos",     icon: "👥" },
-  { id: "tendencias", label: "Tendencias", icon: "🔥" },
-  { id: "guardados",  label: "Guardados",  icon: "🌟" },
+  { id: "todos",      label: "Todos",      Icon: LayoutGrid  },
+  { id: "amigos",     label: "Amigos",     Icon: Users       },
+  { id: "tendencias", label: "Tendencias", Icon: TrendingUp  },
+  { id: "guardados",  label: "Guardados",  Icon: Bookmark    },
 ];
 
 /* ─────────────────────────────────────
@@ -324,7 +325,7 @@ async function cargarSugeridos() {
               className={`feed-chip ${filtro === f.id ? "active" : ""}`}
               onClick={() => setFiltro(f.id)}
             >
-              <span>{f.icon}</span>
+              <f.Icon size={13} />
               <span>{f.label}</span>
             </button>
           ))}
@@ -416,7 +417,7 @@ async function cargarSugeridos() {
               </div>
             ) : wishlist.length === 0 ? (
               <div className="feed-empty">
-                <span className="feed-empty-icon">🌟</span>
+                <Bookmark size={36} className="feed-empty-icon" />
                 <p className="feed-empty-title">Sin guardados todavía</p>
                 <p className="feed-empty-sub">
                   Guarda outfits que te inspiren desde el feed
@@ -464,7 +465,7 @@ async function cargarSugeridos() {
             </div>
           ) : postsFiltrados.length === 0 ? (
             <div className="feed-empty">
-              <div className="feed-empty-icon">✦</div>
+              <LayoutGrid size={36} className="feed-empty-icon" />
               <p className="feed-empty-title">Sin posts en este filtro</p>
               <p className="feed-empty-sub">
                 {filtro === "amigos"
@@ -554,8 +555,8 @@ async function cargarSugeridos() {
                   </div>
                   <div className="sidebar-text">
                     <p className="sidebar-name">@{post.profile?.username}</p>
-                    <p className="sidebar-sub">
-                      ❤️ {post.likes_count} · 💬 {post.comments_count}
+                    <p className="sidebar-sub" style={{ display:"flex", alignItems:"center", gap:4 }}>
+                      <Heart size={11} /> {post.likes_count} · <MessageCircle size={11} /> {post.comments_count}
                     </p>
                   </div>
                 </div>
@@ -607,7 +608,7 @@ async function cargarSugeridos() {
                     className="feed-post-delete"
                     onClick={() => eliminarPost(postActivo.id)}
                   >
-                    🗑
+                    <Trash2 size={14} />
                   </button>
                 )}
               </div>

@@ -1,4 +1,8 @@
 import React, { useEffect, useState, useMemo } from "react";
+import {
+  LayoutGrid, Shirt, Layers, Footprints, GraduationCap, Handbag,
+  Wind, Trash2, FolderOpen, Sparkles,
+} from "lucide-react";
 import axios from "axios";
 import "./Closet.css";
 import { API_URL } from "../config";
@@ -19,13 +23,13 @@ function normalizarColor(str = '') {
 
 /* ── Categorías de prendas ── */
 const CATEGORIAS = [
-  { id: "todas",      label: "Todas",             icon: "✦" },
-  { id: "camisetas",  label: "Camisetas / Tops",   icon: "👕" },
-  { id: "pantalones", label: "Pantalones",          icon: "👖" },
-  { id: "chaquetas",  label: "Chaquetas / Sudad.",  icon: "🧥" },
-  { id: "zapatos",    label: "Zapatos / Tenis",     icon: "👟" },
-  { id: "gorras",     label: "Gorras",              icon: "🧢" },
-  { id: "accesorios", label: "Accesorios",          icon: "👜" },
+  { id: "todas",      label: "Todas",             Icon: LayoutGrid    },
+  { id: "camisetas",  label: "Camisetas / Tops",   Icon: Shirt         },
+  { id: "pantalones", label: "Pantalones",          Icon: Layers        },
+  { id: "chaquetas",  label: "Chaquetas / Sudad.",  Icon: Wind          },
+  { id: "zapatos",    label: "Zapatos / Tenis",     Icon: Footprints    },
+  { id: "gorras",     label: "Gorras",              Icon: GraduationCap },
+  { id: "accesorios", label: "Accesorios",          Icon: Handbag       },
 ];
 
 /* ── Mapeo de categoría → palabras clave ── */
@@ -135,11 +139,11 @@ export default function Closet({ refresh }) {
 
   const tipoStats = useMemo(() => {
     const TIPO_LABELS = {
-      'parte superior': { label: 'Superiores', icon: '👕' },
-      'parte inferior': { label: 'Pantalones', icon: '👖' },
-      'calzado':        { label: 'Calzado',    icon: '👟' },
-      'abrigo':         { label: 'Abrigos',    icon: '🧥' },
-      'accesorio':      { label: 'Accesorios', icon: '👜' },
+      'parte superior': { label: 'Superiores', Icon: Shirt         },
+      'parte inferior': { label: 'Pantalones', Icon: Layers        },
+      'calzado':        { label: 'Calzado',    Icon: Footprints    },
+      'abrigo':         { label: 'Abrigos',    Icon: Wind          },
+      'accesorio':      { label: 'Accesorios', Icon: Handbag       },
     };
     const counts = {};
     prendasSueltas.forEach(p => {
@@ -175,11 +179,11 @@ export default function Closet({ refresh }) {
             <button
               className={`mac-switch-btn ${tabActiva === "prenda" ? "on" : ""}`}
               onClick={() => setTabActiva("prenda")}
-            >👚</button>
+            ><Shirt size={14} /></button>
             <button
               className={`mac-switch-btn ${tabActiva === "outfit" ? "on" : ""}`}
               onClick={() => setTabActiva("outfit")}
-            >🧥</button>
+            ><Layers size={14} /></button>
           </div>
         </div>
 
@@ -194,7 +198,7 @@ export default function Closet({ refresh }) {
               className={`mac-sidebar-item ${tabActiva === "prenda" && categoria === "todas" ? "active" : ""}`}
               onClick={() => { setTabActiva("prenda"); setCategoria("todas"); }}
             >
-              <span>👕</span> Prendas
+              <Shirt size={14} /> Prendas
               <span className="mac-sidebar-count">
                 {tabActiva === "prenda" ? prendas.length : ""}
               </span>
@@ -203,7 +207,7 @@ export default function Closet({ refresh }) {
               className={`mac-sidebar-item ${tabActiva === "outfit" ? "active" : ""}`}
               onClick={() => setTabActiva("outfit")}
             >
-              <span>🧥</span> Outfits
+              <Layers size={14} /> Outfits
               <span className="mac-sidebar-count">
                 {tabActiva === "outfit" ? prendas.length : ""}
               </span>
@@ -224,7 +228,7 @@ export default function Closet({ refresh }) {
                       className={`mac-sidebar-item ${categoria === c.id ? "active" : ""}`}
                       onClick={() => setCategoria(c.id)}
                     >
-                      <span>{c.icon}</span>
+                      <c.Icon size={13} />
                       <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {c.label}
                       </span>
@@ -279,7 +283,7 @@ export default function Closet({ refresh }) {
                     <div className="mac-stats-tipos">
                       {tipoStats.map(t => (
                         <div key={t.label} className="mac-stat-tipo-row">
-                          <span>{t.icon}</span>
+                          <t.Icon size={13} />
                           <span className="mac-stat-tipo-label">{t.label}</span>
                           <span className="mac-stat-count">{t.count}</span>
                         </div>
@@ -300,7 +304,7 @@ export default function Closet({ refresh }) {
                         <span className="mac-recs-dot"/><span className="mac-recs-dot"/><span className="mac-recs-dot"/>
                       </span>
                     ) : (
-                      <><span>✦</span> Ver sugerencias</>
+                      <><Sparkles size={13} /> Ver sugerencias</>
                     )}
                   </button>
                 ) : (
@@ -326,7 +330,7 @@ export default function Closet({ refresh }) {
               </div>
             ) : prendasFiltradas.length === 0 ? (
               <div className="mac-empty">
-                <p className="mac-empty-icon">🗂️</p>
+                <FolderOpen size={40} className="mac-empty-icon" />
                 <p className="mac-empty-title">
                   {categoria !== "todas"
                     ? `Sin ${CATEGORIAS.find(c => c.id === categoria)?.label.toLowerCase()}`
@@ -370,7 +374,7 @@ export default function Closet({ refresh }) {
                     <button
                       className="mac-thumb-del"
                       onClick={e => { e.stopPropagation(); handleDelete(p.id); }}
-                    >✕</button>
+                    ><Trash2 size={11} /></button>
                   </div>
                 ))}
               </div>
@@ -386,7 +390,7 @@ export default function Closet({ refresh }) {
                     <button
                       className="mac-thumb-del"
                       onClick={e => { e.stopPropagation(); handleDelete(p.id); }}
-                    >✕</button>
+                    ><Trash2 size={11} /></button>
                   </div>
                 ))}
               </div>

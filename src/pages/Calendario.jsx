@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { Shirt, Camera } from "lucide-react";
 import "./Calendario.css";
 import axios from "axios";
 import { API_URL } from "../config";
@@ -313,7 +314,7 @@ export default function Calendario({ usuarioId }) {
                 className="cal-opcion-btn"
                 onClick={() => { setModalCloset(modalAgregar); setModalAgregar(null); }}
               >
-                <span className="cal-opcion-icon">👗</span>
+                <Shirt size={22} className="cal-opcion-icon" />
                 <span className="cal-opcion-label">Del closet</span>
                 <span className="cal-opcion-sub">Elige una prenda que ya tienes</span>
               </button>
@@ -325,7 +326,7 @@ export default function Calendario({ usuarioId }) {
                   setModalAgregar(null);
                 }}
               >
-                <span className="cal-opcion-icon">📸</span>
+                <Camera size={22} className="cal-opcion-icon" />
                 <span className="cal-opcion-label">Subir nueva</span>
                 <span className="cal-opcion-sub">Sube una foto y agrégala al día</span>
               </button>

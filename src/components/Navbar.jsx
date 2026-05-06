@@ -7,6 +7,9 @@ import { supabase } from "../supabase";
 import NotifPanel from "./NotifPanel";
 import { haptics } from "../hooks/useHaptics";
 import { ThemeToggleButton } from "./ui/skiper-ui/skiper26";
+import {
+  Sparkles, LayoutGrid, Shirt, Calendar, Users, User, Camera,
+} from "lucide-react";
 
 // Icono con bounce "gota de agua" — la secuencia siempre termina en estado normal
 // useAnimation garantiza que la animación corre hasta el final sin importar si el
@@ -67,12 +70,12 @@ export default function Navbar({ onUploaded, usuarioId }) {
   const isActive = (path) => location.pathname === path;
 
   const navLinks = [
-    { path: "/",           label: "Asistente",  icon: "✦" },
-    { path: "/feed",       label: "Feed",        icon: "🏠" },
-    { path: "/closet",     label: "Closet",      icon: "👔" },
-    { path: "/calendario", label: "Calendario",  icon: "📅" },
-    { path: "/amigos",     label: "Comunidad",   icon: "👥" },
-    { path: "/perfil",     label: "Perfil",      icon: "👤" },
+    { path: "/",           label: "Asistente",  icon: <Sparkles  size={16} /> },
+    { path: "/feed",       label: "Feed",        icon: <LayoutGrid size={16} /> },
+    { path: "/closet",     label: "Closet",      icon: <Shirt      size={16} /> },
+    { path: "/calendario", label: "Calendario",  icon: <Calendar   size={16} /> },
+    { path: "/amigos",     label: "Comunidad",   icon: <Users      size={16} /> },
+    { path: "/perfil",     label: "Perfil",      icon: <User       size={16} /> },
   ];
 
   // Magnificación tipo dock macOS al deslizar el dedo
@@ -135,7 +138,7 @@ export default function Navbar({ onUploaded, usuarioId }) {
             {user ? (
               <>
                 <button className="navbar-upload-btn" onClick={handleUploadClick}>
-                  <span>📸</span>
+                  <Camera size={16} />
                   <span className="navbar-upload-label">Subir</span>
                 </button>
                 <button className="navbar-icon-btn navbar-logout" onClick={handleLogout} title="Cerrar sesión">🔒</button>
@@ -180,7 +183,7 @@ export default function Navbar({ onUploaded, usuarioId }) {
             onClick={() => { haptics.medium(); handleUploadClick(); }}
             onTouchEnd={resetDock}
           >
-            <DockIcon>📸</DockIcon>
+            <DockIcon><Camera size={18} /></DockIcon>
             <span className="navbar-mobile-label">Subir</span>
           </button>
         </div>

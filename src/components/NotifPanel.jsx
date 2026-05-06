@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Bell, Heart, MessageCircle, UserPlus, PartyPopper } from "lucide-react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../config";
@@ -103,7 +104,13 @@ export default function NotifPanel({ usuarioId }) {
   }
 
   function getIcon(tipo) {
-    return { like: "❤️", comentario: "💬", solicitud: "👋", aceptado: "🎉" }[tipo] || "🔔";
+    const map = {
+      like:       <Heart size={14} />,
+      comentario: <MessageCircle size={14} />,
+      solicitud:  <UserPlus size={14} />,
+      aceptado:   <PartyPopper size={14} />,
+    };
+    return map[tipo] || <Bell size={14} />;
   }
 
   function Avatar({ profile }) {
@@ -149,7 +156,7 @@ export default function NotifPanel({ usuarioId }) {
               </div>
             ) : notifs.length === 0 ? (
               <div className="notif-empty">
-                <span>🔔</span>
+                <Bell size={24} />
                 <p>Sin notificaciones</p>
               </div>
             ) : (

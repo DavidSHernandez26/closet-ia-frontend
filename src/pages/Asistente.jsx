@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Footprints, Briefcase, Moon, Zap, PartyPopper, Plane, Trash2, Shirt } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
 import axios from "axios";
 import "./Asistente.css";
@@ -210,12 +211,12 @@ export default function Asistente({ usuarioId }) {
   }, [outfit, outfitGuardado]);
 
   const ocasiones = [
-    { id: "casual",  icon: "👟", label: "Casual",  prompt: "Arma un outfit casual y cómodo para el día a día" },
-    { id: "trabajo", icon: "💼", label: "Trabajo", prompt: "Necesito un outfit profesional para ir a trabajar u oficina" },
-    { id: "cita",    icon: "🌙", label: "Cita",    prompt: "Arma un outfit para una cita romántica, que se vea cuidado y atractivo" },
-    { id: "deporte", icon: "⚡", label: "Deporte", prompt: "Quiero un look deportivo o activo para hacer ejercicio o salir a caminar" },
-    { id: "salida",  icon: "🎉", label: "Salida",  prompt: "Arma un outfit para salir de noche con amigos, que se vea moderno y divertido" },
-    { id: "viaje",   icon: "✈️", label: "Viaje",   prompt: "Necesito un outfit cómodo pero estiloso para viajar" },
+    { id: "casual",  Icon: Footprints,   label: "Casual",  prompt: "Arma un outfit casual y cómodo para el día a día" },
+    { id: "trabajo", Icon: Briefcase,    label: "Trabajo", prompt: "Necesito un outfit profesional para ir a trabajar u oficina" },
+    { id: "cita",    Icon: Moon,         label: "Cita",    prompt: "Arma un outfit para una cita romántica, que se vea cuidado y atractivo" },
+    { id: "deporte", Icon: Zap,          label: "Deporte", prompt: "Quiero un look deportivo o activo para hacer ejercicio o salir a caminar" },
+    { id: "salida",  Icon: PartyPopper,  label: "Salida",  prompt: "Arma un outfit para salir de noche con amigos, que se vea moderno y divertido" },
+    { id: "viaje",   Icon: Plane,        label: "Viaje",   prompt: "Necesito un outfit cómodo pero estiloso para viajar" },
   ];
 
   function handleOcasion(ocas) {
@@ -503,7 +504,7 @@ export default function Asistente({ usuarioId }) {
                 )}
                 {modo === "chat" && chat.length > 0 && (
                   <button className="btn-clear-chat" onClick={handleClearChat}>
-                    🗑
+                    <Trash2 size={15} />
                   </button>
                 )}
               </div>
@@ -542,7 +543,7 @@ export default function Asistente({ usuarioId }) {
                   className={`modo-btn ${modo === "maniqui" ? "activo" : ""}`}
                   onClick={() => setModo("maniqui")}
                 >
-                  👔 Probador
+                  <Shirt size={14} /> Probador
                 </button>
               </div>
             </div>
@@ -614,7 +615,7 @@ export default function Asistente({ usuarioId }) {
                       onClick={() => handleOcasion(o)}
                       disabled={loading}
                     >
-                      <span className="ocasion-chip-icon">{o.icon}</span>
+                      <o.Icon size={14} className="ocasion-chip-icon" />
                       <span>{o.label}</span>
                     </button>
                   ))}
@@ -685,7 +686,7 @@ export default function Asistente({ usuarioId }) {
                         onClick={() => setOcasionManiqui(prev => prev?.id === o.id ? null : o)}
                         disabled={loadingManiqui}
                       >
-                        <span className="ocasion-chip-icon">{o.icon}</span>
+                        <o.Icon size={14} className="ocasion-chip-icon" />
                         <span>{o.label}</span>
                       </button>
                     ))}
@@ -733,7 +734,7 @@ export default function Asistente({ usuarioId }) {
                 <span className="asistente-mac-dot green"  />
               </div>
               <div className="outfit-panel-hud-center">
-                <div className="outfit-panel-icon">👔</div>
+                <Shirt size={20} className="outfit-panel-icon" />
                 <h3>Outfit sugerido</h3>
               </div>
               <div className="outfit-panel-hud-right">
