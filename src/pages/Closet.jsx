@@ -339,36 +339,40 @@ export default function Closet({ refresh }) {
                 </p>
               </div>
             ) : tabActiva === "outfit" ? (
-              <div className="mac-masonry">
-                {prendasFiltradas.map((p, i) => {
-                  const isBlurred = hoveredIdx !== null && hoveredIdx !== i;
-                  return (
-                    <div
-                      key={p.id}
-                      className="mac-masonry-item"
-                      style={{ '--i': Math.min(i, 8) }}
-                      onMouseEnter={() => setHoveredIdx(i)}
-                      onMouseLeave={() => setHoveredIdx(null)}
-                      onClick={() => setModalItem(p)}
-                    >
-                      <img
-                        src={supaImg(p.imagen_url, 600)}
-                        alt={p.descripcion}
-                        loading="lazy"
-                        decoding="async"
-                        style={{
-                          filter: isBlurred ? "blur(3px) brightness(0.6)" : "none",
-                          transform: hoveredIdx === i ? "scale(1.04)" : "scale(1)",
-                          transition: "filter 0.22s ease, transform 0.22s ease",
-                        }}
-                      />
-                      <button
-                        className="mac-thumb-del"
-                        onClick={e => { e.stopPropagation(); handleDelete(p.id); }}
-                      >✕</button>
-                    </div>
-                  );
-                })}
+              <div
+                className="mac-masonry"
+                onMouseOver={(e) => {
+                  const item = e.target.closest('[data-idx]');
+                  const idx = item ? Number(item.dataset.idx) : null;
+                  setHoveredIdx(prev => prev === idx ? prev : idx);
+                }}
+                onMouseLeave={() => setHoveredIdx(null)}
+              >
+                {prendasFiltradas.map((p, i) => (
+                  <div
+                    key={p.id}
+                    className="mac-masonry-item"
+                    data-idx={i}
+                    style={{ '--i': Math.min(i, 8) }}
+                    onClick={() => setModalItem(p)}
+                  >
+                    <img
+                      src={supaImg(p.imagen_url, 600)}
+                      alt={p.descripcion}
+                      loading="lazy"
+                      decoding="async"
+                      style={{
+                        filter: hoveredIdx !== null && hoveredIdx !== i ? "blur(3px) brightness(0.6)" : "none",
+                        transform: hoveredIdx === i ? "scale(1.04)" : "scale(1)",
+                        transition: "filter 0.22s ease, transform 0.22s ease",
+                      }}
+                    />
+                    <button
+                      className="mac-thumb-del"
+                      onClick={e => { e.stopPropagation(); handleDelete(p.id); }}
+                    >✕</button>
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="mac-grid">
