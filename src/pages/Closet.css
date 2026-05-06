@@ -292,6 +292,38 @@
   .mac-content { padding: 20px; }
 }
 
+/* ── Masonry grid — outfits ── */
+.mac-masonry {
+  columns: 2;
+  column-gap: 8px;
+  width: 100%;
+}
+
+@media (min-width: 900px)  { .mac-masonry { columns: 3; column-gap: 10px; } }
+@media (min-width: 1280px) { .mac-masonry { columns: 4; column-gap: 12px; } }
+
+.mac-masonry-item {
+  break-inside: avoid;
+  margin-bottom: 8px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  cursor: pointer;
+  background: rgba(196, 181, 232, 0.04);
+}
+
+@media (min-width: 1280px) { .mac-masonry-item { margin-bottom: 12px; border-radius: 16px; } }
+
+.mac-masonry-item img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: inherit;
+  will-change: filter, transform;
+}
+
+.mac-masonry-item:hover .mac-thumb-del { opacity: 1; }
+
 /* ── Thumbnail — liquid glass overlay ── */
 .mac-thumb {
   position: relative;

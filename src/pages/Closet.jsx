@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
+import { motion } from "framer-motion";
 import axios from "axios";
 import "./Closet.css";
 import { API_URL } from "../config";
@@ -67,6 +68,7 @@ export default function Closet({ refresh }) {
   const [recomendaciones, setRecomendaciones] = useState([]);
   const [loadingRecs, setLoadingRecs]         = useState(false);
   const [recsVisible, setRecsVisible]         = useState(false);
+  const [hoveredIdx, setHoveredIdx]           = useState(null);
 
   useEffect(() => { fetchPrendas(); }, [usuarioId, tabActiva, refresh]);
 
@@ -337,6 +339,42 @@ export default function Closet({ refresh }) {
                     ? "No encontramos prendas en esta categoría"
                     : "Sube fotos desde el botón + en la barra de navegación"}
                 </p>
+              </div>
+            ) : tabActiva === "outfit" ? (
+              <div className="mac-masonry">
+                {prendasFiltradas.map((p, i) => (
+                  <motion.div
+                    key={p.id}
+                    className="mac-masonry-item"
+                    initial={{ opacity: 0, y: 24 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.35, delay: Math.min(i * 0.07, 0.5) }}
+                    viewport={{ once: true }}
+                    onMouseEnter={() => setHoveredIdx(i)}
+                    onMouseLeave={() => setHoveredIdx(null)}
+                    onClick={() => setModalItem(p)}
+                  >
+                    <motion.img
+                      src={supaImg(p.imagen_url, 600)}
+                      alt={p.descripcion}
+                      loading="lazy"
+                      decoding="async"
+                      animate={{
+                        filter: hoveredIdx === null
+                          ? "blur(0px) brightness(1)"
+                          : hoveredIdx === i
+                          ? "blur(0px) brightness(1) scale(1)"
+                          : "blur(3px) brightness(0.7)",
+                        scale: hoveredIdx === i ? 1.04 : 1,
+                      }}
+                      transition={{ duration: 0.25 }}
+                    />
+                    <button
+                      className="mac-thumb-del"
+                      onClick={e => { e.stopPropagation(); handleDelete(p.id); }}
+                    >✕</button>
+                  </motion.div>
+                ))}
               </div>
             ) : (
               <div className="mac-grid">
