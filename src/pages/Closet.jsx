@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { motion } from "framer-motion";
 import axios from "axios";
 import "./Closet.css";
 import { API_URL } from "../config";
@@ -67,7 +66,6 @@ export default function Closet({ refresh }) {
   const [modalItem,  setModalItem]  = useState(null);
   const [recomendaciones, setRecomendaciones] = useState([]);
   const [loadingRecs, setLoadingRecs]         = useState(false);
-  const [recsVisible, setRecsVisible]         = useState(false);
   const [hoveredIdx, setHoveredIdx]           = useState(null);
 
   useEffect(() => { fetchPrendas(); }, [usuarioId, tabActiva, refresh]);
@@ -342,39 +340,35 @@ export default function Closet({ refresh }) {
               </div>
             ) : tabActiva === "outfit" ? (
               <div className="mac-masonry">
-                {prendasFiltradas.map((p, i) => (
-                  <motion.div
-                    key={p.id}
-                    className="mac-masonry-item"
-                    initial={{ opacity: 0, y: 24 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.35, delay: Math.min(i * 0.07, 0.5) }}
-                    viewport={{ once: true }}
-                    onMouseEnter={() => setHoveredIdx(i)}
-                    onMouseLeave={() => setHoveredIdx(null)}
-                    onClick={() => setModalItem(p)}
-                  >
-                    <motion.img
-                      src={supaImg(p.imagen_url, 600)}
-                      alt={p.descripcion}
-                      loading="lazy"
-                      decoding="async"
-                      animate={{
-                        filter: hoveredIdx === null
-                          ? "blur(0px) brightness(1)"
-                          : hoveredIdx === i
-                          ? "blur(0px) brightness(1) scale(1)"
-                          : "blur(3px) brightness(0.7)",
-                        scale: hoveredIdx === i ? 1.04 : 1,
-                      }}
-                      transition={{ duration: 0.25 }}
-                    />
-                    <button
-                      className="mac-thumb-del"
-                      onClick={e => { e.stopPropagation(); handleDelete(p.id); }}
-                    >✕</button>
-                  </motion.div>
-                ))}
+                {prendasFiltradas.map((p, i) => {
+                  const isBlurred = hoveredIdx !== null && hoveredIdx !== i;
+                  return (
+                    <div
+                      key={p.id}
+                      className="mac-masonry-item"
+                      style={{ '--i': Math.min(i, 8) }}
+                      onMouseEnter={() => setHoveredIdx(i)}
+                      onMouseLeave={() => setHoveredIdx(null)}
+                      onClick={() => setModalItem(p)}
+                    >
+                      <img
+                        src={supaImg(p.imagen_url, 600)}
+                        alt={p.descripcion}
+                        loading="lazy"
+                        decoding="async"
+                        style={{
+                          filter: isBlurred ? "blur(3px) brightness(0.6)" : "none",
+                          transform: hoveredIdx === i ? "scale(1.04)" : "scale(1)",
+                          transition: "filter 0.22s ease, transform 0.22s ease",
+                        }}
+                      />
+                      <button
+                        className="mac-thumb-del"
+                        onClick={e => { e.stopPropagation(); handleDelete(p.id); }}
+                      >✕</button>
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <div className="mac-grid">

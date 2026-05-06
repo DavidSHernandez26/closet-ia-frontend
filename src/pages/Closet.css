@@ -294,32 +294,48 @@
 
 /* ── Masonry grid — outfits ── */
 .mac-masonry {
-  columns: 2;
+  column-count: 2;
   column-gap: 8px;
   width: 100%;
 }
 
-@media (min-width: 900px)  { .mac-masonry { columns: 3; column-gap: 10px; } }
-@media (min-width: 1280px) { .mac-masonry { columns: 4; column-gap: 12px; } }
+@media (min-width: 900px)  { .mac-masonry { column-count: 3; column-gap: 10px; } }
+@media (min-width: 1280px) { .mac-masonry { column-count: 4; column-gap: 12px; } }
 
 .mac-masonry-item {
+  display: inline-block;
+  width: 100%;
   break-inside: avoid;
+  page-break-inside: avoid;
   margin-bottom: 8px;
   position: relative;
+  border-radius: 14px;
   overflow: hidden;
-  border-radius: 12px;
   cursor: pointer;
   background: rgba(196, 181, 232, 0.04);
+  transition: transform 0.22s ease;
 }
 
-@media (min-width: 1280px) { .mac-masonry-item { margin-bottom: 12px; border-radius: 16px; } }
+@media (min-width: 1280px) { .mac-masonry-item { margin-bottom: 12px; } }
 
 .mac-masonry-item img {
   width: 100%;
   height: auto;
   display: block;
   border-radius: inherit;
-  will-change: filter, transform;
+  transition: filter 0.22s ease, transform 0.22s ease;
+}
+
+
+/* Animación de entrada — cada item usa --i para el delay */
+.mac-masonry-item {
+  animation: masonryIn 0.38s ease both;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+
+@keyframes masonryIn {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .mac-masonry-item:hover .mac-thumb-del { opacity: 1; }
