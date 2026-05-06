@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
+import path from "path";
 
 export default defineConfig({
   plugins: [
@@ -59,13 +60,14 @@ export default defineConfig({
     }),
   ],
   define: {
-    "process.env": process.env,
     "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV || "production"),
   },
   resolve: {
+    alias: { "@": path.resolve(__dirname, "./src") },
     conditions: ["production"],
   },
   build: {
+    outDir: "build",
     target: "esnext",
     minify: "esbuild",
     cssMinify: true,

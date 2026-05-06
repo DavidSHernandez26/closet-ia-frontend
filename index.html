@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <style>
+  html, body, #root {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+</style>
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+
+    <!-- ── Identidad ── -->
+    <title>Be: Confident — Tu estilista personal con IA</title>
+    <meta name="description" content="Organiza tu closet, crea outfits con inteligencia artificial y recibe recomendaciones personalizadas según el clima y la ocasión. Gratis." />
+    <meta name="keywords" content="closet virtual, armario inteligente, outfit IA, estilista inteligencia artificial, moda IA, organizar ropa, be confident" />
+    <meta name="author" content="Be: Confident" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <link rel="canonical" href="https://beconfident.site/" />
+
+    <!-- ── PWA / Mobile ── -->
+    <meta name="theme-color" content="#0F0326" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Be: Confident" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="Be: Confident" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icon-192.png" />
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- ── Open Graph ── -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://beconfident.site/" />
+    <meta property="og:title" content="Be: Confident — Tu estilista personal con IA" />
+    <meta property="og:description" content="Organiza tu closet, crea outfits con IA y recibe recomendaciones según el clima y la ocasión. Gratis." />
+    <meta property="og:image" content="https://beconfident.site/social-preview.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="es_ES" />
+    <meta property="og:site_name" content="Be: Confident" />
+
+    <!-- ── Twitter / X Card ── -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Be: Confident — Tu estilista personal con IA" />
+    <meta name="twitter:description" content="Organiza tu closet, crea outfits con IA y recibe recomendaciones según el clima y la ocasión." />
+    <meta name="twitter:image" content="https://beconfident.site/social-preview.png" />
+
+    <!-- ── JSON-LD: SoftwareApplication ── -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Be: Confident",
+      "alternateName": "Closet IA",
+      "description": "Asistente de moda con inteligencia artificial que organiza tu closet y crea outfits perfectos para cualquier ocasión y clima.",
+      "applicationCategory": "LifestyleApplication",
+      "operatingSystem": "iOS, Android, Web",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "inLanguage": "es",
+      "url": "https://beconfident.site",
+      "screenshot": "https://beconfident.site/social-preview.png",
+      "featureList": [
+        "Closet virtual con IA",
+        "Generador de outfits personalizado",
+        "Recomendaciones según el clima",
+        "Calendario de outfits",
+        "Probador virtual con maniquí"
+      ]
+    }
+    </script>
+
+    <!-- ── JSON-LD: WebSite ── -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Be: Confident",
+      "url": "https://beconfident.site",
+      "description": "Tu estilista personal con inteligencia artificial. Organiza tu closet y crea outfits perfectos.",
+      "inLanguage": "es",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://beconfident.site/register",
+        "query-input": "required name=query"
+      }
+    }
+    </script>
+
+    <!-- ── Preconnect ── -->
+    <link rel="preconnect" href="https://lhvwexbejhdqtbprypmk.supabase.co" crossorigin />
+    <link rel="preconnect" href="https://api.open-meteo.com" crossorigin />
+    <link rel="preconnect" href="https://nominatim.openstreetmap.org" crossorigin />
+    <link rel="dns-prefetch" href="https://lhvwexbejhdqtbprypmk.supabase.co" />
+    <link rel="dns-prefetch" href="https://api.open-meteo.com" />
+    <link rel="dns-prefetch" href="https://nominatim.openstreetmap.org" />
+  </head>
+  <svg style="position:absolute;width:0;height:0;overflow:hidden">
+    <defs>
+      <filter id="frosted" primitiveUnits="objectBoundingBox">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="0.02" result="blur"/>
+        <feComposite in="blur" in2="SourceGraphic" operator="over"/>
+      </filter>
+    </defs>
+  </svg>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    <script type="module" src="/src/index.jsx"></script>
+  </body>
+</html>
