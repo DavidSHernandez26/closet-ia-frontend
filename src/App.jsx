@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useTheme } from "next-themes";
 import {
   BrowserRouter as Router,
   Routes,
@@ -109,15 +110,15 @@ export default function App() {
     return () => cleanup();
   }, []);
   const [refreshCloset, setRefreshCloset] = useState(0);
-  const [darkMode, setDarkMode] = useState(localStorage.getItem("theme") !== "light");
+  const { resolvedTheme } = useTheme();
   const [perfilListo, setPerfilListo] = useState(true);
   const [usuarioId, setUsuarioId] = useState(null);
 
   useEffect(() => {
-    document.body.classList.toggle("light-mode", !darkMode);
-    document.body.classList.toggle("dark-mode", darkMode);
-    localStorage.setItem("theme", darkMode ? "dark" : "light");
-  }, [darkMode]);
+    const isDark = resolvedTheme !== "light";
+    document.body.classList.toggle("light-mode", !isDark);
+    document.body.classList.toggle("dark-mode", isDark);
+  }, [resolvedTheme]);
 
   useEffect(() => {
     async function getSession() {
@@ -210,8 +211,6 @@ export default function App() {
         {session && perfilListo && (
           <Navbar
             onUploaded={() => setRefreshCloset((prev) => prev + 1)}
-            darkMode={darkMode}
-            onToggleTheme={() => setDarkMode((prev) => !prev)}
             usuarioId={usuarioId}
           />
         )}

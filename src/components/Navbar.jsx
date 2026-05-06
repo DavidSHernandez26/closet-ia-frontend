@@ -6,6 +6,7 @@ import UploadModal from "./UploadModal";
 import { supabase } from "../supabase";
 import NotifPanel from "./NotifPanel";
 import { haptics } from "../hooks/useHaptics";
+import { ThemeToggleButton } from "./ui/skiper-ui/skiper26";
 
 // Icono con bounce "gota de agua" — la secuencia siempre termina en estado normal
 // useAnimation garantiza que la animación corre hasta el final sin importar si el
@@ -33,7 +34,7 @@ function DockIcon({ children }) {
   );
 }
 
-export default function Navbar({ onUploaded, darkMode, onToggleTheme, usuarioId }) {
+export default function Navbar({ onUploaded, usuarioId }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
@@ -123,13 +124,11 @@ export default function Navbar({ onUploaded, darkMode, onToggleTheme, usuarioId 
           </div>
 
           <div className="navbar-actions">
-            <button
+            <ThemeToggleButton
               className="navbar-icon-btn"
-              onClick={onToggleTheme}
-              title={darkMode ? "Modo claro" : "Modo oscuro"}
-            >
-              {darkMode ? "☀️" : "🌙"}
-            </button>
+              variant="circle"
+              start="bottom-right"
+            />
 
             {user && usuarioId && <NotifPanel usuarioId={usuarioId} />}
 
