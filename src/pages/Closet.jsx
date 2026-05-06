@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   LayoutGrid, Shirt, Layers, Footprints, GraduationCap, Handbag,
   Wind, Trash2, FolderOpen, Sparkles,
@@ -70,8 +70,6 @@ export default function Closet({ refresh }) {
   const [modalItem,  setModalItem]  = useState(null);
   const [recomendaciones, setRecomendaciones] = useState([]);
   const [loadingRecs, setLoadingRecs]         = useState(false);
-  const [hoveredIdx, setHoveredIdx]           = useState(null);
-
   useEffect(() => { fetchPrendas(); }, [usuarioId, tabActiva, refresh]);
 
   /* Al cambiar tab, resetear categoría */
@@ -155,6 +153,14 @@ export default function Closet({ refresh }) {
     })).filter(t => t.count > 0);
   }, [prendasSueltas]);
 
+  const categoriaCounts = useMemo(() => {
+    const counts = {};
+    CATEGORIAS.filter(c => c.id !== "todas").forEach(c => {
+      counts[c.id] = prendas.filter(p => matchCategoria(p, c.id)).length;
+    });
+    return counts;
+  }, [prendas]);
+
   const maxColor = colorStats[0]?.[1] || 1;
 
   return (
@@ -220,7 +226,7 @@ export default function Closet({ refresh }) {
                   Categorías
                 </p>
                 {CATEGORIAS.filter(c => c.id !== "todas").map(c => {
-                  const count = prendas.filter(p => matchCategoria(p, c.id)).length;
+                  const count = categoriaCounts[c.id] ?? 0;
                   if (count === 0) return null;
                   return (
                     <button
@@ -343,20 +349,11 @@ export default function Closet({ refresh }) {
                 </p>
               </div>
             ) : tabActiva === "outfit" ? (
-              <div
-                className="mac-masonry"
-                onMouseOver={(e) => {
-                  const item = e.target.closest('[data-idx]');
-                  const idx = item ? Number(item.dataset.idx) : null;
-                  setHoveredIdx(prev => prev === idx ? prev : idx);
-                }}
-                onMouseLeave={() => setHoveredIdx(null)}
-              >
+              <div className="mac-masonry">
                 {prendasFiltradas.map((p, i) => (
                   <div
                     key={p.id}
                     className="mac-masonry-item"
-                    data-idx={i}
                     style={{ '--i': Math.min(i, 8) }}
                     onClick={() => setModalItem(p)}
                   >
@@ -365,11 +362,6 @@ export default function Closet({ refresh }) {
                       alt={p.descripcion}
                       loading="lazy"
                       decoding="async"
-                      style={{
-                        filter: hoveredIdx !== null && hoveredIdx !== i ? "blur(3px) brightness(0.6)" : "none",
-                        transform: hoveredIdx === i ? "scale(1.04)" : "scale(1)",
-                        transition: "filter 0.22s ease, transform 0.22s ease",
-                      }}
                     />
                     <button
                       className="mac-thumb-del"

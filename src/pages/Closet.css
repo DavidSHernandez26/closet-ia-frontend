@@ -340,6 +340,16 @@
 
 .mac-masonry-item:hover .mac-thumb-del { opacity: 1; }
 
+/* Efecto hover masonry — CSS puro, sin JS state */
+.mac-masonry:hover .mac-masonry-item img {
+  filter: blur(3px) brightness(0.6);
+  transform: scale(1);
+}
+.mac-masonry .mac-masonry-item:hover img {
+  filter: none !important;
+  transform: scale(1.04) !important;
+}
+
 /* ── Thumbnail — liquid glass overlay ── */
 .mac-thumb {
   position: relative;
