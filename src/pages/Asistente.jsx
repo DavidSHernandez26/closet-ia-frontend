@@ -94,10 +94,13 @@ export default function Asistente({ usuarioId }) {
     };
 
     let cleanupNative = () => {};
+    let isMounted = true;
 
     if (Capacitor.isNativePlatform()) {
       // Capacitor nativo: usar eventos del Keyboard plugin (da la altura exacta desde la capa nativa)
       import("@capacitor/keyboard").then(({ Keyboard }) => {
+        if (!isMounted) return; // componente desmontado antes de que resolviera el import
+
         let heightBeforeKb = window.innerHeight;
 
         const h1 = Keyboard.addListener("keyboardWillShow", (info) => {
@@ -123,7 +126,7 @@ export default function Asistente({ usuarioId }) {
           h2.then(h => h.remove());
           h3.then(h => h.remove());
         };
-      });
+      }).catch(err => console.error("Keyboard import failed:", err));
     } else {
       // Safari web: visualViewport da la diferencia entre viewport layout y visual
       const vv = window.visualViewport;
@@ -147,6 +150,7 @@ export default function Asistente({ usuarioId }) {
     }
 
     return () => {
+      isMounted = false;
       cleanupNative();
       if (ro) ro.disconnect();
     };

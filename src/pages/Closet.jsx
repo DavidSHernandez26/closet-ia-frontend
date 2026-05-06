@@ -75,6 +75,9 @@ export default function Closet({ refresh }) {
   /* Al cambiar tab, resetear categoría */
   useEffect(() => { setCategoria("todas"); }, [tabActiva]);
 
+  /* Invalidar recomendaciones cuando el closet cambia */
+  useEffect(() => { setRecomendaciones([]); }, [prendas]);
+
   async function fetchPrendas() {
     try {
       setLoading(true);
