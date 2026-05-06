@@ -1,5 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
+
+function ThemeSyncer() {
+  const { resolvedTheme } = useTheme();
+  useEffect(() => {
+    const isDark = resolvedTheme !== "light";
+    document.body.classList.toggle("light-mode", !isDark);
+    document.body.classList.toggle("dark-mode", isDark);
+  }, [resolvedTheme]);
+  return null;
+}
 import {
   BrowserRouter as Router,
   Routes,
@@ -110,15 +120,8 @@ export default function App() {
     return () => cleanup();
   }, []);
   const [refreshCloset, setRefreshCloset] = useState(0);
-  const { resolvedTheme } = useTheme();
   const [perfilListo, setPerfilListo] = useState(true);
   const [usuarioId, setUsuarioId] = useState(null);
-
-  useEffect(() => {
-    const isDark = resolvedTheme !== "light";
-    document.body.classList.toggle("light-mode", !isDark);
-    document.body.classList.toggle("dark-mode", isDark);
-  }, [resolvedTheme]);
 
   useEffect(() => {
     async function getSession() {
@@ -207,6 +210,7 @@ export default function App() {
 
   return (
     <Router>
+      <ThemeSyncer />
       <div className="app-container">
         {session && perfilListo && (
           <Navbar
