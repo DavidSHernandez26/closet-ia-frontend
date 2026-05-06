@@ -192,8 +192,20 @@ export default function App() {
 
   function AnimatedRoutes({ usuarioId, refreshCloset, PrivateRoute }) {
     const location = useLocation();
+    const isFixed = location.pathname === "/" || location.pathname === "/closet";
+
+    useEffect(() => {
+      // Desktop: bloquea scroll del body en páginas fijas
+      document.body.classList.toggle("page-overflow-hidden", isFixed);
+      return () => document.body.classList.remove("page-overflow-hidden");
+    }, [isFixed]);
+
     return (
-      <div key={location.pathname} className="page-enter" style={{ minHeight: "100%", display: "flex", flexDirection: "column" }}>
+      <div
+        key={location.pathname}
+        className="page-enter"
+        style={{ [isFixed ? "height" : "minHeight"]: "100%", display: "flex", flexDirection: "column" }}
+      >
         <Routes location={location}>
           <Route path="/" element={<PrivateRoute><Asistente usuarioId={usuarioId} /></PrivateRoute>} />
           <Route path="/feed" element={<PrivateRoute><Feed usuarioId={usuarioId} /></PrivateRoute>} />

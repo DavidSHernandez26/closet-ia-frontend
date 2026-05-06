@@ -457,6 +457,11 @@ body.light-mode .cal-picker-confirm {
     display: block !important;
   }
 
+  /* Mobile: bloquea scroll en páginas fijas (Asistente, Closet) */
+  body.page-overflow-hidden .main-content {
+    overflow: hidden;
+  }
+
   /* ── Páginas dentro del scroll ── */
   .closet-container,
   .cal-container,
@@ -505,6 +510,13 @@ body.light-mode .cal-picker-confirm {
 
 @media (max-width: 380px) {
   .closet-card { flex: 1 1 100% !important; max-width: 100% !important; }
+}
+
+/* Desktop: bloquea scroll del body en páginas fijas (Asistente, Closet) */
+@media (min-width: 901px) {
+  body.page-overflow-hidden {
+    overflow: hidden;
+  }
 }
 
 @layer base {
