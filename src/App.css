@@ -452,6 +452,7 @@ body.light-mode .cal-picker-confirm {
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: contain;
+    touch-action: pan-y;
     padding: 0 !important;
     display: block !important;
   }

@@ -193,7 +193,7 @@ export default function App() {
   function AnimatedRoutes({ usuarioId, refreshCloset, PrivateRoute }) {
     const location = useLocation();
     return (
-      <div key={location.pathname} className="page-enter" style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+      <div key={location.pathname} className="page-enter" style={{ minHeight: "100%", display: "flex", flexDirection: "column" }}>
         <Routes location={location}>
           <Route path="/" element={<PrivateRoute><Asistente usuarioId={usuarioId} /></PrivateRoute>} />
           <Route path="/feed" element={<PrivateRoute><Feed usuarioId={usuarioId} /></PrivateRoute>} />
