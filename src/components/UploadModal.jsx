@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
-  Upload, Scissors, Brain, CheckCircle2, AlertTriangle,
+  Upload, Scissors, Brain, CheckCircle2, AlertTriangle, Ban,
   Camera, Image, Shirt, Layers, ArrowRight, ArrowLeft, RotateCcw,
   X, Plus, Loader2,
 } from "lucide-react";
@@ -56,6 +56,7 @@ export default function UploadModal({ onClose, onUploaded }) {
   const [finalOk,           setFinalOk]           = useState(null);
   const [finalMsg,          setFinalMsg]          = useState("");
   const [showSourcePicker,  setShowSourcePicker]  = useState(false);
+  const [mensajesError,     setMensajesError]     = useState({});
 
   const intervaloRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -67,8 +68,13 @@ export default function UploadModal({ onClose, onUploaded }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
+  // Ref para acceder a los previews actuales en el cleanup de unmount
+  const previewsRef = useRef([]);
+  useEffect(() => { previewsRef.current = previews; }, [previews]);
+
   useEffect(() => () => clearInterval(intervaloRef.current), []);
-  useEffect(() => () => previews.forEach(url => URL.revokeObjectURL(url)), [previews]);
+  // Solo revocar al desmontar el componente, no en cada cambio del array
+  useEffect(() => () => previewsRef.current.forEach(url => URL.revokeObjectURL(url)), []);
 
   function iniciarProgreso() {
     setProgreso(0);
@@ -143,13 +149,13 @@ export default function UploadModal({ onClose, onUploaded }) {
   const resetTodo = () => {
     previews.forEach(url => URL.revokeObjectURL(url));
     setFiles([]); setPreviews([]); setStatuses([]);
-    setProgreso(0); setFinalMsg(""); setFinalOk(null); setUploadIndex(0);
+    setProgreso(0); setFinalMsg(""); setFinalOk(null); setUploadIndex(0); setMensajesError({});
   };
 
   async function onSubmit() {
     if (!files.length || !type) return;
     const total = files.length;
-    let subidas = 0, errores = 0;
+    let subidas = 0, errores = 0, noPrendas = 0;
 
     try {
       setUploading(true);
@@ -181,23 +187,36 @@ export default function UploadModal({ onClose, onUploaded }) {
           haptics.success();
           subidas++;
           if (onUploaded) onUploaded();
-        } catch {
+        } catch (err) {
           clearInterval(intervaloRef.current);
           setProgreso(0);
-          setStatuses(prev => { const s = [...prev]; s[i] = "error"; return s; });
-          errores++;
+          const msg = err?.response?.data?.error;
+          // 422 = no es prenda: marcar como "no_prenda" para mostrar mensaje específico
+          const esNoPrenda = err?.response?.status === 422;
+          setStatuses(prev => {
+            const s = [...prev];
+            s[i] = esNoPrenda ? "no_prenda" : "error";
+            return s;
+          });
+          if (esNoPrenda) { noPrendas++; setMensajesError(prev => ({ ...prev, [i]: msg })); }
+          else errores++;
         }
 
         if (i < total - 1) await new Promise(r => setTimeout(r, 400));
       }
 
-      if (errores === 0) {
+      const totalFallos = errores + noPrendas;
+      if (totalFallos === 0) {
         setFinalOk(true);
         setFinalMsg(`${subidas} prenda${subidas !== 1 ? "s" : ""} subida${subidas !== 1 ? "s" : ""} correctamente`);
         setTimeout(() => { resetTodo(); setType(null); setStep(1); }, 2000);
       } else {
-        setFinalOk(false);
-        setFinalMsg(`${subidas} subida${subidas !== 1 ? "s" : ""} · ${errores} con error`);
+        setFinalOk(subidas > 0);
+        const partes = [];
+        if (subidas > 0)   partes.push(`${subidas} subida${subidas !== 1 ? "s" : ""}`);
+        if (noPrendas > 0) partes.push(`${noPrendas} sin prenda detectada`);
+        if (errores > 0)   partes.push(`${errores} con error`);
+        setFinalMsg(partes.join(" · "));
       }
     } catch {
       setFinalOk(false);
@@ -337,10 +356,14 @@ export default function UploadModal({ onClose, onUploaded }) {
                       <div key={i} className={`up-file-thumb up-file-thumb--${statuses[i] || "pending"}`}>
                         <img src={previews[i]} alt={f.name} />
                         <div className="up-file-status-icon">
-                          {statuses[i] === "uploading" && <Loader2 size={14} className="up-spin" />}
-                          {statuses[i] === "done"      && <CheckCircle2 size={14} className="up-icon-done" />}
-                          {statuses[i] === "error"     && <AlertTriangle size={14} className="up-icon-error" />}
+                          {statuses[i] === "uploading"  && <Loader2 size={14} className="up-spin" />}
+                          {statuses[i] === "done"       && <CheckCircle2 size={14} className="up-icon-done" />}
+                          {statuses[i] === "error"      && <AlertTriangle size={14} className="up-icon-error" />}
+                          {statuses[i] === "no_prenda"  && <Ban size={14} className="up-icon-error" />}
                         </div>
+                        {statuses[i] === "no_prenda" && (
+                          <div className="up-file-no-prenda">No es prenda</div>
+                        )}
                         {!uploading && statuses[i] === "pending" && (
                           <button className="up-file-remove" onClick={() => quitarArchivo(i)}>
                             <X size={10} />
