@@ -1,8 +1,27 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import "./Perfil.css";
 import { API_URL } from "../config";
+
+/* Imagen con skeleton mientras carga */
+function LazyImg({ src, alt, className }) {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <div className="perfil-img-wrap">
+      {!loaded && <div className="perfil-img-skeleton" />}
+      <img
+        src={src}
+        alt={alt}
+        className={className}
+        style={{ opacity: loaded ? 1 : 0 }}
+        onLoad={() => setLoaded(true)}
+        loading="lazy"
+        decoding="async"
+      />
+    </div>
+  );
+}
 
 export default function Perfil({ usuarioId }) {
   const { username } = useParams();
@@ -18,6 +37,9 @@ export default function Perfil({ usuarioId }) {
   const [form,            setForm]            = useState({ username: "", nombre: "", bio: "" });
   const [errorEdit,       setErrorEdit]       = useState("");
   const [modalItem,       setModalItem]       = useState(null);
+  const [modalAmigos,     setModalAmigos]     = useState(false);
+  const [listaAmigos,     setListaAmigos]     = useState([]);
+  const [loadingAmigos,   setLoadingAmigos]   = useState(false);
   const [stats,           setStats]           = useState({ posts: 0, amigos: 0, prendas: 0 });
   const fileRef = useRef();
 
@@ -123,6 +145,16 @@ export default function Perfil({ usuarioId }) {
     } catch (err) { console.error(err); }
   }
 
+  async function abrirModalAmigos(pid) {
+    setModalAmigos(true);
+    setLoadingAmigos(true);
+    try {
+      const res = await axios.get(`${API_URL}/api/amistad/amigos`, { params: { usuario_id: pid } });
+      setListaAmigos(res.data || []);
+    } catch { setListaAmigos([]); }
+    finally { setLoadingAmigos(false); }
+  }
+
   async function handleEliminarAmistad() {
     if (!window.confirm("¿Dejar de seguir?")) return;
     try {
@@ -189,7 +221,12 @@ export default function Perfil({ usuarioId }) {
             </div>
             <div className="perfil-stats-row">
               <div className="perfil-stat"><strong>{stats.posts}</strong><span>posts</span></div>
-              <div className="perfil-stat"><strong>{stats.amigos}</strong><span>amigos</span></div>
+              <div
+                className="perfil-stat perfil-stat-clickable"
+                onClick={() => abrirModalAmigos(perfil.id)}
+              >
+                <strong>{stats.amigos}</strong><span>amigos</span>
+              </div>
               <div className="perfil-stat"><strong>{stats.prendas}</strong><span>prendas</span></div>
             </div>
           </div>
@@ -248,7 +285,7 @@ export default function Perfil({ usuarioId }) {
               <div className="perfil-grid">
                 {items.map(p => (
                   <div key={p.id} className="perfil-card" onClick={() => setModalItem(p)}>
-                    <img src={p.imagen_url || p.post?.imagen_url} alt={p.descripcion} loading="lazy" decoding="async" />
+                    <LazyImg src={p.imagen_url || p.post?.imagen_url} alt={p.descripcion} className="perfil-card-img" />
                   </div>
                 ))}
               </div>
@@ -265,13 +302,51 @@ export default function Perfil({ usuarioId }) {
         )}
       </div>
 
-      {/* Modal */}
+      {/* Modal item */}
       {modalItem && (
         <div className="perfil-modal-overlay" onClick={() => setModalItem(null)}>
           <div className="perfil-modal" onClick={e => e.stopPropagation()}>
             <button className="perfil-modal-close" onClick={() => setModalItem(null)}>✕</button>
             <img src={modalItem.imagen_url} alt={modalItem.descripcion} />
             <p className="perfil-modal-desc">{modalItem.descripcion}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Modal amigos */}
+      {modalAmigos && (
+        <div className="perfil-modal-overlay" onClick={() => setModalAmigos(false)}>
+          <div className="perfil-modal perfil-modal-amigos" onClick={e => e.stopPropagation()}>
+            <button className="perfil-modal-close" onClick={() => setModalAmigos(false)}>✕</button>
+            <h3 className="perfil-amigos-title">Amigos</h3>
+            {loadingAmigos ? (
+              <div className="perfil-loading">
+                <div className="perfil-loading-dot" /><div className="perfil-loading-dot" /><div className="perfil-loading-dot" />
+              </div>
+            ) : listaAmigos.length === 0 ? (
+              <p className="perfil-amigos-empty">Sin amigos todavía</p>
+            ) : (
+              <div className="perfil-amigos-list">
+                {listaAmigos.map(a => (
+                  <div
+                    key={a.id}
+                    className="perfil-amigo-row"
+                    onClick={() => { navigate(`/perfil/${a.username}`); setModalAmigos(false); }}
+                  >
+                    <div className="perfil-amigo-avatar">
+                      {a.avatar_url
+                        ? <img src={a.avatar_url} alt={a.username} loading="lazy" />
+                        : <span>{(a.nombre || a.username || "?")[0].toUpperCase()}</span>
+                      }
+                    </div>
+                    <div className="perfil-amigo-info">
+                      <p className="perfil-amigo-nombre">{a.nombre || a.username}</p>
+                      <p className="perfil-amigo-handle">@{a.username}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

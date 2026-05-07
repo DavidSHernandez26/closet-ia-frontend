@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { LayoutGrid, Users, TrendingUp, Bookmark, Trash2, Heart, MessageCircle } from "lucide-react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -10,6 +10,19 @@ import "swiper/css/effect-cards";
 import "./Feed.css";
 import { API_URL } from "../config";
 import { supaImg } from "../utils/imgUrl";
+
+/* ─────────────────────────────────────
+   Hook de detección de mobile
+───────────────────────────────────── */
+function useIsMobile(breakpoint = 900) {
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < breakpoint);
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < breakpoint);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, [breakpoint]);
+  return isMobile;
+}
 
 /* ─────────────────────────────────────
    Chips de navegación principal
@@ -55,6 +68,10 @@ export default function Feed({ usuarioId }) {
   const [wishlist,       setWishlist]       = useState([]);
   const [loadingWishlist,setLoadingWishlist]= useState(false);
   const [sugeridos,      setSugeridos]      = useState([]);
+  const [busqueda,       setBusqueda]       = useState("");
+  const [resultados,     setResultados]     = useState([]);
+  const [buscando,       setBuscando]       = useState(false);
+  const busquedaTimer    = useRef(null);
 
   /* Modal */
   const [showPostModal,    setShowPostModal]    = useState(false);
@@ -64,11 +81,26 @@ export default function Feed({ usuarioId }) {
   const [loadingComment,   setLoadingComment]   = useState(false);
 
   /* Nuevo post */
-  const [newPost,   setNewPost]   = useState({ file: null, preview: "", descripcion: "" });
+  const [newPost,   setNewPost]   = useState({ file: null, preview: "", descripcion: "", tags: [] });
+  const [tagInput,  setTagInput]  = useState("");
+  const [tagFiltro, setTagFiltro] = useState(null);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef();
 
-  const navigate = useNavigate();
+  const navigate    = useNavigate();
+  const isMobile    = useIsMobile();
+  const sentinelRef = useRef(null);
+
+  /* ── Infinite scroll con IntersectionObserver ── */
+  useEffect(() => {
+    if (!sentinelRef.current) return;
+    const observer = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting) cargarMas(); },
+      { threshold: 0.1 }
+    );
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [nextCursor, loadingMore]);
 
   /* ── Carga inicial ── */
   useEffect(() => {
@@ -148,11 +180,31 @@ async function cargarSugeridos() {
      Filtrado local de posts
   ────────────────────────────────── */
   const postsFiltrados = posts.filter((p) => {
-    if (filtro === "todos")      return true;
     if (filtro === "amigos")     return p.usuario_id !== usuarioId;
     if (filtro === "tendencias") return p.likes_count >= 5;
+    if (tagFiltro) return extractTags(p.descripcion).includes(tagFiltro);
     return true;
   });
+
+  /* Búsqueda de usuarios con debounce */
+  function handleBusqueda(q) {
+    setBusqueda(q);
+    clearTimeout(busquedaTimer.current);
+    if (!q.trim()) { setResultados([]); return; }
+    busquedaTimer.current = setTimeout(async () => {
+      setBuscando(true);
+      try {
+        const res = await axios.get(`${API_URL}/api/usuarios/buscar`, { params: { q, usuario_id: usuarioId } });
+        setResultados(res.data || []);
+      } catch { setResultados([]); }
+      finally { setBuscando(false); }
+    }, 350);
+  }
+
+  /* Tags: extraer #hashtags de descripción */
+  function extractTags(desc = "") {
+    return [...desc.matchAll(/#(\w+)/g)].map(m => m[1].toLowerCase());
+  }
 
   /* Posts más populares para el sidebar */
   const topPosts = [...posts]
@@ -281,13 +333,23 @@ async function cargarSugeridos() {
       const fd = new FormData();
       fd.append("imagen", newPost.file);
       fd.append("descripcion", newPost.descripcion);
-      await axios.post(`${API_URL}/api/posts`, fd, {
+      const res = await axios.post(`${API_URL}/api/posts`, fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      setNewPost({ file: null, preview: "", descripcion: "" });
-      cargarFeed();
+      /* Prepend inmediato para que aparezca sin recargar */
+      if (res.data?.id) {
+        const nuevoPost = {
+          ...res.data,
+          likes_count: 0, comments_count: 0, liked_by_me: false, saved_by_me: false,
+          profile: null,
+        };
+        setPosts(prev => [nuevoPost, ...prev]);
+      }
+      setNewPost({ file: null, preview: "", descripcion: "", tags: [] });
+      setTagInput("");
     } catch (err) {
       console.error(err);
+      cargarFeed();
     } finally {
       setUploading(false);
     }
@@ -315,6 +377,30 @@ async function cargarSugeridos() {
         <header className="feed-header">
           <h1>Inspiración</h1>
           <p>Outfits de tu comunidad · encuentra tu estilo</p>
+          {/* Búsqueda de usuarios — visible en mobile */}
+          <div className="feed-search-wrap">
+            <input
+              className="feed-search-input"
+              type="text"
+              placeholder="Buscar persona por @username..."
+              value={busqueda}
+              onChange={e => handleBusqueda(e.target.value)}
+            />
+            {(resultados.length > 0 || buscando) && (
+              <div className="feed-search-results">
+                {buscando && <p className="feed-search-loading">Buscando...</p>}
+                {resultados.map(u => (
+                  <div key={u.id} className="feed-search-row" onClick={() => { navigate(`/perfil/${u.username}`); setBusqueda(""); setResultados([]); }}>
+                    <Avatar profile={u} size={30} />
+                    <div className="feed-search-info">
+                      <p className="feed-search-nombre">{u.nombre || u.username}</p>
+                      <p className="feed-search-handle">@{u.username}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </header>
 
         {/* ── CHIPS DE FILTRO ── */}
@@ -331,8 +417,16 @@ async function cargarSugeridos() {
           ))}
         </nav>
 
-        {/* ── CARRUSEL DE OUTFITS ── */}
-        {filtro !== "guardados" && !loading && postsFiltrados.length > 0 && (
+        {/* ── FILTRO DE TAG ACTIVO ── */}
+        {tagFiltro && (
+          <div className="feed-tag-filter-active">
+            <span>#{tagFiltro}</span>
+            <button onClick={() => setTagFiltro(null)}>✕</button>
+          </div>
+        )}
+
+        {/* ── CARRUSEL DE OUTFITS — solo mobile ── */}
+        {isMobile && filtro !== "guardados" && !loading && postsFiltrados.length > 0 && (
           <FeedCarousel
             posts={postsFiltrados}
             usuarioId={usuarioId}
@@ -340,6 +434,22 @@ async function cargarSugeridos() {
             onGuardar={handleWishlist}
             onAbrir={abrirPost}
           />
+        )}
+
+        {/* ── LOADING/EMPTY en mobile (no-guardados) ── */}
+        {isMobile && filtro !== "guardados" && loading && (
+          <div className="feed-loading">
+            <div className="feed-dot" /><div className="feed-dot" /><div className="feed-dot" />
+          </div>
+        )}
+        {isMobile && filtro !== "guardados" && !loading && postsFiltrados.length === 0 && (
+          <div className="feed-empty">
+            <LayoutGrid size={36} className="feed-empty-icon" />
+            <p className="feed-empty-title">Sin posts en este filtro</p>
+            <p className="feed-empty-sub">
+              {filtro === "amigos" ? "Agrega amigos para ver sus outfits" : "Aún no hay publicaciones aquí"}
+            </p>
+          </div>
         )}
 
         {/* ── NUEVO POST (visible en todos los filtros excepto guardados) ── */}
@@ -351,18 +461,25 @@ async function cargarSugeridos() {
                 <div className="feed-new-actions">
                   <input
                     type="text"
-                    placeholder="Describe tu outfit..."
+                    placeholder="Describe tu outfit... (usa #casual #trabajo para tags)"
                     value={newPost.descripcion}
                     onChange={(e) =>
                       setNewPost((p) => ({ ...p, descripcion: e.target.value }))
                     }
                     className="feed-new-input"
                   />
+                  {extractTags(newPost.descripcion).length > 0 && (
+                    <div className="feed-tag-preview">
+                      {extractTags(newPost.descripcion).map(t => (
+                        <span key={t} className="feed-tag-chip">#{t}</span>
+                      ))}
+                    </div>
+                  )}
                   <div className="feed-new-btns">
                     <button
                       className="feed-btn-cancelar"
                       onClick={() =>
-                        setNewPost({ file: null, preview: "", descripcion: "" })
+                        setNewPost({ file: null, preview: "", descripcion: "", tags: [] })
                       }
                     >
                       Cancelar
@@ -404,7 +521,8 @@ async function cargarSugeridos() {
           </div>
         )}
 
-        {/* ── LISTA DE POSTS / WISHLIST ── */}
+        {/* ── LISTA DE POSTS / WISHLIST — desktop siempre, mobile solo en guardados ── */}
+        {(!isMobile || filtro === "guardados") && (
         <section className="feed-list" aria-label="Publicaciones">
 
           {/* Vista Guardados */}
@@ -486,23 +604,52 @@ async function cargarSugeridos() {
                   onEliminar={() => eliminarPost(post.id)}
                   onNavigate={navigate}
                   formatTime={formatTime}
+                  onTagClick={setTagFiltro}
                 />
               ))}
               {nextCursor && filtro !== "amigos" && filtro !== "tendencias" && (
-                <button
-                  className="feed-load-more"
-                  onClick={cargarMas}
-                  disabled={loadingMore}
-                >
-                  {loadingMore ? "Cargando..." : "Cargar más"}
-                </button>
+                <div ref={sentinelRef} className="feed-sentinel">
+                  {loadingMore && (
+                    <div className="feed-loading" style={{ paddingTop: 12 }}>
+                      <div className="feed-dot" /><div className="feed-dot" /><div className="feed-dot" />
+                    </div>
+                  )}
+                </div>
               )}
             </>
           )}
         </section>
+        )}
 
         {/* ── SIDEBAR — solo visible en desktop (≥900px) ── */}
         <aside className="feed-sidebar" aria-label="Sugerencias">
+
+          <div className="sidebar-card">
+            <h3 className="sidebar-title">Buscar personas</h3>
+            <div className="feed-search-wrap sidebar-search">
+              <input
+                className="feed-search-input"
+                type="text"
+                placeholder="@username o nombre..."
+                value={busqueda}
+                onChange={e => handleBusqueda(e.target.value)}
+              />
+              {(resultados.length > 0 || buscando) && (
+                <div className="feed-search-results">
+                  {buscando && <p className="feed-search-loading">Buscando...</p>}
+                  {resultados.map(u => (
+                    <div key={u.id} className="feed-search-row" onClick={() => { navigate(`/perfil/${u.username}`); setBusqueda(""); setResultados([]); }}>
+                      <Avatar profile={u} size={30} />
+                      <div className="feed-search-info">
+                        <p className="feed-search-nombre">{u.nombre || u.username}</p>
+                        <p className="feed-search-handle">@{u.username}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
 
           <div className="sidebar-card">
             <h3 className="sidebar-title">Sugeridos para ti</h3>
@@ -789,9 +936,15 @@ function FeedCarousel({ posts, usuarioId, onLike, onGuardar, onAbrir }) {
    PostCard — sub-componente
    Usa íconos SVG del sistema de diseño
 ───────────────────────────────────── */
+function extractTagsStatic(desc = "") {
+  return [...desc.matchAll(/#(\w+)/g)].map(m => m[1].toLowerCase());
+}
+
 function PostCard({
-  post, usuarioId, onLike, onGuardar, onAbrir, onEliminar, onNavigate, formatTime,
+  post, usuarioId, onLike, onGuardar, onAbrir, onEliminar, onNavigate, formatTime, onTagClick,
 }) {
+  const tags = extractTagsStatic(post.descripcion || "");
+  const descSinTags = (post.descripcion || "").replace(/#\w+/g, "").trim();
   return (
     <article className="feed-post">
 
@@ -893,16 +1046,27 @@ function PostCard({
         </button>
       </div>
 
-      {/* Descripción */}
-      {post.descripcion && (
+      {/* Descripción + tags */}
+      {(descSinTags || tags.length > 0) && (
         <div className="feed-post-desc">
-          <span
-            className="feed-post-username"
-            onClick={() => onNavigate(`/perfil/${post.profile?.username}`)}
-          >
-            @{post.profile?.username}
-          </span>{" "}
-          {post.descripcion}
+          {descSinTags && (
+            <>
+              <span
+                className="feed-post-username"
+                onClick={() => onNavigate(`/perfil/${post.profile?.username}`)}
+              >
+                @{post.profile?.username}
+              </span>{" "}
+              {descSinTags}
+            </>
+          )}
+          {tags.length > 0 && (
+            <div className="feed-post-tags">
+              {tags.map(t => (
+                <button key={t} className="feed-post-tag" onClick={() => onTagClick?.(t)}>#{t}</button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

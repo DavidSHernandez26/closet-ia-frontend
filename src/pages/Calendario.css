@@ -726,3 +726,258 @@ body.light-mode .cal-celda.hoy .cal-numero { color: #0F0326 !important; }
   }
   .cal-detalle-prenda-card img { height: 100px; }
 }
+
+/* ══════════════════════════════════════════════════════════
+   KIBO-UI NAVIGATION OVERRIDES
+══════════════════════════════════════════════════════════ */
+
+/* Wrapper de la barra de navegación */
+.cal-kibo-nav {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+/* CalendarDate → flex justify-between p-3 */
+.cal-kibo-nav > div {
+  width: 100%;
+  padding: 0 0 12px;
+}
+
+/* Botones picker de mes y año (outline Button de shadcn) */
+.cal-kibo-picker {
+  background: rgba(196, 181, 232, 0.08) !important;
+  border: 1px solid rgba(196, 181, 232, 0.2) !important;
+  color: #C4B5E8 !important;
+  border-radius: 10px !important;
+  font-size: 0.88rem !important;
+  height: 36px !important;
+  width: auto !important;
+  min-width: 120px !important;
+  transition: all 0.2s ease !important;
+}
+
+.cal-kibo-picker:hover {
+  background: rgba(196, 181, 232, 0.16) !important;
+  border-color: rgba(196, 181, 232, 0.35) !important;
+}
+
+/* SVG icon dentro del picker */
+.cal-kibo-picker svg {
+  color: rgba(196, 181, 232, 0.5) !important;
+}
+
+/* Botones de paginación (ChevronLeft / ChevronRight) */
+.cal-kibo-pagination button {
+  background: rgba(196, 181, 232, 0.08) !important;
+  border: 1px solid rgba(196, 181, 232, 0.15) !important;
+  color: #C4B5E8 !important;
+  border-radius: 10px !important;
+  width: 36px !important;
+  height: 36px !important;
+  transition: all 0.2s ease !important;
+}
+
+.cal-kibo-pagination button:hover {
+  background: rgba(196, 181, 232, 0.2) !important;
+  border-color: rgba(196, 181, 232, 0.35) !important;
+  transform: scale(1.05);
+}
+
+/* Cabecera de días de la semana */
+.cal-kibo-header {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.cal-kibo-header > div {
+  text-align: center !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  color: rgba(196, 181, 232, 0.5) !important;
+  padding: 8px 0 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+}
+
+/* Popover de selección de mes/año — fondo oscuro */
+[data-radix-popper-content-wrapper] [role="listbox"],
+[data-radix-popper-content-wrapper] [cmdk-root],
+.cal-kibo-picker ~ * [cmdk-root] {
+  background: rgba(20, 6, 48, 0.98) !important;
+  border-color: rgba(196, 181, 232, 0.18) !important;
+  color: #F4F4F9 !important;
+}
+
+/* Popover content wrapper */
+[data-radix-popper-content-wrapper] > div {
+  background: rgba(20, 6, 48, 0.98) !important;
+  border: 1px solid rgba(196, 181, 232, 0.18) !important;
+  border-radius: 14px !important;
+  overflow: hidden !important;
+}
+
+/* Ítems del combobox */
+[cmdk-item] {
+  color: rgba(244, 244, 249, 0.8) !important;
+  border-radius: 8px !important;
+}
+
+[cmdk-item][aria-selected="true"],
+[cmdk-item]:hover {
+  background: rgba(196, 181, 232, 0.1) !important;
+  color: #C4B5E8 !important;
+}
+
+/* Input de búsqueda del combobox */
+[cmdk-input] {
+  background: transparent !important;
+  color: #F4F4F9 !important;
+  border-bottom: 1px solid rgba(196, 181, 232, 0.12) !important;
+}
+
+[cmdk-input]::placeholder {
+  color: rgba(244, 244, 249, 0.35) !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   VISTA TOGGLE + SEMANA
+══════════════════════════════════════════════════════════ */
+.cal-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cal-vista-toggle {
+  display: flex;
+  background: rgba(196, 181, 232, 0.08);
+  border: 1px solid rgba(196, 181, 232, 0.15);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.cal-vista-btn {
+  padding: 5px 12px;
+  background: transparent;
+  border: none;
+  color: rgba(244, 244, 249, 0.5);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.cal-vista-btn.active {
+  background: rgba(196, 181, 232, 0.2);
+  color: #C4B5E8;
+  font-weight: 600;
+}
+
+.cal-semana-wrap { width: 100%; }
+
+.cal-semana-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+.cal-semana-btn {
+  background: rgba(196, 181, 232, 0.1);
+  border: 1px solid rgba(196, 181, 232, 0.18);
+  border-radius: 8px;
+  color: #C4B5E8;
+  width: 32px;
+  height: 32px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.cal-semana-btn:hover { background: rgba(196, 181, 232, 0.2); }
+.cal-semana-titulo {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #C4B5E8;
+  min-width: 180px;
+  text-align: center;
+}
+
+.cal-semana-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  width: 100%;
+}
+
+.cal-semana-dia {
+  background: rgba(196, 181, 232, 0.04);
+  border: 1px solid rgba(196, 181, 232, 0.08);
+  border-radius: 16px;
+  min-height: 140px;
+  padding: 10px 6px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  overflow: hidden;
+  transition: all 0.25s ease;
+}
+.cal-semana-dia.hoy {
+  border-color: rgba(196, 181, 232, 0.45);
+  background: rgba(196, 181, 232, 0.07);
+}
+.cal-semana-dia.clickable { cursor: pointer; }
+.cal-semana-dia.clickable:hover,
+.cal-semana-dia.tiene-outfit:hover {
+  background: rgba(196, 181, 232, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  cursor: pointer;
+}
+.cal-semana-dow {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgba(196, 181, 232, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.cal-semana-num {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #F4F4F9;
+  line-height: 1;
+}
+.cal-semana-dia.hoy .cal-semana-dow { color: #C4B5E8; }
+.cal-semana-dia.hoy .cal-semana-num { color: #C4B5E8; }
+
+/* ── Botón editar en modal detalle ── */
+.cal-detalle-acciones {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+.cal-btn-editar {
+  width: 100%;
+  padding: 10px;
+  background: rgba(196, 181, 232, 0.1);
+  border: 1px solid rgba(196, 181, 232, 0.2);
+  border-radius: 12px;
+  color: #C4B5E8;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.cal-btn-editar:hover {
+  background: rgba(196, 181, 232, 0.18);
+  border-color: rgba(196, 181, 232, 0.35);
+}
+
+/* Mobile semana */
+@media (max-width: 768px) {
+  .cal-semana-grid { gap: 4px; }
+  .cal-semana-dia { min-height: 100px; padding: 7px 3px 5px; border-radius: 12px; }
+  .cal-semana-dow { font-size: 0.6rem; }
+  .cal-semana-num { font-size: 0.9rem; }
+  .cal-semana-titulo { font-size: 0.82rem; min-width: 140px; }
+}

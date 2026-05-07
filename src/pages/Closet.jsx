@@ -67,13 +67,15 @@ export default function Closet({ refresh }) {
   const [loading,    setLoading]    = useState(false);
   const [tabActiva,  setTabActiva]  = useState("prenda");
   const [categoria,  setCategoria]  = useState("todas");
+  const [colorFiltro, setColorFiltro] = useState(null);
+  const [ordenar,    setOrdenar]    = useState("fecha");
   const [modalItem,  setModalItem]  = useState(null);
   const [recomendaciones, setRecomendaciones] = useState([]);
   const [loadingRecs, setLoadingRecs]         = useState(false);
   useEffect(() => { fetchPrendas(); }, [usuarioId, tabActiva, refresh]);
 
-  /* Al cambiar tab, resetear categoría */
-  useEffect(() => { setCategoria("todas"); }, [tabActiva]);
+  /* Al cambiar tab, resetear categoría y filtros */
+  useEffect(() => { setCategoria("todas"); setColorFiltro(null); setOrdenar("fecha"); }, [tabActiva]);
 
   /* Invalidar recomendaciones cuando el closet cambia */
   useEffect(() => { setRecomendaciones([]); }, [prendas]);
@@ -116,10 +118,32 @@ export default function Closet({ refresh }) {
     }
   }
 
-  /* Filtrado client-side */
-  const prendasFiltradas = tabActiva === "prenda"
-    ? prendas.filter(p => matchCategoria(p, categoria))
-    : prendas;
+  /* Filtrado + orden client-side */
+  const prendasFiltradas = useMemo(() => {
+    let result = tabActiva === "prenda"
+      ? prendas.filter(p => matchCategoria(p, categoria))
+      : prendas;
+    if (colorFiltro) {
+      result = result.filter(p => {
+        const raw = p.metadata_ia?.color || (p.descripcion?.match(/\(([^)]+)\)/)?.[1] || '');
+        return normalizarColor(raw) === colorFiltro;
+      });
+    }
+    switch (ordenar) {
+      case "az":
+        return [...result].sort((a, b) => (a.descripcion || '').localeCompare(b.descripcion || ''));
+      case "za":
+        return [...result].sort((a, b) => (b.descripcion || '').localeCompare(a.descripcion || ''));
+      case "color":
+        return [...result].sort((a, b) => {
+          const ca = normalizarColor(a.metadata_ia?.color || '');
+          const cb = normalizarColor(b.metadata_ia?.color || '');
+          return ca.localeCompare(cb);
+        });
+      default:
+        return result;
+    }
+  }, [prendas, tabActiva, categoria, colorFiltro, ordenar]);
 
   // When tabActiva === "prenda" the API already filtered; avoid a second filter that
   // can silently empty the array if Supabase returns a slightly different tipo value.
@@ -267,7 +291,12 @@ export default function Closet({ refresh }) {
                     <p className="mac-sidebar-section" style={{ marginTop: 16 }}>Colores</p>
                     <div className="mac-stats-colors">
                       {colorStats.map(([color, count]) => (
-                        <div key={color} className="mac-stat-color-row">
+                        <div
+                          key={color}
+                          className={`mac-stat-color-row mac-stat-color-filtrable ${colorFiltro === color ? "active" : ""}`}
+                          onClick={() => setColorFiltro(colorFiltro === color ? null : color)}
+                          title={`Filtrar por ${color}`}
+                        >
                           <span
                             className="mac-stat-color-dot"
                             style={{ background: COLOR_HEX[color] || '#888' }}
@@ -332,6 +361,32 @@ export default function Closet({ refresh }) {
 
           {/* Contenido */}
           <main className="mac-content">
+            {/* Barra de herramientas: filtro activo + sort */}
+            <div className="mac-toolbar">
+              <div className="mac-toolbar-left">
+                {colorFiltro && (
+                  <button
+                    className="mac-color-chip active"
+                    onClick={() => setColorFiltro(null)}
+                  >
+                    <span className="mac-color-chip-dot" style={{ background: COLOR_HEX[colorFiltro] || '#888' }} />
+                    {colorFiltro}
+                    <span className="mac-color-chip-x">✕</span>
+                  </button>
+                )}
+              </div>
+              <select
+                className="mac-sort-select"
+                value={ordenar}
+                onChange={e => setOrdenar(e.target.value)}
+              >
+                <option value="fecha">Más recientes</option>
+                <option value="az">A → Z</option>
+                <option value="za">Z → A</option>
+                <option value="color">Por color</option>
+              </select>
+            </div>
+
             {loading ? (
               <div className="mac-loading">
                 <div className="mac-spinner" />

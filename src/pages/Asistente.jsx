@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Footprints, Briefcase, Moon, Zap, PartyPopper, Plane, Trash2, Shirt } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Footprints, Briefcase, Moon, Zap, PartyPopper, Plane, Trash2, Shirt, Mic, MicOff, History, X } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
 import axios from "axios";
 import "./Asistente.css";
@@ -68,7 +69,14 @@ export default function Asistente({ usuarioId }) {
   const [calConfirmado, setCalConfirmado] = useState(false);
   const [ocasionActiva, setOcasionActiva] = useState(null);
 
-  const [showForecast, setShowForecast] = useState(false);
+  const [showForecast,   setShowForecast]   = useState(false);
+  const [escuchando,     setEscuchando]     = useState(false);
+  const [showHistorial,  setShowHistorial]  = useState(false);
+  const [historial,      setHistorial]      = useState(() => {
+    try { return JSON.parse(localStorage.getItem(`asistente_historial_${usuarioId}`)) || []; }
+    catch { return []; }
+  });
+  const reconRef = useRef(null);
 
   const chatEndRef       = useRef(null);
   const chatBoxRef       = useRef(null);
@@ -294,6 +302,19 @@ export default function Asistente({ usuarioId }) {
   }
 
   function handleClearChat() {
+    /* Guardar sesión en historial antes de borrar */
+    if (chat.length > 0) {
+      const sesion = {
+        id: Date.now(),
+        fecha: new Date().toLocaleDateString("es-ES", { day: "numeric", month: "long" }),
+        hora: new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" }),
+        resumen: chat.find(m => m.role === "user")?.text?.slice(0, 60) || "Conversación",
+        mensajes: chat,
+      };
+      const nuevo = [sesion, ...historial].slice(0, 15);
+      setHistorial(nuevo);
+      localStorage.setItem(`asistente_historial_${usuarioId}`, JSON.stringify(nuevo));
+    }
     setChat([]);
     setOutfit([]);
     setOutfitIds([]);
@@ -306,6 +327,37 @@ export default function Asistente({ usuarioId }) {
     localStorage.removeItem(STORAGE_OUTFIT);
     localStorage.removeItem(STORAGE_OUTFIT_IDS);
     localStorage.removeItem(STORAGE_OUTFIT_GUARDADO);
+  }
+
+  /* ── Voz (Web Speech API) ── */
+  function toggleVoz() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) return;
+
+    if (escuchando) {
+      reconRef.current?.stop();
+      setEscuchando(false);
+      return;
+    }
+    const recon = new SR();
+    recon.lang = "es-ES";
+    recon.continuous = false;
+    recon.interimResults = false;
+    recon.onresult = (e) => {
+      const texto = e.results[0][0].transcript;
+      setMensaje(prev => (prev ? prev + " " + texto : texto));
+    };
+    recon.onend = () => setEscuchando(false);
+    recon.onerror = () => setEscuchando(false);
+    reconRef.current = recon;
+    recon.start();
+    setEscuchando(true);
+  }
+
+  /* ── Restaurar sesión del historial ── */
+  function restaurarSesion(sesion) {
+    setChat(sesion.mensajes);
+    setShowHistorial(false);
   }
 
   function handleHint(hint) {
@@ -557,38 +609,54 @@ export default function Asistente({ usuarioId }) {
                 {/* Mensajes */}
                 <div className="chat-box" ref={chatBoxRef}>
                   {chat.length === 0 ? (
-                    <div className="chat-placeholder">
+                    <motion.div
+                      className="chat-placeholder"
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4 }}
+                    >
                       <div className="chat-placeholder-icon">✦</div>
                       <p className="chat-placeholder-title">Tu estilista personal con IA</p>
                       <div className="chat-placeholder-hints">
                         {hints.map((h, i) => (
-                          <button
+                          <motion.button
                             key={i}
                             className={`chat-hint ${h.autoSend ? "chat-hint--clima" : ""}`}
                             onClick={() => handleHint(h)}
+                            initial={{ opacity: 0, x: -8 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: i * 0.07 }}
                           >
                             <span>{h.label}</span>
                             <span className="chat-hint-arrow">{h.autoSend ? "✦" : "→"}</span>
-                          </button>
+                          </motion.button>
                         ))}
                       </div>
-                    </div>
+                    </motion.div>
                   ) : (
-                    chat.map((msg, i) => (
-                      <div key={i} className={`chat-message-row ${msg.role}`}>
-                        <div className={`chat-msg-avatar ${msg.role}`}>
-                          {msg.role === "assistant" ? "✦" : "👤"}
-                        </div>
-                        <div className="chat-msg-content">
-                          <span className="chat-msg-sender">
-                            {msg.role === "assistant" ? "Asistente" : "Tú"}
-                          </span>
-                          <div className={`chat-bubble ${msg.role}`}>
-                            {msg.role === "assistant" ? parseChat(msg.text) : msg.text}
+                    <AnimatePresence initial={false}>
+                      {chat.map((msg, i) => (
+                        <motion.div
+                          key={i}
+                          className={`chat-message-row ${msg.role}`}
+                          initial={{ opacity: 0, y: 10, scale: 0.97 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          transition={{ duration: 0.25, ease: "easeOut" }}
+                        >
+                          <div className={`chat-msg-avatar ${msg.role}`}>
+                            {msg.role === "assistant" ? "✦" : "👤"}
                           </div>
-                        </div>
-                      </div>
-                    ))
+                          <div className="chat-msg-content">
+                            <span className="chat-msg-sender">
+                              {msg.role === "assistant" ? "Asistente" : "Tú"}
+                            </span>
+                            <div className={`chat-bubble ${msg.role}`}>
+                              {msg.role === "assistant" ? parseChat(msg.text) : msg.text}
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
                   )}
 
                   {loading && (
@@ -652,6 +720,14 @@ export default function Asistente({ usuarioId }) {
                       disabled={loading}
                       rows={1}
                     />
+                    <button
+                      onClick={toggleVoz}
+                      className={`btn-voz ${escuchando ? "escuchando" : ""}`}
+                      title={escuchando ? "Detener" : "Hablar"}
+                      disabled={loading}
+                    >
+                      {escuchando ? <MicOff size={16} /> : <Mic size={16} />}
+                    </button>
                     <button
                       onClick={handleRecommend}
                       className="btn-recomendar"
@@ -944,6 +1020,62 @@ export default function Asistente({ usuarioId }) {
           )}
         </div>
       </div>
+
+      {/* ── FAB Historial ── */}
+      {historial.length > 0 && (
+        <motion.button
+          className="asistente-historial-fab"
+          onClick={() => setShowHistorial(true)}
+          title="Ver historial"
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.94 }}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.5 }}
+        >
+          <History size={18} />
+        </motion.button>
+      )}
+
+      {/* ── Modal Historial ── */}
+      <AnimatePresence>
+        {showHistorial && (
+          <motion.div
+            className="historial-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowHistorial(false)}
+          >
+            <motion.div
+              className="historial-modal"
+              initial={{ opacity: 0, y: 24, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 16, scale: 0.96 }}
+              transition={{ duration: 0.25 }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="historial-header">
+                <h3>Historial de conversaciones</h3>
+                <button className="historial-close" onClick={() => setShowHistorial(false)}>
+                  <X size={16} />
+                </button>
+              </div>
+              <div className="historial-list">
+                {historial.map(ses => (
+                  <div key={ses.id} className="historial-item" onClick={() => restaurarSesion(ses)}>
+                    <div className="historial-item-info">
+                      <p className="historial-item-resumen">{ses.resumen}</p>
+                      <p className="historial-item-fecha">{ses.fecha} · {ses.hora} · {ses.mensajes.length} msgs</p>
+                    </div>
+                    <span className="historial-item-arrow">→</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

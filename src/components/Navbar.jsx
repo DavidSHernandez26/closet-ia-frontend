@@ -8,7 +8,7 @@ import NotifPanel from "./NotifPanel";
 import { haptics } from "../hooks/useHaptics";
 import { ThemeToggleButton } from "./ui/skiper-ui/skiper26";
 import {
-  Sparkles, LayoutGrid, Shirt, Calendar, Users, User, Camera,
+  Sparkles, LayoutGrid, Shirt, Calendar, User, Camera,
 } from "lucide-react";
 
 // Icono con bounce "gota de agua" — la secuencia siempre termina en estado normal
@@ -70,11 +70,10 @@ export default function Navbar({ onUploaded, usuarioId }) {
   const isActive = (path) => location.pathname === path;
 
   const navLinks = [
-    { path: "/",           label: "Asistente",  icon: <Sparkles  size={16} /> },
+    { path: "/",           label: "Asistente",  icon: <Sparkles   size={16} /> },
     { path: "/feed",       label: "Feed",        icon: <LayoutGrid size={16} /> },
     { path: "/closet",     label: "Closet",      icon: <Shirt      size={16} /> },
     { path: "/calendario", label: "Calendario",  icon: <Calendar   size={16} /> },
-    { path: "/amigos",     label: "Comunidad",   icon: <Users      size={16} /> },
     { path: "/perfil",     label: "Perfil",      icon: <User       size={16} /> },
   ];
 
