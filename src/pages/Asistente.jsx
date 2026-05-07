@@ -634,12 +634,15 @@ export default function Asistente({ usuarioId }) {
               </div>
 
               <div className="asistente-hud-right">
-                {racha > 0 && (
-                  <div className="racha-badge" title={`${racha} día${racha !== 1 ? "s" : ""} seguido${racha !== 1 ? "s" : ""} con outfit`}>
-                    <Flame size={13} />
-                    <span>{racha}</span>
-                  </div>
-                )}
+                <div
+                  className={`racha-badge ${racha === 0 ? "racha-badge--cero" : ""}`}
+                  title={racha > 0
+                    ? `${racha} día${racha !== 1 ? "s" : ""} seguido${racha !== 1 ? "s" : ""} con outfit`
+                    : "Aún no has generado ningún outfit — ¡empieza hoy!"}
+                >
+                  <Flame size={14} />
+                  <span>{racha}</span>
+                </div>
                 {clima && (
                   <div
                     className={`clima-chip ${showForecast ? "clima-chip--open" : ""}`}
