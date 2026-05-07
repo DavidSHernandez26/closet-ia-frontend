@@ -59,7 +59,7 @@ export default function UploadModal({ onClose, onUploaded }) {
 
   const intervaloRef = useRef(null);
   const fileInputRef = useRef(null);
-  const pickPhoto    = useNativeCamera();
+  const { pickPhoto, pickMultiplePhotos } = useNativeCamera();
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === "Escape") onClose(); };
@@ -122,9 +122,10 @@ export default function UploadModal({ onClose, onUploaded }) {
       return;
     }
     setShowSourcePicker(false);
-    // Para galería en nativo: usa el file input del WebView (multi-select)
+    // Para galería en nativo: Camera.pickImages() — soporta multi-select y Google Photos
     if (sourceOverride === "photos") {
-      fileInputRef.current?.click();
+      const files = await pickMultiplePhotos();
+      if (files.length) agregarArchivos(files);
       return;
     }
     // Cámara (o outfit con prompt)
@@ -153,8 +154,10 @@ export default function UploadModal({ onClose, onUploaded }) {
     try {
       setUploading(true);
       setFinalMsg(""); setFinalOk(null);
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) throw new Error("no-auth");
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) throw new Error("no-auth");
+      const user  = session.user;
+      const token = session.access_token;
 
       for (let i = 0; i < total; i++) {
         setUploadIndex(i);
@@ -168,7 +171,10 @@ export default function UploadModal({ onClose, onUploaded }) {
           fd.append("tipo", type);
           fd.append("genero", "unisex");
           await axios.post(`${API_URL}/api/subir-prenda`, fd, {
-            headers: { "Content-Type": "multipart/form-data" },
+            headers: {
+              "Content-Type": "multipart/form-data",
+              Authorization: `Bearer ${token}`,
+            },
           });
           completarProgreso();
           setStatuses(prev => { const s = [...prev]; s[i] = "done"; return s; });

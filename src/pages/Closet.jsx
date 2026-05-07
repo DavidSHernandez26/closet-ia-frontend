@@ -83,11 +83,18 @@ export default function Closet({ refresh }) {
   /* Invalidar recomendaciones cuando el closet cambia */
   useEffect(() => { setRecomendaciones([]); }, [prendas]);
 
+  async function authHeaders() {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {};
+  }
+
   async function fetchPrendas() {
     try {
       setLoading(true);
+      const headers = await authHeaders();
       const res = await axios.get(`${API_URL}/api/prendas`, {
         params: { usuario_id: usuarioId, tipo: tabActiva },
+        headers,
       });
       setPrendas(res.data || []);
     } catch (err) {
@@ -101,7 +108,12 @@ export default function Closet({ refresh }) {
     if (loadingRecs || recomendaciones.length > 0) return;
     setLoadingRecs(true);
     try {
-      const res = await axios.post(`${API_URL}/api/recomendaciones-compra`, { usuario_id: usuarioId });
+      const headers = await authHeaders();
+      const res = await axios.post(
+        `${API_URL}/api/recomendaciones-compra`,
+        { usuario_id: usuarioId },
+        { headers }
+      );
       setRecomendaciones(res.data?.recomendaciones || []);
     } catch (err) {
       console.error(err);
@@ -136,7 +148,8 @@ export default function Closet({ refresh }) {
   async function handleDelete(id) {
     if (!window.confirm("¿Eliminar esta prenda?")) return;
     try {
-      await axios.delete(`${API_URL}/api/prendas/${id}`);
+      const headers = await authHeaders();
+      await axios.delete(`${API_URL}/api/prendas/${id}`, { headers });
       setPrendas(prev => prev.filter(p => p.id !== id));
       if (modalItem?.id === id) setModalItem(null);
     } catch (err) {
