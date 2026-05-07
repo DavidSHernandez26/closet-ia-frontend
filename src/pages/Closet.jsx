@@ -7,6 +7,7 @@ import axios from "axios";
 import "./Closet.css";
 import { API_URL } from "../config";
 import { supaImg } from "../utils/imgUrl";
+import { supabase } from "../supabase";
 
 const COLOR_HEX = {
   negro: '#2a2a2e', blanco: '#f0f0f0', azul: '#2563eb', rojo: '#dc2626',
@@ -72,6 +73,8 @@ export default function Closet({ refresh }) {
   const [modalItem,  setModalItem]  = useState(null);
   const [recomendaciones, setRecomendaciones] = useState([]);
   const [loadingRecs, setLoadingRecs]         = useState(false);
+  const [reanalizando, setReanalizando]       = useState(false);
+  const [mensajeReanalisis, setMensajeReanalisis] = useState("");
   useEffect(() => { fetchPrendas(); }, [usuarioId, tabActiva, refresh]);
 
   /* Al cambiar tab, resetear categoría y filtros */
@@ -104,6 +107,29 @@ export default function Closet({ refresh }) {
       console.error(err);
     } finally {
       setLoadingRecs(false);
+    }
+  }
+
+  async function handleReanalizar() {
+    if (reanalizando) return;
+    setReanalizando(true);
+    setMensajeReanalisis("");
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+      const res = await axios.post(
+        `${API_URL}/api/prendas/reanalizar`,
+        {},
+        { headers: { Authorization: `Bearer ${accessToken}` } }
+      );
+      setMensajeReanalisis(res.data.mensaje);
+      if (res.data.actualizadas > 0) await fetchPrendas();
+    } catch (err) {
+      setMensajeReanalisis("Error al analizar. Intenta de nuevo.");
+      console.error(err);
+    } finally {
+      setReanalizando(false);
+      setTimeout(() => setMensajeReanalisis(""), 5000);
     }
   }
 
@@ -385,7 +411,21 @@ export default function Closet({ refresh }) {
                 <option value="za">Z → A</option>
                 <option value="color">Por color</option>
               </select>
+              {tabActiva === "prenda" && (
+                <button
+                  className="mac-reanalizar-btn"
+                  onClick={handleReanalizar}
+                  disabled={reanalizando}
+                  title="Enriquecer metadata de prendas con IA"
+                >
+                  <Sparkles size={13} />
+                  {reanalizando ? "Analizando…" : "Mejorar IA"}
+                </button>
+              )}
             </div>
+            {mensajeReanalisis && (
+              <div className="mac-reanalisis-msg">{mensajeReanalisis}</div>
+            )}
 
             {loading ? (
               <div className="mac-loading">
