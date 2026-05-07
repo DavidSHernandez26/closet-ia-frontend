@@ -14,7 +14,7 @@ import { Capacitor } from "@capacitor/core";
 
 async function comprimirImagen(file, maxWidth = 1200, quality = 0.82) {
   return new Promise((resolve) => {
-    const img = new Image();
+    const img = document.createElement("img");  // evita new Image() que Vite puede alisar
     const url = URL.createObjectURL(file);
     img.onload = () => {
       URL.revokeObjectURL(url);
