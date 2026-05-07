@@ -1,4 +1,9 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import {
+  Upload, Scissors, Brain, CheckCircle2, AlertTriangle,
+  Camera, Shirt, Layers, ArrowRight, ArrowLeft, RotateCcw,
+  X, Plus, Loader2,
+} from "lucide-react";
 import "./UploadModal.css";
 import { supabase } from "../supabase";
 import axios from "axios";
@@ -29,15 +34,12 @@ async function comprimirImagen(file, maxWidth = 1200, quality = 0.82) {
 }
 
 const ETAPAS = [
-  { hasta: 20,  label: "📤 Subiendo imagen..." },
-  { hasta: 65,  label: "✂️ Removiendo fondo..." },
-  { hasta: 90,  label: "🧠 Analizando con IA..." },
-  { hasta: 100, label: "✅ ¡Listo!" },
+  { hasta: 20,  label: "Subiendo imagen...",   Icon: Upload       },
+  { hasta: 65,  label: "Removiendo fondo...",  Icon: Scissors     },
+  { hasta: 90,  label: "Analizando con IA...", Icon: Brain        },
+  { hasta: 100, label: "Listo",                Icon: CheckCircle2 },
 ];
-function etapaLabel(p) { return ETAPAS.find(e => p <= e.hasta)?.label || "✅ ¡Listo!"; }
-
-// Estado por archivo: 'pending' | 'uploading' | 'done' | 'error'
-const STATUS_ICON = { pending: "·", uploading: "⏳", done: "✅", error: "⚠️" };
+function etapaInfo(p) { return ETAPAS.find(e => p <= e.hasta) || ETAPAS[3]; }
 
 export default function UploadModal({ onClose, onUploaded }) {
   const [step, setStep]             = useState(1);
@@ -46,12 +48,12 @@ export default function UploadModal({ onClose, onUploaded }) {
   const [uploading, setUploading]   = useState(false);
   const [progreso, setProgreso]     = useState(0);
 
-  // Multi-file state
-  const [files,       setFiles]       = useState([]); // File[]
-  const [previews,    setPreviews]    = useState([]); // blob URL[]
-  const [statuses,    setStatuses]    = useState([]); // status[]
-  const [uploadIndex, setUploadIndex] = useState(0);  // current index
-  const [mensajeFinal, setMensajeFinal] = useState("");
+  const [files,        setFiles]        = useState([]);
+  const [previews,     setPreviews]     = useState([]);
+  const [statuses,     setStatuses]     = useState([]);
+  const [uploadIndex,  setUploadIndex]  = useState(0);
+  const [finalOk,      setFinalOk]      = useState(null); // true | false | null
+  const [finalMsg,     setFinalMsg]     = useState("");
 
   const intervaloRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -86,39 +88,28 @@ export default function UploadModal({ onClose, onUploaded }) {
   const pickType = (t) => { setType(t); setStep(2); };
 
   const agregarArchivos = useCallback(async (nuevos) => {
-    const validos = Array.from(nuevos).filter(f => {
-      if (!f.type.startsWith("image/")) return false;
-      if (f.size > 10 * 1024 * 1024) return false;
-      return true;
-    });
+    const validos = Array.from(nuevos).filter(f =>
+      f.type.startsWith("image/") && f.size <= 10 * 1024 * 1024
+    );
     if (!validos.length) return;
-
     const comprimidos = await Promise.all(validos.map(f => comprimirImagen(f)));
     const urls = comprimidos.map(f => URL.createObjectURL(f));
-
     setFiles(prev => [...prev, ...comprimidos]);
     setPreviews(prev => [...prev, ...urls]);
     setStatuses(prev => [...prev, ...comprimidos.map(() => "pending")]);
-    setMensajeFinal("");
+    setFinalMsg("");
   }, []);
 
   const onDrop = (e) => {
     e.preventDefault();
     setDragActive(false);
-    if (type === "outfit") {
-      agregarArchivos([e.dataTransfer.files?.[0]]);
-    } else {
-      agregarArchivos(e.dataTransfer.files);
-    }
+    agregarArchivos(type === "outfit" ? [e.dataTransfer.files?.[0]] : e.dataTransfer.files);
   };
 
   const handleFileInput = (e) => { agregarArchivos(e.target.files); e.target.value = ""; };
 
   const handlePickPhoto = async () => {
-    if (type === "prenda") {
-      // En nativo usa cámara (una a la vez); en web abre file dialog múltiple
-      if (fileInputRef.current) { fileInputRef.current.click(); return; }
-    }
+    if (type === "prenda" && fileInputRef.current) { fileInputRef.current.click(); return; }
     const f = await pickPhoto();
     if (f) agregarArchivos([f]);
   };
@@ -133,21 +124,19 @@ export default function UploadModal({ onClose, onUploaded }) {
   const resetTodo = () => {
     previews.forEach(url => URL.revokeObjectURL(url));
     setFiles([]); setPreviews([]); setStatuses([]);
-    setProgreso(0); setMensajeFinal(""); setUploadIndex(0);
+    setProgreso(0); setFinalMsg(""); setFinalOk(null); setUploadIndex(0);
   };
 
   async function onSubmit() {
     if (!files.length || !type) return;
     const total = files.length;
-    let subidas = 0;
-    let errores = 0;
+    let subidas = 0, errores = 0;
 
     try {
       setUploading(true);
-      setMensajeFinal("");
-
+      setFinalMsg(""); setFinalOk(null);
       const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) throw new Error("Usuario no autenticado");
+      if (userError || !user) throw new Error("no-auth");
 
       for (let i = 0; i < total; i++) {
         setUploadIndex(i);
@@ -155,16 +144,14 @@ export default function UploadModal({ onClose, onUploaded }) {
         iniciarProgreso();
 
         try {
-          const formData = new FormData();
-          formData.append("imagen", files[i]);
-          formData.append("usuario_id", user.id);
-          formData.append("tipo", type);
-          formData.append("genero", "unisex");
-
-          await axios.post(`${API_URL}/api/subir-prenda`, formData, {
+          const fd = new FormData();
+          fd.append("imagen", files[i]);
+          fd.append("usuario_id", user.id);
+          fd.append("tipo", type);
+          fd.append("genero", "unisex");
+          await axios.post(`${API_URL}/api/subir-prenda`, fd, {
             headers: { "Content-Type": "multipart/form-data" },
           });
-
           completarProgreso();
           setStatuses(prev => { const s = [...prev]; s[i] = "done"; return s; });
           haptics.success();
@@ -181,22 +168,25 @@ export default function UploadModal({ onClose, onUploaded }) {
       }
 
       if (errores === 0) {
-        setMensajeFinal(`✅ ${subidas} prenda${subidas !== 1 ? "s" : ""} subida${subidas !== 1 ? "s" : ""} correctamente.`);
+        setFinalOk(true);
+        setFinalMsg(`${subidas} prenda${subidas !== 1 ? "s" : ""} subida${subidas !== 1 ? "s" : ""} correctamente`);
         setTimeout(() => { resetTodo(); setType(null); setStep(1); }, 2000);
       } else {
-        setMensajeFinal(`✅ ${subidas} subida${subidas !== 1 ? "s" : ""} · ⚠️ ${errores} con error`);
+        setFinalOk(false);
+        setFinalMsg(`${subidas} subida${subidas !== 1 ? "s" : ""} · ${errores} con error`);
       }
-    } catch (err) {
-      console.error("❌ Error:", err);
-      setMensajeFinal("⚠️ Error de autenticación. Recarga la página.");
+    } catch {
+      setFinalOk(false);
+      setFinalMsg("Error de autenticación. Recarga la página.");
     } finally {
       setUploading(false);
     }
   }
 
-  const esMulti   = type === "prenda";
+  const esMulti    = type === "prenda";
   const tieneFiles = files.length > 0;
-  const yaTermino  = uploading === false && statuses.some(s => s === "done");
+  const pendientes = files.filter((_, i) => statuses[i] === "pending").length;
+  const etapa      = etapaInfo(progreso);
 
   return (
     <div className="up-overlay" onClick={onClose}>
@@ -224,13 +214,15 @@ export default function UploadModal({ onClose, onUploaded }) {
               <span className="up-step-label">Imágenes</span>
             </span>
           </div>
-          <button className="up-close" onClick={onClose} aria-label="Cerrar">✕</button>
+          <button className="up-close" onClick={onClose} aria-label="Cerrar">
+            <X size={14} />
+          </button>
         </header>
 
         {/* ── Body ── */}
         <div className="up-body">
 
-          {/* Step 1 — elegir tipo */}
+          {/* Step 1 */}
           {step === 1 && (
             <div className="up-step-1">
               <h2 className="up-title">Subir al closet</h2>
@@ -241,26 +233,26 @@ export default function UploadModal({ onClose, onUploaded }) {
               <div className="up-type-grid">
                 <button className="up-type-card" onClick={() => pickType("prenda")}>
                   <div className="up-type-icon up-type-icon-lilac">
-                    <span className="up-type-emoji">👕</span>
+                    <Shirt size={22} strokeWidth={1.6} />
                     <span className="up-type-glow" />
                   </div>
                   <div className="up-type-text">
                     <h3>Prenda individual</h3>
-                    <p>Una o varias prendas · la IA detecta categoría, color y estilo</p>
+                    <p>Una o varias prendas — la IA detecta categoría, color y estilo</p>
                   </div>
-                  <span className="up-arrow">→</span>
+                  <ArrowRight size={16} className="up-arrow-icon" />
                 </button>
 
                 <button className="up-type-card" onClick={() => pickType("outfit")}>
                   <div className="up-type-icon up-type-icon-sage">
-                    <span className="up-type-emoji">🧥</span>
+                    <Layers size={22} strokeWidth={1.6} />
                     <span className="up-type-glow" />
                   </div>
                   <div className="up-type-text">
                     <h3>Outfit completo</h3>
-                    <p>Look entero · la IA separa cada prenda en tu closet</p>
+                    <p>Look entero — la IA separa cada prenda en tu closet</p>
                   </div>
-                  <span className="up-arrow">→</span>
+                  <ArrowRight size={16} className="up-arrow-icon" />
                 </button>
               </div>
 
@@ -271,7 +263,7 @@ export default function UploadModal({ onClose, onUploaded }) {
             </div>
           )}
 
-          {/* Step 2 — subir imagen(es) */}
+          {/* Step 2 */}
           {step === 2 && (
             <div className="up-step-2">
               <h2 className="up-title">
@@ -283,19 +275,11 @@ export default function UploadModal({ onClose, onUploaded }) {
                   : "Foto del look completo — la IA detectará cada pieza."}
               </p>
 
-              {/* Input múltiple oculto (solo web) */}
               {esMulti && (
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  style={{ display: "none" }}
-                  onChange={handleFileInput}
-                />
+                <input ref={fileInputRef} type="file" accept="image/*" multiple
+                  style={{ display: "none" }} onChange={handleFileInput} />
               )}
 
-              {/* Drop zone — siempre visible para agregar más fotos */}
               {!tieneFiles ? (
                 <div
                   className={`up-drop ${dragActive ? "drag" : ""}`}
@@ -303,12 +287,11 @@ export default function UploadModal({ onClose, onUploaded }) {
                   onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
                   onDragLeave={() => setDragActive(false)}
                   onDrop={onDrop}
-                  role="button"
-                  tabIndex={0}
+                  role="button" tabIndex={0}
                   onKeyDown={(e) => e.key === "Enter" && handlePickPhoto()}
                 >
                   <div className="up-drop-icon">
-                    <span>📸</span>
+                    <Camera size={32} strokeWidth={1.4} />
                     <span className="up-drop-pulse" />
                   </div>
                   <h3 className="up-drop-title">
@@ -325,21 +308,19 @@ export default function UploadModal({ onClose, onUploaded }) {
                 </div>
               ) : (
                 <div className="up-multi-wrap">
-                  {/* Grid de miniaturas */}
                   <div className="up-files-grid">
                     {files.map((f, i) => (
-                      <div
-                        key={i}
-                        className={`up-file-thumb up-file-thumb--${statuses[i] || "pending"}`}
-                      >
+                      <div key={i} className={`up-file-thumb up-file-thumb--${statuses[i] || "pending"}`}>
                         <img src={previews[i]} alt={f.name} />
                         <div className="up-file-status-icon">
-                          {statuses[i] === "uploading" && <span className="up-spinner-mini" />}
-                          {statuses[i] === "done"      && <span>✅</span>}
-                          {statuses[i] === "error"     && <span>⚠️</span>}
+                          {statuses[i] === "uploading" && <Loader2 size={14} className="up-spin" />}
+                          {statuses[i] === "done"      && <CheckCircle2 size={14} className="up-icon-done" />}
+                          {statuses[i] === "error"     && <AlertTriangle size={14} className="up-icon-error" />}
                         </div>
                         {!uploading && statuses[i] === "pending" && (
-                          <button className="up-file-remove" onClick={() => quitarArchivo(i)}>✕</button>
+                          <button className="up-file-remove" onClick={() => quitarArchivo(i)}>
+                            <X size={10} />
+                          </button>
                         )}
                         {uploading && statuses[i] === "uploading" && (
                           <div className="up-file-progress-bar">
@@ -349,25 +330,20 @@ export default function UploadModal({ onClose, onUploaded }) {
                       </div>
                     ))}
 
-                    {/* Botón para agregar más (solo si no está subiendo) */}
                     {!uploading && esMulti && (
-                      <button
-                        className="up-file-add"
-                        onClick={() => fileInputRef.current?.click()}
-                        title="Agregar más fotos"
-                      >
-                        <span>+</span>
+                      <button className="up-file-add" onClick={() => fileInputRef.current?.click()} title="Agregar más fotos">
+                        <Plus size={20} strokeWidth={1.8} />
                         <span className="up-file-add-label">Agregar</span>
                       </button>
                     )}
                   </div>
 
-                  {/* Progreso global mientras sube */}
                   {uploading && (
                     <div className="up-multi-progress">
                       <div className="up-multi-progress-header">
                         <span className="up-multi-label">
-                          {etapaLabel(progreso)}
+                          <etapa.Icon size={13} className="up-etapa-icon" />
+                          {etapa.label}
                         </span>
                         <span className="up-multi-counter">
                           Subiendo ({uploadIndex + 1}/{files.length})
@@ -381,7 +357,14 @@ export default function UploadModal({ onClose, onUploaded }) {
                 </div>
               )}
 
-              {mensajeFinal && <p className="mensaje-ia">{mensajeFinal}</p>}
+              {finalMsg && (
+                <p className={`mensaje-ia ${finalOk ? "mensaje-ia--ok" : "mensaje-ia--err"}`}>
+                  {finalOk
+                    ? <CheckCircle2 size={14} className="up-icon-done" />
+                    : <AlertTriangle size={14} className="up-icon-error" />}
+                  {finalMsg}
+                </p>
+              )}
             </div>
           )}
 
@@ -390,27 +373,23 @@ export default function UploadModal({ onClose, onUploaded }) {
         {/* ── Footer ── */}
         <footer className="up-footer">
           {step === 2 && (
-            <button
-              className="up-btn up-btn-ghost"
-              onClick={() => { resetTodo(); setType(null); setMensajeFinal(""); setStep(1); }}
-              disabled={uploading}
-            >
-              ← Atrás
+            <button className="up-btn up-btn-ghost"
+              onClick={() => { resetTodo(); setType(null); setFinalMsg(""); setStep(1); }}
+              disabled={uploading}>
+              <ArrowLeft size={15} /> Atrás
             </button>
           )}
           <span style={{ flex: 1 }} />
           {step === 2 && tieneFiles && (
-            <button
-              className="up-btn up-btn-primary"
-              onClick={onSubmit}
-              disabled={uploading || !files.some((_,i) => statuses[i] === "pending")}
-            >
-              {uploading
-                ? <><span className="up-spinner" /> Subiendo…</>
-                : files.length === 1
-                  ? "Subir y analizar →"
-                  : `Subir ${files.filter((_,i) => statuses[i] === "pending").length} prenda${files.filter((_,i) => statuses[i] === "pending").length !== 1 ? "s" : ""} →`
-              }
+            <button className="up-btn up-btn-primary" onClick={onSubmit}
+              disabled={uploading || pendientes === 0}>
+              {uploading ? (
+                <><Loader2 size={14} className="up-spin" /> Subiendo…</>
+              ) : files.length === 1 ? (
+                <>Subir y analizar <ArrowRight size={14} /></>
+              ) : (
+                <>Subir {pendientes} prenda{pendientes !== 1 ? "s" : ""} <ArrowRight size={14} /></>
+              )}
             </button>
           )}
         </footer>
