@@ -3,11 +3,14 @@ import { Capacitor } from '@capacitor/core';
 export function useNativeCamera() {
   const isNative = Capacitor.isNativePlatform();
 
-  async function pickPhoto() {
+  async function pickPhoto(sourceOverride = null) {
     if (isNative) {
       const { Camera, CameraSource, CameraResultType } = await import('@capacitor/camera');
+      const source = sourceOverride === 'camera' ? CameraSource.Camera
+                   : sourceOverride === 'photos' ? CameraSource.Photos
+                   : CameraSource.Prompt;
       const photo = await Camera.getPhoto({
-        source: CameraSource.Prompt,
+        source,
         resultType: CameraResultType.Base64,
         quality: 85,
         allowEditing: false,

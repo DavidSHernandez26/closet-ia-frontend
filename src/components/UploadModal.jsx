@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   Upload, Scissors, Brain, CheckCircle2, AlertTriangle,
-  Camera, Shirt, Layers, ArrowRight, ArrowLeft, RotateCcw,
+  Camera, Image, Shirt, Layers, ArrowRight, ArrowLeft, RotateCcw,
   X, Plus, Loader2,
 } from "lucide-react";
 import "./UploadModal.css";
@@ -49,12 +49,13 @@ export default function UploadModal({ onClose, onUploaded }) {
   const [uploading, setUploading]   = useState(false);
   const [progreso, setProgreso]     = useState(0);
 
-  const [files,        setFiles]        = useState([]);
-  const [previews,     setPreviews]     = useState([]);
-  const [statuses,     setStatuses]     = useState([]);
-  const [uploadIndex,  setUploadIndex]  = useState(0);
-  const [finalOk,      setFinalOk]      = useState(null); // true | false | null
-  const [finalMsg,     setFinalMsg]     = useState("");
+  const [files,             setFiles]             = useState([]);
+  const [previews,          setPreviews]          = useState([]);
+  const [statuses,          setStatuses]          = useState([]);
+  const [uploadIndex,       setUploadIndex]       = useState(0);
+  const [finalOk,           setFinalOk]           = useState(null);
+  const [finalMsg,          setFinalMsg]          = useState("");
+  const [showSourcePicker,  setShowSourcePicker]  = useState(false);
 
   const intervaloRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -109,14 +110,25 @@ export default function UploadModal({ onClose, onUploaded }) {
 
   const handleFileInput = (e) => { agregarArchivos(e.target.files); e.target.value = ""; };
 
-  const handlePickPhoto = async () => {
-    // En web (no nativo) abrimos el input multi-archivo para prendas
-    if (type === "prenda" && !Capacitor.isNativePlatform() && fileInputRef.current) {
-      fileInputRef.current.click();
+  const handlePickPhoto = async (sourceOverride = null) => {
+    // En web: abre el input multi-archivo directamente
+    if (!Capacitor.isNativePlatform()) {
+      fileInputRef.current?.click();
       return;
     }
-    // En nativo (Android/iOS) siempre mostramos el prompt Cámara / Galería
-    const f = await pickPhoto();
+    // En nativo con prenda y sin fuente definida: muestra el picker Cámara/Galería
+    if (type === "prenda" && sourceOverride === null) {
+      setShowSourcePicker(true);
+      return;
+    }
+    setShowSourcePicker(false);
+    // Para galería en nativo: usa el file input del WebView (multi-select)
+    if (sourceOverride === "photos") {
+      fileInputRef.current?.click();
+      return;
+    }
+    // Cámara (o outfit con prompt)
+    const f = await pickPhoto(sourceOverride);
     if (f) agregarArchivos([f]);
   };
 
@@ -339,7 +351,7 @@ export default function UploadModal({ onClose, onUploaded }) {
                     {!uploading && esMulti && (
                       <button
                         className="up-file-add"
-                        onClick={() => Capacitor.isNativePlatform() ? handlePickPhoto() : fileInputRef.current?.click()}
+                        onClick={handlePickPhoto}
                         title="Agregar más fotos"
                       >
                         <Plus size={20} strokeWidth={1.8} />
@@ -379,6 +391,22 @@ export default function UploadModal({ onClose, onUploaded }) {
           )}
 
         </div>
+
+        {/* ── Source picker nativo (Cámara / Galería) ── */}
+        {showSourcePicker && (
+          <div className="up-source-overlay" onClick={() => setShowSourcePicker(false)}>
+            <div className="up-source-picker" onClick={(e) => e.stopPropagation()}>
+              <button className="up-source-btn" onClick={() => handlePickPhoto("camera")}>
+                <Camera size={26} strokeWidth={1.5} />
+                <span>Tomar foto</span>
+              </button>
+              <button className="up-source-btn" onClick={() => handlePickPhoto("photos")}>
+                <Image size={26} strokeWidth={1.5} />
+                <span>Elegir de galería</span>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* ── Footer ── */}
         <footer className="up-footer">

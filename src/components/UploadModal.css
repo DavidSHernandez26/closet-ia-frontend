@@ -752,3 +752,47 @@ body.light-mode .mensaje-ia { color: #4a3877 !important; }
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
+
+/* ── Source picker nativo (Cámara / Galería) ── */
+.up-source-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  background: rgba(8, 1, 26, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: flex-end;
+  border-radius: inherit;
+}
+
+.up-source-picker {
+  width: 100%;
+  background: rgba(22, 6, 54, 0.98);
+  border-top: 1px solid rgba(139, 92, 246, 0.25);
+  border-radius: 0 0 18px 18px;
+  padding: 16px 16px 20px;
+  display: flex;
+  gap: 12px;
+}
+
+.up-source-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 18px 12px;
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  border-radius: 14px;
+  color: #e2d9f3;
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.up-source-btn:active {
+  background: rgba(139, 92, 246, 0.25);
+  border-color: rgba(139, 92, 246, 0.5);
+}
