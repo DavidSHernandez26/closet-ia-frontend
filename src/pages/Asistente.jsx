@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Footprints, Briefcase, Moon, Zap, PartyPopper, Plane, Trash2, Shirt, Mic, MicOff, History, X } from "lucide-react";
+import { Footprints, Briefcase, Moon, Zap, PartyPopper, Plane, Trash2, Shirt, Mic, MicOff, History, X, Flame } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
+import { LocalNotifications } from "@capacitor/local-notifications";
 import axios from "axios";
 import "./Asistente.css";
 import VirtualMannequin from "../components/VirtualMannequin";
@@ -72,6 +73,7 @@ export default function Asistente({ usuarioId }) {
   const [showForecast,   setShowForecast]   = useState(false);
   const [escuchando,     setEscuchando]     = useState(false);
   const [showHistorial,  setShowHistorial]  = useState(false);
+  const [racha,          setRacha]          = useState(0);
   const [historial,      setHistorial]      = useState(() => {
     try { return JSON.parse(localStorage.getItem(`asistente_historial_${usuarioId}`)) || []; }
     catch { return []; }
@@ -185,6 +187,47 @@ export default function Asistente({ usuarioId }) {
   useEffect(() => {
     getWeather().then(setClima).catch(() => {});
   }, []);
+
+  // Carga racha y programa notificación diaria
+  useEffect(() => {
+    if (!token) return;
+    axios.get(`${API_URL}/api/racha`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).then(res => {
+      const { racha: r, registroHoy } = res.data;
+      setRacha(r);
+      programarNotificacion(r, registroHoy);
+    }).catch(() => {});
+  }, [token]);
+
+  async function programarNotificacion(r, registroHoy) {
+    if (!Capacitor.isNativePlatform()) return;
+    try {
+      const { display } = await LocalNotifications.requestPermissions();
+      if (display !== "granted") return;
+      await LocalNotifications.cancel({ notifications: [{ id: 77 }] });
+
+      const mañana = new Date();
+      mañana.setDate(mañana.getDate() + (registroHoy ? 1 : 0));
+      mañana.setHours(19, 0, 0, 0);
+      if (mañana <= new Date()) mañana.setDate(mañana.getDate() + 1);
+
+      const body = r > 1
+        ? `🔥 Llevas ${r} días seguidos. ¡Elige tu outfit y no pierdas la racha!`
+        : "¿Ya tienes tu outfit de hoy? Arma uno con IA ✨";
+
+      await LocalNotifications.schedule({
+        notifications: [{
+          id: 77,
+          title: "Be: Confident",
+          body,
+          schedule: { at: mañana },
+          smallIcon: "ic_launcher",
+          iconColor: "#8b5cf6",
+        }],
+      });
+    } catch { /* notificaciones no críticas */ }
+  }
 
   // Prefetch prendas al entrar al modo probador para que el swap sea instantáneo
   useEffect(() => {
@@ -544,6 +587,12 @@ export default function Asistente({ usuarioId }) {
               </div>
 
               <div className="asistente-hud-right">
+                {racha > 0 && (
+                  <div className="racha-badge" title={`${racha} día${racha !== 1 ? "s" : ""} seguido${racha !== 1 ? "s" : ""} con outfit`}>
+                    <Flame size={13} />
+                    <span>{racha}</span>
+                  </div>
+                )}
                 {clima && (
                   <div
                     className={`clima-chip ${showForecast ? "clima-chip--open" : ""}`}
@@ -862,62 +911,6 @@ export default function Asistente({ usuarioId }) {
           </div>}
         </div>
 
-        {/* ── Modal calendario ── */}
-        {showCalPicker && (
-          <div className="cal-picker-overlay" onClick={() => setShowCalPicker(false)}>
-            <div className="cal-picker-modal" onClick={(e) => e.stopPropagation()}>
-              <button className="cal-picker-close" onClick={() => setShowCalPicker(false)}>✕</button>
-              <h3>📅 Agregar al calendario</h3>
-              <p>Selecciona el día en que usarás este outfit</p>
-              <input
-                type="date"
-                className="cal-picker-input"
-                value={fechaSeleccionada}
-                onChange={(e) => setFechaSeleccionada(e.target.value)}
-              />
-              <button className="cal-picker-confirm" onClick={handleGuardarCalendario}>
-                Guardar outfit
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ── Modal swap (intercambiar prenda) ── */}
-        {swapTipo && (() => {
-          const filtradas = swapPrendas.filter(p => getTipoPrenda(p.descripcion || "") === swapTipo);
-          const etiquetas = {
-            "gorra": "gorras", "abrigo": "chaquetas / abrigos",
-            "parte superior": "camisetas", "parte inferior": "pantalones",
-            "calzado": "calzado", "accesorio": "accesorios",
-          };
-          return (
-            <div className="cal-picker-overlay" onClick={() => setSwapTipo(null)}>
-              <div className="swap-modal" onClick={(e) => e.stopPropagation()}>
-                <button className="cal-picker-close" onClick={() => setSwapTipo(null)}>✕</button>
-                <h3>Cambiar {etiquetas[swapTipo] || swapTipo}</h3>
-                <p>Solo se muestran prendas de esta categoría</p>
-                {swapLoading ? (
-                  <div className="swap-loading">
-                    <div className="chat-loader">
-                      <span className="dot" /><span className="dot" /><span className="dot" />
-                    </div>
-                  </div>
-                ) : filtradas.length === 0 ? (
-                  <p className="swap-empty">No tienes {etiquetas[swapTipo] || swapTipo} en tu closet.</p>
-                ) : (
-                  <div className="swap-grid">
-                    {filtradas.map(p => (
-                      <div key={p.id} className="swap-item" onClick={() => handleSeleccionarPrenda(p)}>
-                        <img src={p.imagen_url} alt={p.descripcion} />
-                        <span>{p.descripcion?.split(" - ")[0]}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })()}
       </div>
 
       {/* ══════════════════════════════════════
@@ -1020,6 +1013,63 @@ export default function Asistente({ usuarioId }) {
           )}
         </div>
       </div>
+
+      {/* ── Modal calendario (fuera del fondo para z-index correcto) ── */}
+      {showCalPicker && (
+        <div className="cal-picker-overlay" onClick={() => setShowCalPicker(false)}>
+          <div className="cal-picker-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="cal-picker-close" onClick={() => setShowCalPicker(false)}>✕</button>
+            <h3>📅 Agregar al calendario</h3>
+            <p>Selecciona el día en que usarás este outfit</p>
+            <input
+              type="date"
+              className="cal-picker-input"
+              value={fechaSeleccionada}
+              onChange={(e) => setFechaSeleccionada(e.target.value)}
+            />
+            <button className="cal-picker-confirm" onClick={handleGuardarCalendario}>
+              Guardar outfit
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal swap (fuera del fondo para z-index correcto) ── */}
+      {swapTipo && (() => {
+        const filtradas = swapPrendas.filter(p => getTipoPrenda(p.descripcion || "") === swapTipo);
+        const etiquetas = {
+          "gorra": "gorras", "abrigo": "chaquetas / abrigos",
+          "parte superior": "camisetas", "parte inferior": "pantalones",
+          "calzado": "calzado", "accesorio": "accesorios",
+        };
+        return (
+          <div className="cal-picker-overlay" onClick={() => setSwapTipo(null)}>
+            <div className="swap-modal" onClick={(e) => e.stopPropagation()}>
+              <button className="cal-picker-close" onClick={() => setSwapTipo(null)}>✕</button>
+              <h3>Cambiar {etiquetas[swapTipo] || swapTipo}</h3>
+              <p>Solo se muestran prendas de esta categoría</p>
+              {swapLoading ? (
+                <div className="swap-loading">
+                  <div className="chat-loader">
+                    <span className="dot" /><span className="dot" /><span className="dot" />
+                  </div>
+                </div>
+              ) : filtradas.length === 0 ? (
+                <p className="swap-empty">No tienes {etiquetas[swapTipo] || swapTipo} en tu closet.</p>
+              ) : (
+                <div className="swap-grid">
+                  {filtradas.map(p => (
+                    <div key={p.id} className="swap-item" onClick={() => handleSeleccionarPrenda(p)}>
+                      <img src={p.imagen_url} alt={p.descripcion} />
+                      <span>{p.descripcion?.split(" - ")[0]}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ── FAB Historial ── */}
       {historial.length > 0 && (
