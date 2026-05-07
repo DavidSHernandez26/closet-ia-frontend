@@ -121,14 +121,19 @@ export async function getWeather() {
     };
   });
 
+  const rainProbHoy = daily.precipitation_probability_max?.[0] ?? 0;
+
   return {
     temp,
     feels,
     wind,
     city,
-    icon:     info.icon,
-    label:    info.label,
+    lat,
+    lon,
+    icon:       info.icon,
+    label:      info.label,
+    rain_prob:  rainProbHoy,
     forecast,
-    resumen:  `${info.label}, ${temp}°C (sensación ${feels}°C), viento ${wind} km/h en ${city}`,
+    resumen:    `${info.label}, ${temp}°C (sensación ${feels}°C), viento ${wind} km/h en ${city}`,
   };
 }

@@ -184,8 +184,48 @@ export default function Asistente({ usuarioId }) {
     );
   }, []);
 
+  const lastWeatherRef = useRef(0);
+  const WEATHER_TTL    = 20 * 60 * 1000; // refrescar si han pasado 20 min o si hay nueva ubicación
+
+  async function actualizarClima(forzar = false) {
+    const ahora = Date.now();
+    if (!forzar && ahora - lastWeatherRef.current < WEATHER_TTL) return;
+    try {
+      const w = await getWeather();
+      // Si la ciudad cambió, es un viaje — siempre actualiza
+      setClima(prev => {
+        if (!prev || prev.city !== w.city || forzar) {
+          lastWeatherRef.current = ahora;
+          return w;
+        }
+        lastWeatherRef.current = ahora;
+        return w;
+      });
+    } catch { /* sin ubicación — no bloquear */ }
+  }
+
   useEffect(() => {
-    getWeather().then(setClima).catch(() => {});
+    actualizarClima(true); // primera carga siempre
+
+    // Refrescar cuando la app vuelve al frente (viaje, bloqueo de pantalla, etc.)
+    const onVisible = () => {
+      if (document.visibilityState === "visible") actualizarClima();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+
+    let appListener = null;
+    if (Capacitor.isNativePlatform()) {
+      import("@capacitor/app").then(({ App }) => {
+        App.addListener("appStateChange", ({ isActive }) => {
+          if (isActive) actualizarClima();
+        }).then(l => { appListener = l; });
+      }).catch(() => {});
+    }
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      appListener?.remove?.();
+    };
   }, []);
 
   // Carga racha y programa notificación diaria
@@ -302,7 +342,14 @@ export default function Asistente({ usuarioId }) {
         mensaje: texto,
         historial: chat.slice(-8),
         outfit_ids_anteriores: outfitIds,
-        clima: clima?.resumen || null,
+        clima: clima ? {
+          temp:      clima.temp,
+          feels:     clima.feels,
+          wind:      clima.wind,
+          city:      clima.city,
+          label:     clima.label,
+          rain_prob: clima.rain_prob ?? 0,
+        } : null,
       });
 
       haptics.success();
