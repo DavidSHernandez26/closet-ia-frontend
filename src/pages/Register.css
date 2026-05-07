@@ -1,156 +1,70 @@
 /* ============================================================
-   Register.css — Be: Confident
-   Extra styles for the Register page (password strength meter,
-   rules checklist, confirm mismatch, loading spinner,
-   inline error / info messages).
-   Import this AFTER Auth.css in Register.jsx.
+   Register.css — Be: Confident (Waitlist mode)
    ============================================================ */
 
-/* Password strength panel (slides open when user starts typing) */
-.strength-panel {
-  max-height: 0;
-  opacity: 0;
-  overflow: hidden;
-  transition:
-    max-height 0.4s cubic-bezier(0.2, 0.8, 0.2, 1),
-    opacity 0.3s ease,
-    margin 0.3s ease;
-  margin: 0;
-}
-.strength-panel.open {
-  max-height: 280px;
-  opacity: 1;
-  margin: 12px 0 14px;
+/* ── Beta badge ── */
+.be-waitlist-badge {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 11px 14px;
+  border-radius: 12px;
+  background: rgba(196, 181, 232, 0.07);
+  border: 1px solid rgba(196, 181, 232, 0.16);
+  color: rgba(244, 244, 249, 0.65);
+  font-size: 13px;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
 }
 
-/* Strength bar (overrides the minimal one in Auth.css if present) */
-.password-strength-bar {
-  position: relative;
-  width: 100%;
-  height: 6px;
-  background: rgba(196, 181, 232, 0.1);
-  border-radius: 999px;
-  overflow: hidden;
-}
-.strength-fill {
-  height: 100%;
-  width: 0;
-  border-radius: 999px;
-  transition:
-    width 0.5s cubic-bezier(0.2, 0.8, 0.2, 1),
-    background-color 0.35s ease;
-  box-shadow: 0 0 10px currentColor;
+.be-waitlist-badge svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--be-accent);
 }
 
-.strength-label {
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-weight: 600;
-  margin: 8px 0 10px;
-  text-align: right;
-  transition: color 0.3s ease;
+/* ── Success state ── */
+.be-waitlist-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+  animation: wl-fade-up 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
-/* Rules checklist */
-.strength-rules {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  gap: 6px;
-  text-align: left;
+@keyframes wl-fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-.strength-rules .rule {
+
+.be-waitlist-check {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(132, 160, 124, 0.12);
+  border: 1px solid rgba(132, 160, 124, 0.3);
   display: flex;
   align-items: center;
-  gap: 9px;
-  font-size: 0.8rem;
-  letter-spacing: -0.005em;
-  transition: color 0.25s ease, transform 0.25s ease;
-}
-.strength-rules .rule-pending {
-  color: rgba(244, 244, 249, 0.45);
-}
-.strength-rules .rule-ok {
-  color: #84A07C;
-  transform: translateX(2px);
-}
-.strength-rules .rule-icon {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  transition: background 0.3s ease, color 0.3s ease, transform 0.3s ease;
-}
-.rule-pending .rule-icon {
-  background: rgba(244, 244, 249, 0.08);
-  color: rgba(244, 244, 249, 0.5);
-}
-.rule-ok .rule-icon {
-  background: rgba(132, 160, 124, 0.2);
-  color: #84A07C;
-  animation: rule-pop 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.4);
-}
-@keyframes rule-pop {
-  0%   { transform: scale(0.5); }
-  60%  { transform: scale(1.25); }
-  100% { transform: scale(1); }
+  color: var(--be-green);
+  animation: wl-pop 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.4) 0.1s both;
 }
 
-/* Confirm password mismatch warning */
-.confirm-mismatch {
-  color: #ff7a7a;
-  font-size: 0.8rem;
-  margin: 8px 0 0;
-  text-align: left;
-  animation: reg-shake 0.3s ease;
-}
-@keyframes reg-shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-3px); }
-  75% { transform: translateX(3px); }
+@keyframes wl-pop {
+  from { transform: scale(0.6); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
 }
 
-/* Inline error / info messages */
-.auth-error-inline {
-  color: #ff7a7a;
-  font-size: 0.82rem;
-  margin: 10px 0 0;
-  text-align: left;
-  line-height: 1.4;
-}
-.auth-info-inline {
-  color: #84A07C;
-  font-size: 0.82rem;
-  margin: 10px 0 0;
-  text-align: left;
-  line-height: 1.4;
-}
-.shake { animation: reg-shake-hard 0.35s ease; }
-@keyframes reg-shake-hard {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-4px); }
-  40% { transform: translateX(4px); }
-  60% { transform: translateX(-3px); }
-  80% { transform: translateX(3px); }
+.be-waitlist-success .be-sub {
+  max-width: 300px;
 }
 
-/* Loading spinner inside button */
-.btn-loading {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+.be-waitlist-success .be-sub strong {
+  color: var(--be-accent);
+  font-weight: 500;
 }
-.spin { animation: spin 0.9s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
 
-.auth-btn:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-  filter: grayscale(0.15);
-  transform: none;
+.be-waitlist-success .be-submit-btn {
+  width: 100%;
 }
