@@ -402,6 +402,17 @@ body.light-mode .amigos-avatar-sm, body.light-mode .amigos-avatar-md { backgroun
   .amigos-search-input { font-size: 16px !important; }
 }
 
+/* En móvil, backdrop-filter en perfil-window provoca repaints en GPU
+   cada vez que carga una imagen de la cuadrícula — causa el destello.
+   El fondo detrás es el color sólido de la app, así que la diferencia es imperceptible. */
+@media (max-width: 899px) {
+  .perfil-window {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(20, 8, 48, 0.96) !important;
+  }
+}
+
 @media (min-width: 640px) {
   .perfil-avatar {
     width: 110px;

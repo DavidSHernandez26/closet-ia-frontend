@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, memo } from "react";
 import { useTheme } from "next-themes";
 import {
   BrowserRouter as Router,
@@ -51,15 +51,15 @@ const PageFallback = () => (
   <div className="loading-screen"><p>Cargando...</p></div>
 );
 
-function PrivateRoute({ children, session, perfilListo, usuarioId, onPerfilComplete }) {
-  if (!session) return <Navigate to="/waitlist" replace />;
+function PrivateRoute({ children, isAuthenticated, perfilListo, usuarioId, onPerfilComplete }) {
+  if (!isAuthenticated) return <Navigate to="/waitlist" replace />;
   if (!perfilListo) return (
     <SetupPerfil usuarioId={usuarioId} onComplete={onPerfilComplete} />
   );
   return children;
 }
 
-function AnimatedRoutes({ usuarioId, refreshCloset, session, perfilListo, onPerfilComplete }) {
+const AnimatedRoutes = memo(function AnimatedRoutes({ usuarioId, refreshCloset, isAuthenticated, perfilListo, onPerfilComplete }) {
   const location = useLocation();
   const isFixed = location.pathname === "/" || location.pathname === "/closet";
 
@@ -70,7 +70,7 @@ function AnimatedRoutes({ usuarioId, refreshCloset, session, perfilListo, onPerf
 
   const guard = (children) => (
     <PrivateRoute
-      session={session}
+      isAuthenticated={isAuthenticated}
       perfilListo={perfilListo}
       usuarioId={usuarioId}
       onPerfilComplete={onPerfilComplete}
@@ -97,7 +97,7 @@ function AnimatedRoutes({ usuarioId, refreshCloset, session, perfilListo, onPerf
       </Routes>
     </div>
   );
-}
+});
 
 /* ─── App principal ─── */
 
@@ -206,6 +206,10 @@ export default function App() {
     }
   }
 
+  const handlePerfilComplete = useCallback(() => setPerfilListo(true), []);
+  const handleUploaded = useCallback(() => setRefreshCloset((prev) => prev + 1), []);
+  const isAuthenticated = !!session;
+
   if (loadingSession) {
     return <div className="loading-screen"><p>Cargando aplicación...</p></div>;
   }
@@ -214,27 +218,27 @@ export default function App() {
     <Router>
       <ThemeSyncer />
       <div className="app-container">
-        {session && perfilListo && (
+        {isAuthenticated && perfilListo && (
           <Navbar
-            onUploaded={() => setRefreshCloset((prev) => prev + 1)}
+            onUploaded={handleUploaded}
             usuarioId={usuarioId}
           />
         )}
 
         <React.Suspense fallback={<PageFallback />}>
           <Routes>
-            <Route path="/waitlist" element={!session ? <Waitlist />  : <Navigate to="/" />} />
-            <Route path="/login"    element={!session ? <Login />     : <Navigate to="/" />} />
-            <Route path="/register" element={!session ? <Register />  : <Navigate to="/" />} />
+            <Route path="/waitlist" element={!isAuthenticated ? <Waitlist />  : <Navigate to="/" />} />
+            <Route path="/login"    element={!isAuthenticated ? <Login />     : <Navigate to="/" />} />
+            <Route path="/register" element={!isAuthenticated ? <Register />  : <Navigate to="/" />} />
 
             <Route path="*" element={
               <main className="main-content">
                 <AnimatedRoutes
                   usuarioId={usuarioId}
                   refreshCloset={refreshCloset}
-                  session={session}
+                  isAuthenticated={isAuthenticated}
                   perfilListo={perfilListo}
-                  onPerfilComplete={() => setPerfilListo(true)}
+                  onPerfilComplete={handlePerfilComplete}
                 />
               </main>
             } />
