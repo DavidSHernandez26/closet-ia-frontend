@@ -1,15 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
-
-function ThemeSyncer() {
-  const { resolvedTheme } = useTheme();
-  useEffect(() => {
-    const isDark = resolvedTheme !== "light";
-    document.body.classList.toggle("light-mode", !isDark);
-    document.body.classList.toggle("dark-mode", isDark);
-  }, [resolvedTheme]);
-  return null;
-}
 import {
   BrowserRouter as Router,
   Routes,
@@ -23,7 +13,6 @@ import { API_URL } from "./config";
 import "./App.css";
 import "./styles/animations.css";
 import { Capacitor } from "@capacitor/core";
-
 import Navbar from "./components/Navbar";
 
 // Lazy load — cada página se descarga solo cuando el usuario la visita
@@ -41,19 +30,86 @@ const Feed        = React.lazy(() => import("./pages/Feed"));
 // Token cacheado — se actualiza sincrónicamente desde onAuthStateChange
 let _authToken = null;
 
-// Interceptor síncrono: nunca puede colgar la app
 axios.interceptors.request.use((config) => {
   if (_authToken) config.headers["Authorization"] = `Bearer ${_authToken}`;
   return config;
 });
 
+/* ─── Componentes estables (definidos fuera de App para evitar remounts) ─── */
+
+function ThemeSyncer() {
+  const { resolvedTheme } = useTheme();
+  useEffect(() => {
+    const isDark = resolvedTheme !== "light";
+    document.body.classList.toggle("light-mode", !isDark);
+    document.body.classList.toggle("dark-mode", isDark);
+  }, [resolvedTheme]);
+  return null;
+}
+
+const PageFallback = () => (
+  <div className="loading-screen"><p>Cargando...</p></div>
+);
+
+function PrivateRoute({ children, session, perfilListo, usuarioId, onPerfilComplete }) {
+  if (!session) return <Navigate to="/waitlist" replace />;
+  if (!perfilListo) return (
+    <SetupPerfil usuarioId={usuarioId} onComplete={onPerfilComplete} />
+  );
+  return children;
+}
+
+function AnimatedRoutes({ usuarioId, refreshCloset, session, perfilListo, onPerfilComplete }) {
+  const location = useLocation();
+  const isFixed = location.pathname === "/" || location.pathname === "/closet";
+
+  useEffect(() => {
+    document.body.classList.toggle("page-overflow-hidden", isFixed);
+    return () => document.body.classList.remove("page-overflow-hidden");
+  }, [isFixed]);
+
+  const guard = (children) => (
+    <PrivateRoute
+      session={session}
+      perfilListo={perfilListo}
+      usuarioId={usuarioId}
+      onPerfilComplete={onPerfilComplete}
+    >
+      {children}
+    </PrivateRoute>
+  );
+
+  return (
+    <div
+      key={location.pathname}
+      className="page-enter"
+      style={{ [isFixed ? "height" : "minHeight"]: "100%", display: "flex", flexDirection: "column" }}
+    >
+      <Routes location={location}>
+        <Route path="/"                  element={guard(<Asistente  usuarioId={usuarioId} />)} />
+        <Route path="/feed"              element={guard(<Feed       usuarioId={usuarioId} />)} />
+        <Route path="/closet"            element={guard(<Closet     refresh={refreshCloset} />)} />
+        <Route path="/calendario"        element={guard(<Calendario usuarioId={usuarioId} />)} />
+        <Route path="/perfil"            element={guard(<Perfil     usuarioId={usuarioId} />)} />
+        <Route path="/perfil/:username"  element={guard(<Perfil     usuarioId={usuarioId} />)} />
+        <Route path="/amigos"            element={guard(<Amigos     usuarioId={usuarioId} />)} />
+        <Route path="*"                  element={<Navigate to="/" />} />
+      </Routes>
+    </div>
+  );
+}
+
+/* ─── App principal ─── */
+
 export default function App() {
-  const [session, setSession] = useState(null);
+  const [session,        setSession]        = useState(null);
   const [loadingSession, setLoadingSession] = useState(true);
+  const [refreshCloset,  setRefreshCloset]  = useState(0);
+  const [perfilListo,    setPerfilListo]    = useState(true);
+  const [usuarioId,      setUsuarioId]      = useState(null);
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
-
     let cleanup = () => {};
 
     async function initNative() {
@@ -84,44 +140,29 @@ export default function App() {
       async function setupNotifications() {
         const perm = await LocalNotifications.requestPermissions();
         if (perm.display !== "granted") return;
-
         const pending = await LocalNotifications.getPending();
-        const yaExiste = pending.notifications.some(n => n.id === 1001);
-        if (yaExiste) return;
-
+        if (pending.notifications.some(n => n.id === 1001)) return;
         const next8am = new Date();
         next8am.setHours(8, 0, 0, 0);
-        if (next8am <= new Date()) {
-          next8am.setDate(next8am.getDate() + 1);
-        }
-
+        if (next8am <= new Date()) next8am.setDate(next8am.getDate() + 1);
         await LocalNotifications.schedule({
           notifications: [{
             id: 1001,
             title: "✦ Closet IA",
             body: "¿Ya elegiste tu outfit para hoy? 👕",
-            schedule: {
-              at: next8am,
-              repeats: true,
-              allowWhileIdle: true,
-            },
+            schedule: { at: next8am, repeats: true, allowWhileIdle: true },
             sound: undefined,
             smallIcon: "ic_stat_icon_config_sample",
           }],
         });
       }
       setupNotifications();
-
       cleanup = () => { listenerHandle.then(h => h.remove()); };
     }
 
     initNative();
-
     return () => cleanup();
   }, []);
-  const [refreshCloset, setRefreshCloset] = useState(0);
-  const [perfilListo, setPerfilListo] = useState(true);
-  const [usuarioId, setUsuarioId] = useState(null);
 
   useEffect(() => {
     async function getSession() {
@@ -158,9 +199,7 @@ export default function App() {
 
   async function verificarPerfil(uid) {
     try {
-      const res = await axios.get(`${API_URL}/api/perfil/me`, {
-        params: { usuario_id: uid }
-      });
+      const res = await axios.get(`${API_URL}/api/perfil/me`, { params: { usuario_id: uid } });
       setPerfilListo(res.data?.setup_completo === true);
     } catch {
       setPerfilListo(true);
@@ -168,56 +207,7 @@ export default function App() {
   }
 
   if (loadingSession) {
-    return (
-      <div className="loading-screen">
-        <p>Cargando aplicación...</p>
-      </div>
-    );
-  }
-
-  function PrivateRoute({ children }) {
-    if (!session) return <Navigate to="/waitlist" replace />;
-    if (!perfilListo) return (
-      <SetupPerfil
-        usuarioId={usuarioId}
-        onComplete={() => setPerfilListo(true)}
-      />
-    );
-    return children;
-  }
-
-  const PageFallback = () => (
-    <div className="loading-screen"><p>Cargando...</p></div>
-  );
-
-  function AnimatedRoutes({ usuarioId, refreshCloset, PrivateRoute }) {
-    const location = useLocation();
-    const isFixed = location.pathname === "/" || location.pathname === "/closet";
-
-    useEffect(() => {
-      // Desktop: bloquea scroll del body en páginas fijas
-      document.body.classList.toggle("page-overflow-hidden", isFixed);
-      return () => document.body.classList.remove("page-overflow-hidden");
-    }, [isFixed]);
-
-    return (
-      <div
-        key={location.pathname}
-        className="page-enter"
-        style={{ [isFixed ? "height" : "minHeight"]: "100%", display: "flex", flexDirection: "column" }}
-      >
-        <Routes location={location}>
-          <Route path="/" element={<PrivateRoute><Asistente usuarioId={usuarioId} /></PrivateRoute>} />
-          <Route path="/feed" element={<PrivateRoute><Feed usuarioId={usuarioId} /></PrivateRoute>} />
-          <Route path="/closet" element={<PrivateRoute><Closet refresh={refreshCloset} /></PrivateRoute>} />
-          <Route path="/calendario" element={<PrivateRoute><Calendario usuarioId={usuarioId} /></PrivateRoute>} />
-          <Route path="/perfil" element={<PrivateRoute><Perfil usuarioId={usuarioId} /></PrivateRoute>} />
-          <Route path="/perfil/:username" element={<PrivateRoute><Perfil usuarioId={usuarioId} /></PrivateRoute>} />
-          <Route path="/amigos" element={<PrivateRoute><Amigos usuarioId={usuarioId} /></PrivateRoute>} />
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-      </div>
-    );
+    return <div className="loading-screen"><p>Cargando aplicación...</p></div>;
   }
 
   return (
@@ -233,16 +223,18 @@ export default function App() {
 
         <React.Suspense fallback={<PageFallback />}>
           <Routes>
-            <Route path="/waitlist" element={!session ? <Waitlist /> : <Navigate to="/" />} />
-            <Route path="/login" element={!session ? <Login /> : <Navigate to="/" />} />
-            <Route path="/register" element={!session ? <Register /> : <Navigate to="/" />} />
+            <Route path="/waitlist" element={!session ? <Waitlist />  : <Navigate to="/" />} />
+            <Route path="/login"    element={!session ? <Login />     : <Navigate to="/" />} />
+            <Route path="/register" element={!session ? <Register />  : <Navigate to="/" />} />
 
             <Route path="*" element={
               <main className="main-content">
                 <AnimatedRoutes
                   usuarioId={usuarioId}
                   refreshCloset={refreshCloset}
-                  PrivateRoute={PrivateRoute}
+                  session={session}
+                  perfilListo={perfilListo}
+                  onPerfilComplete={() => setPerfilListo(true)}
                 />
               </main>
             } />
