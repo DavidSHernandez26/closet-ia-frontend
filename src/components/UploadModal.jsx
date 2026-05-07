@@ -10,6 +10,7 @@ import axios from "axios";
 import { API_URL } from "../config";
 import { useNativeCamera } from "../hooks/useNativeCamera";
 import { haptics } from "../hooks/useHaptics";
+import { Capacitor } from "@capacitor/core";
 
 async function comprimirImagen(file, maxWidth = 1200, quality = 0.82) {
   return new Promise((resolve) => {
@@ -109,7 +110,12 @@ export default function UploadModal({ onClose, onUploaded }) {
   const handleFileInput = (e) => { agregarArchivos(e.target.files); e.target.value = ""; };
 
   const handlePickPhoto = async () => {
-    if (type === "prenda" && fileInputRef.current) { fileInputRef.current.click(); return; }
+    // En web (no nativo) abrimos el input multi-archivo para prendas
+    if (type === "prenda" && !Capacitor.isNativePlatform() && fileInputRef.current) {
+      fileInputRef.current.click();
+      return;
+    }
+    // En nativo (Android/iOS) siempre mostramos el prompt Cámara / Galería
     const f = await pickPhoto();
     if (f) agregarArchivos([f]);
   };
@@ -331,7 +337,11 @@ export default function UploadModal({ onClose, onUploaded }) {
                     ))}
 
                     {!uploading && esMulti && (
-                      <button className="up-file-add" onClick={() => fileInputRef.current?.click()} title="Agregar más fotos">
+                      <button
+                        className="up-file-add"
+                        onClick={() => Capacitor.isNativePlatform() ? handlePickPhoto() : fileInputRef.current?.click()}
+                        title="Agregar más fotos"
+                      >
                         <Plus size={20} strokeWidth={1.8} />
                         <span className="up-file-add-label">Agregar</span>
                       </button>
