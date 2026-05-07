@@ -21,7 +21,10 @@ export default function Perfil({ usuarioId }) {
   const [stats,           setStats]           = useState({ posts: 0, amigos: 0, prendas: 0 });
   const fileRef = useRef();
 
-  useEffect(() => { cargarPerfil(); }, [username, usuarioId]);
+  useEffect(() => {
+    if (!usuarioId && !username) return;
+    cargarPerfil();
+  }, [username, usuarioId]);
 
   useEffect(() => {
     if (perfil) {
@@ -153,46 +156,6 @@ export default function Perfil({ usuarioId }) {
     ...(esPropio ? [{ id: "guardados", label: "Guardados" }] : []),
   ];
 
-  function InfoBloque() {
-    if (editando) return (
-      <form onSubmit={handleGuardarPerfil} className="perfil-edit-form">
-        <div className="perfil-edit-field">
-          <span className="perfil-at">@</span>
-          <input value={form.username} onChange={e => setForm({ ...form, username: e.target.value.toLowerCase() })} placeholder="username" className="perfil-edit-input" style={{ paddingLeft: "28px" }} />
-        </div>
-        <input value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} placeholder="Nombre" className="perfil-edit-input" />
-        <textarea value={form.bio} onChange={e => setForm({ ...form, bio: e.target.value })} placeholder="Bio..." className="perfil-edit-textarea" rows={2} />
-        {errorEdit && <p className="perfil-edit-error">{errorEdit}</p>}
-        <div className="perfil-edit-actions">
-          <button type="submit" className="perfil-btn-action perfil-btn-primary">Guardar</button>
-          <button type="button" className="perfil-btn-action" onClick={() => setEditando(false)}>Cancelar</button>
-        </div>
-      </form>
-    );
-
-    return (
-      <>
-        <p className="perfil-nombre">{perfil.nombre || perfil.username}</p>
-        {perfil.bio && <p className="perfil-bio">{perfil.bio}</p>}
-        <div className="perfil-acciones">
-          {esPropio ? (
-            <>
-              <button className="perfil-btn-action" onClick={() => setEditando(true)}>Editar perfil</button>
-              <button className="perfil-btn-action">Compartir</button>
-            </>
-          ) : (
-            <>
-              {estadoAmistad.status === "none" && <button className="perfil-btn-action perfil-btn-primary" onClick={handleSolicitud}>Seguir</button>}
-              {solicitudPendiente && soyRequester && <button className="perfil-btn-action" disabled>Solicitud enviada</button>}
-              {solicitudPendiente && !soyRequester && <button className="perfil-btn-action perfil-btn-primary" onClick={() => navigate("/amigos")}>Responder solicitud</button>}
-              {esAmigo && <button className="perfil-btn-action perfil-btn-danger" onClick={handleEliminarAmistad}>Dejar de seguir</button>}
-            </>
-          )}
-        </div>
-      </>
-    );
-  }
-
   return (
     <div className="perfil-container">
       <div className="perfil-window">
@@ -230,7 +193,41 @@ export default function Perfil({ usuarioId }) {
               <div className="perfil-stat"><strong>{stats.prendas}</strong><span>prendas</span></div>
             </div>
           </div>
-          <InfoBloque />
+          {editando ? (
+            <form onSubmit={handleGuardarPerfil} className="perfil-edit-form">
+              <div className="perfil-edit-field">
+                <span className="perfil-at">@</span>
+                <input value={form.username} onChange={e => setForm({ ...form, username: e.target.value.toLowerCase() })} placeholder="username" className="perfil-edit-input" style={{ paddingLeft: "28px" }} />
+              </div>
+              <input value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} placeholder="Nombre" className="perfil-edit-input" />
+              <textarea value={form.bio} onChange={e => setForm({ ...form, bio: e.target.value })} placeholder="Bio..." className="perfil-edit-textarea" rows={2} />
+              {errorEdit && <p className="perfil-edit-error">{errorEdit}</p>}
+              <div className="perfil-edit-actions">
+                <button type="submit" className="perfil-btn-action perfil-btn-primary">Guardar</button>
+                <button type="button" className="perfil-btn-action" onClick={() => setEditando(false)}>Cancelar</button>
+              </div>
+            </form>
+          ) : (
+            <>
+              <p className="perfil-nombre">{perfil.nombre || perfil.username}</p>
+              {perfil.bio && <p className="perfil-bio">{perfil.bio}</p>}
+              <div className="perfil-acciones">
+                {esPropio ? (
+                  <>
+                    <button className="perfil-btn-action" onClick={() => setEditando(true)}>Editar perfil</button>
+                    <button className="perfil-btn-action">Compartir</button>
+                  </>
+                ) : (
+                  <>
+                    {estadoAmistad.status === "none" && <button className="perfil-btn-action perfil-btn-primary" onClick={handleSolicitud}>Seguir</button>}
+                    {solicitudPendiente && soyRequester && <button className="perfil-btn-action" disabled>Solicitud enviada</button>}
+                    {solicitudPendiente && !soyRequester && <button className="perfil-btn-action perfil-btn-primary" onClick={() => navigate("/amigos")}>Responder solicitud</button>}
+                    {esAmigo && <button className="perfil-btn-action perfil-btn-danger" onClick={handleEliminarAmistad}>Dejar de seguir</button>}
+                  </>
+                )}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Contenido */}
