@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>Closet IA</string>
+	<string>Be: Confident</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -25,13 +25,13 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Closet IA usa tu ubicación para mostrarte el clima y sugerirte outfits según el tiempo</string>
+	<string>Be: Confident usa tu ubicación para mostrarte el clima y sugerirte outfits según el tiempo</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Closet IA necesita acceso a tu cámara para fotografiar tus prendas</string>
+	<string>Be: Confident necesita acceso a tu cámara para fotografiar tus prendas</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Closet IA guardará fotos procesadas en tu fototeca</string>
+	<string>Be: Confident guardará fotos procesadas en tu fototeca</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Closet IA necesita acceso a tu fototeca para subir fotos de tus prendas</string>
+	<string>Be: Confident necesita acceso a tu fototeca para subir fotos de tus prendas</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
