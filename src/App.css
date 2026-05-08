@@ -31,6 +31,14 @@
   --border-light: rgba(15, 3, 38, 0.12);
   --text-muted-dark: rgba(244, 244, 249, 0.5);
   --text-muted-light: rgba(15, 3, 38, 0.5);
+  --keyboard-height: 0px;
+}
+
+/* iOS nativo: bloquear scroll del body para que el teclado no pan-ea la página */
+html.ios-native,
+html.ios-native body {
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
 }
 
 * { box-sizing: border-box; }

@@ -139,6 +139,21 @@ export default function App() {
         if (isActive) StatusBar.setStyle({ style: Style.Dark });
       });
 
+      // iOS: fijar la altura del teclado como variable CSS para que el layout
+      // se ajuste manualmente (resize:'none' en capacitor.config evita que el
+      // WebView se encoja, previniendo que el navbar "suba" con el teclado)
+      let kbShowHandle = null;
+      let kbHideHandle = null;
+      if (Capacitor.getPlatform() === 'ios') {
+        document.documentElement.classList.add('ios-native');
+        kbShowHandle = Keyboard.addListener('keyboardWillShow', ({ keyboardHeight }) => {
+          document.documentElement.style.setProperty('--keyboard-height', `${keyboardHeight}px`);
+        });
+        kbHideHandle = Keyboard.addListener('keyboardWillHide', () => {
+          document.documentElement.style.setProperty('--keyboard-height', '0px');
+        });
+      }
+
       async function setupNotifications() {
         const perm = await LocalNotifications.requestPermissions();
         if (perm.display !== "granted") return;
@@ -159,7 +174,11 @@ export default function App() {
         });
       }
       setupNotifications();
-      cleanup = () => { listenerHandle.then(h => h.remove()); };
+      cleanup = () => {
+        listenerHandle.then(h => h.remove());
+        kbShowHandle?.then(h => h.remove());
+        kbHideHandle?.then(h => h.remove());
+      };
     }
 
     initNative();
