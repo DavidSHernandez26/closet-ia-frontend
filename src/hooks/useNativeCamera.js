@@ -1,32 +1,48 @@
 import { Capacitor } from '@capacitor/core';
 
-function pickViaInput({ multiple = false, capture = false } = {}) {
+// Convierte un GalleryPhoto de Capacitor en File
+async function galleryPhotoToFile(photo, index) {
+  const response = await fetch(photo.webPath);
+  const blob = await response.blob();
+  const ext = photo.format || 'jpeg';
+  return new File([blob], `photo_${Date.now()}_${index}.${ext}`, {
+    type: blob.type || `image/${ext}`,
+  });
+}
+
+// Fallback web: input HTML con multi-select
+function pickViaInput({ multiple = false } = {}) {
   return new Promise((resolve) => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
-    if (multiple) input.multiple = true;
-    if (capture) input.capture = 'environment';
+    if (multiple) input.setAttribute('multiple', '');
     input.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
     document.body.appendChild(input);
 
-    input.onchange = (e) => {
-      const files = Array.from(e.target.files || []);
-      document.body.removeChild(input);
-      resolve(multiple ? files : (files[0] || null));
+    let settled = false;
+    const settle = (val) => {
+      if (settled) return;
+      settled = true;
+      if (input.parentNode) document.body.removeChild(input);
+      resolve(val);
     };
 
-    // Si el usuario cancela sin seleccionar
-    const onFocus = () => {
-      setTimeout(() => {
-        if (input.files?.length === 0) {
-          document.body.removeChild(input);
-          resolve(multiple ? [] : null);
-        }
-        window.removeEventListener('focus', onFocus);
-      }, 500);
+    input.onchange = (e) => {
+      const files = Array.from(e.target.files || []);
+      settle(multiple ? files : (files[0] || null));
     };
-    window.addEventListener('focus', onFocus);
+
+    // Cancelación: el documento vuelve a ser visible sin que onchange haya disparado
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        setTimeout(() => {
+          if (!settled) settle(multiple ? [] : null);
+          document.removeEventListener('visibilitychange', onVisibility);
+        }, 600);
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
 
     input.click();
   });
@@ -37,7 +53,6 @@ export function useNativeCamera() {
 
   async function pickPhoto(sourceOverride = null) {
     if (isNative && sourceOverride === 'camera') {
-      // Cámara real: usar Capacitor para acceder a la cámara directamente
       const { Camera, CameraSource, CameraResultType } = await import('@capacitor/camera');
       const photo = await Camera.getPhoto({
         source: CameraSource.Camera,
@@ -45,18 +60,26 @@ export function useNativeCamera() {
         quality: 85,
         allowEditing: false,
       });
-      const response = await fetch(photo.webPath);
-      const blob = await response.blob();
-      const ext = photo.format || 'jpeg';
-      return new File([blob], `photo_${Date.now()}.${ext}`, { type: blob.type || `image/${ext}` });
+      return galleryPhotoToFile(photo, 0);
     }
-
-    // Galería (nativo o web): input HTML — funciona en Capacitor WebView con multi-select
+    // Galería individual o web: input HTML
     return pickViaInput({ multiple: false });
   }
 
   async function pickMultiplePhotos() {
-    // Input con multiple=true — activa multi-select nativo en Android/iOS WebView
+    const platform = Capacitor.getPlatform();
+    if (platform === 'android') {
+      // Camera.pickImages() crea el Intent con EXTRA_ALLOW_MULTIPLE=true nativamente
+      try {
+        const { Camera } = await import('@capacitor/camera');
+        const result = await Camera.pickImages({ quality: 85, limit: 0 });
+        if (!result.photos?.length) return [];
+        return Promise.all(result.photos.map(galleryPhotoToFile));
+      } catch {
+        return pickViaInput({ multiple: true });
+      }
+    }
+    // iOS y web: input HTML con multiple (WKWebView soporta multi-select nativo)
     return pickViaInput({ multiple: true });
   }
 
