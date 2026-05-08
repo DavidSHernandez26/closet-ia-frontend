@@ -249,7 +249,7 @@ export default function UploadModal({ onClose, onUploaded }) {
         <header className="up-header">
           <div className="up-header-left">
             <span className="up-traffic">
-              <span className="up-light up-light-r" />
+              <span className="up-light up-light-r" onClick={onClose} title="Cerrar" style={{ cursor: "pointer" }} />
               <span className="up-light up-light-y" />
               <span className="up-light up-light-g" />
             </span>
@@ -267,9 +267,7 @@ export default function UploadModal({ onClose, onUploaded }) {
               <span className="up-step-label">Imágenes</span>
             </span>
           </div>
-          <button className="up-close" onClick={onClose} aria-label="Cerrar">
-            <X size={14} />
-          </button>
+          <div className="up-header-right" />
         </header>
 
         {/* ── Body ── */}
