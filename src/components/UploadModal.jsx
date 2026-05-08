@@ -123,20 +123,25 @@ export default function UploadModal({ onClose, onUploaded }) {
       fileInputRef.current?.click();
       return;
     }
-    // En nativo con prenda y sin fuente definida: muestra el picker Cámara/Galería
-    if (type === "prenda" && sourceOverride === null) {
+    // En nativo sin fuente definida: siempre mostrar picker Cámara/Galería
+    if (sourceOverride === null) {
       setShowSourcePicker(true);
       return;
     }
     setShowSourcePicker(false);
-    // Para galería en nativo: Camera.pickImages() — soporta multi-select y Google Photos
+    // Galería: multi-select para prenda, single para outfit
     if (sourceOverride === "photos") {
-      const files = await pickMultiplePhotos();
-      if (files.length) agregarArchivos(files);
+      if (type === "prenda") {
+        const files = await pickMultiplePhotos();
+        if (files.length) agregarArchivos(files);
+      } else {
+        const f = await pickPhoto("photos");
+        if (f) agregarArchivos([f]);
+      }
       return;
     }
-    // Cámara (o outfit con prompt)
-    const f = await pickPhoto(sourceOverride);
+    // Cámara
+    const f = await pickPhoto("camera");
     if (f) agregarArchivos([f]);
   };
 
