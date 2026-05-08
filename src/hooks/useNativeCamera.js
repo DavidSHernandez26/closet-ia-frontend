@@ -1,6 +1,5 @@
 import { Capacitor } from '@capacitor/core';
 
-// Convierte un GalleryPhoto de Capacitor en File
 async function galleryPhotoToFile(photo, index) {
   const response = await fetch(photo.webPath);
   const blob = await response.blob();
@@ -10,7 +9,7 @@ async function galleryPhotoToFile(photo, index) {
   });
 }
 
-// Fallback web: input HTML con multi-select
+// Solo para web — iOS/Android pierden el gesto de usuario en cadenas async
 function pickViaInput({ multiple = false } = {}) {
   return new Promise((resolve) => {
     const input = document.createElement('input');
@@ -33,7 +32,6 @@ function pickViaInput({ multiple = false } = {}) {
       settle(multiple ? files : (files[0] || null));
     };
 
-    // Cancelación: el documento vuelve a ser visible sin que onchange haya disparado
     const onVisibility = () => {
       if (document.visibilityState === 'visible') {
         setTimeout(() => {
@@ -48,38 +46,77 @@ function pickViaInput({ multiple = false } = {}) {
   });
 }
 
+// ── Android ──────────────────────────────────────────────────────────────────
+// pickPhoto: usa Camera.getPhoto con la fuente indicada
+// pickMultiplePhotos: Camera.pickImages crea el Intent EXTRA_ALLOW_MULTIPLE nativamente
+
+async function androidPickPhoto(sourceOverride) {
+  const { Camera, CameraSource, CameraResultType } = await import('@capacitor/camera');
+  const source =
+    sourceOverride === 'camera' ? CameraSource.Camera : CameraSource.Photos;
+  const photo = await Camera.getPhoto({
+    source,
+    resultType: CameraResultType.Uri,
+    quality: 85,
+    allowEditing: false,
+  });
+  return galleryPhotoToFile(photo, 0);
+}
+
+async function androidPickMultiple() {
+  try {
+    const { Camera } = await import('@capacitor/camera');
+    const result = await Camera.pickImages({ quality: 85, limit: 0 });
+    if (!result.photos?.length) return [];
+    return Promise.all(result.photos.map(galleryPhotoToFile));
+  } catch {
+    return [];
+  }
+}
+
+// ── iOS ───────────────────────────────────────────────────────────────────────
+// pickPhoto: Camera.getPhoto — nunca pickViaInput (iOS bloquea input.click async)
+// pickMultiplePhotos: Camera.pickImages (iOS 14+, muestra selector múltiple nativo)
+
+async function iosPickPhoto(sourceOverride) {
+  const { Camera, CameraSource, CameraResultType } = await import('@capacitor/camera');
+  const source =
+    sourceOverride === 'camera' ? CameraSource.Camera : CameraSource.Photos;
+  const photo = await Camera.getPhoto({
+    source,
+    resultType: CameraResultType.Uri,
+    quality: 85,
+    allowEditing: false,
+  });
+  return galleryPhotoToFile(photo, 0);
+}
+
+async function iosPickMultiple() {
+  try {
+    const { Camera } = await import('@capacitor/camera');
+    const result = await Camera.pickImages({ quality: 85, limit: 0 });
+    if (!result.photos?.length) return [];
+    return Promise.all(result.photos.map(galleryPhotoToFile));
+  } catch {
+    // Fallback: foto única desde galería
+    return iosPickPhoto('photos').then(f => (f ? [f] : []));
+  }
+}
+
+// ── Hook público ─────────────────────────────────────────────────────────────
+
 export function useNativeCamera() {
-  const isNative = Capacitor.isNativePlatform();
+  const platform = Capacitor.getPlatform(); // 'android' | 'ios' | 'web'
 
   async function pickPhoto(sourceOverride = null) {
-    if (isNative && sourceOverride === 'camera') {
-      const { Camera, CameraSource, CameraResultType } = await import('@capacitor/camera');
-      const photo = await Camera.getPhoto({
-        source: CameraSource.Camera,
-        resultType: CameraResultType.Uri,
-        quality: 85,
-        allowEditing: false,
-      });
-      return galleryPhotoToFile(photo, 0);
-    }
-    // Galería individual o web: input HTML
+    if (platform === 'android') return androidPickPhoto(sourceOverride);
+    if (platform === 'ios')     return iosPickPhoto(sourceOverride);
     return pickViaInput({ multiple: false });
   }
 
   async function pickMultiplePhotos() {
-    const platform = Capacitor.getPlatform();
-    if (platform === 'android') {
-      // Camera.pickImages() crea el Intent con EXTRA_ALLOW_MULTIPLE=true nativamente
-      try {
-        const { Camera } = await import('@capacitor/camera');
-        const result = await Camera.pickImages({ quality: 85, limit: 0 });
-        if (!result.photos?.length) return [];
-        return Promise.all(result.photos.map(galleryPhotoToFile));
-      } catch {
-        return pickViaInput({ multiple: true });
-      }
-    }
-    // iOS y web: input HTML con multiple (WKWebView soporta multi-select nativo)
+    if (platform === 'android') return androidPickMultiple();
+    if (platform === 'ios')     return iosPickMultiple();
     return pickViaInput({ multiple: true });
   }
 
