@@ -3,6 +3,7 @@ import { Bell, Heart, MessageCircle, UserPlus, PartyPopper } from "lucide-react"
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../config";
+import { supabase } from "../supabase";
 import "./NotifPanel.css";
 
 export default function NotifPanel({ usuarioId }) {
@@ -12,6 +13,11 @@ export default function NotifPanel({ usuarioId }) {
   const [loading, setLoading] = useState(false);
   const panelRef = useRef(null);
   const navigate = useNavigate();
+
+  async function authHeaders() {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {};
+  }
 
   useEffect(() => {
     if (!usuarioId) return;
@@ -32,9 +38,8 @@ export default function NotifPanel({ usuarioId }) {
 
   async function fetchCount() {
     try {
-      const res = await axios.get(`${API_URL}/api/notificaciones/count`, {
-        params: { usuario_id: usuarioId }
-      });
+      const headers = await authHeaders();
+      const res = await axios.get(`${API_URL}/api/notificaciones/count`, { headers });
       setCount(res.data.count || 0);
     } catch (err) { console.error(err); }
   }
@@ -42,9 +47,8 @@ export default function NotifPanel({ usuarioId }) {
   async function fetchNotifs() {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/api/notificaciones`, {
-        params: { usuario_id: usuarioId }
-      });
+      const headers = await authHeaders();
+      const res = await axios.get(`${API_URL}/api/notificaciones`, { headers });
       setNotifs(res.data || []);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
@@ -61,7 +65,8 @@ export default function NotifPanel({ usuarioId }) {
 
   async function marcarLeidas() {
     try {
-      await axios.put(`${API_URL}/api/notificaciones/leer`, { usuario_id: usuarioId });
+      const headers = await authHeaders();
+      await axios.put(`${API_URL}/api/notificaciones/leer`, {}, { headers });
       setCount(0);
       setNotifs((prev) => prev.map((n) => ({ ...n, leida: true })));
     } catch (err) { console.error(err); }
@@ -70,16 +75,16 @@ export default function NotifPanel({ usuarioId }) {
   async function eliminarNotif(id, e) {
     e.stopPropagation();
     try {
-      await axios.delete(`${API_URL}/api/notificaciones/${id}`);
+      const headers = await authHeaders();
+      await axios.delete(`${API_URL}/api/notificaciones/${id}`, { headers });
       setNotifs((prev) => prev.filter((n) => n.id !== id));
     } catch (err) { console.error(err); }
   }
 
   async function eliminarTodas() {
     try {
-      await axios.delete(`${API_URL}/api/notificaciones`, {
-        params: { usuario_id: usuarioId }
-      });
+      const headers = await authHeaders();
+      await axios.delete(`${API_URL}/api/notificaciones`, { headers });
       setNotifs([]);
       setCount(0);
     } catch (err) { console.error(err); }

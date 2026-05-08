@@ -3,6 +3,7 @@ import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import "./Perfil.css";
 import { API_URL } from "../config";
+import { supabase } from "../supabase";
 
 /* Imagen con skeleton mientras carga */
 function LazyImg({ src, alt, className }) {
@@ -42,6 +43,11 @@ export default function Perfil({ usuarioId }) {
   const [loadingAmigos,   setLoadingAmigos]   = useState(false);
   const [stats,           setStats]           = useState({ posts: 0, amigos: 0, prendas: 0 });
   const fileRef = useRef();
+
+  async function authHeaders() {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {};
+  }
 
   useEffect(() => {
     if (!usuarioId && !username) return;
@@ -88,10 +94,11 @@ export default function Perfil({ usuarioId }) {
 
   async function cargarStats(pid) {
     try {
+      const headers = await authHeaders();
       const [postsRes, amigosRes, prendasRes] = await Promise.allSettled([
         axios.get(`${API_URL}/api/posts/${pid}`,   { params: { viewer_id: usuarioId } }),
-        axios.get(`${API_URL}/api/amistad/amigos`, { params: { usuario_id: pid } }),
-        axios.get(`${API_URL}/api/prendas`,        { params: { usuario_id: pid, tipo: "prenda" } }),
+        axios.get(`${API_URL}/api/amistad/amigos`, { params: { usuario_id: pid }, headers }),
+        axios.get(`${API_URL}/api/prendas`,        { headers }),
       ]);
       setStats({
         posts:   postsRes.status   === "fulfilled" ? postsRes.value.data?.length   || 0 : 0,
@@ -103,15 +110,16 @@ export default function Perfil({ usuarioId }) {
 
   async function cargarItems(pid, tab, esAmigoActual = false) {
     try {
+      const headers = await authHeaders();
       if (tab === "guardados") {
-        const res = await axios.get(`${API_URL}/api/wishlist`, { params: { usuario_id: usuarioId } });
+        const res = await axios.get(`${API_URL}/api/wishlist`, { headers });
         setItems(res.data || []);
         return;
       }
       if (!esPropio && !esAmigoActual) { setItems([]); return; }
       const url    = esPropio ? `${API_URL}/api/prendas` : `${API_URL}/api/prendas/amigo/${pid}`;
-      const params = esPropio ? { usuario_id: pid, tipo: tab } : { usuario_id: usuarioId, tipo: tab };
-      const res    = await axios.get(url, { params });
+      const params = esPropio ? { tipo: tab } : { usuario_id: usuarioId, tipo: tab };
+      const res    = await axios.get(url, { params, headers });
       setItems(res.data || []);
     } catch { setItems([]); }
   }
@@ -120,7 +128,8 @@ export default function Perfil({ usuarioId }) {
     e.preventDefault();
     setErrorEdit("");
     try {
-      const res = await axios.put(`${API_URL}/api/perfil`, { usuario_id: usuarioId, username: form.username, nombre: form.nombre, bio: form.bio });
+      const headers = await authHeaders();
+      const res = await axios.put(`${API_URL}/api/perfil`, { username: form.username, nombre: form.nombre, bio: form.bio }, { headers });
       setPerfil(res.data);
       setEditando(false);
     } catch (err) { setErrorEdit(err.response?.data?.error || "Error al guardar"); }
@@ -131,16 +140,19 @@ export default function Perfil({ usuarioId }) {
     if (!file) return;
     const fd = new FormData();
     fd.append("avatar", file);
-    fd.append("usuario_id", usuarioId);
     try {
-      const res = await axios.post(`${API_URL}/api/perfil/avatar`, fd, { headers: { "Content-Type": "multipart/form-data" } });
+      const headers = await authHeaders();
+      const res = await axios.post(`${API_URL}/api/perfil/avatar`, fd, {
+        headers: { ...headers, "Content-Type": "multipart/form-data" },
+      });
       setPerfil(prev => ({ ...prev, avatar_url: res.data.avatar_url }));
     } catch (err) { console.error(err); }
   }
 
   async function handleSolicitud() {
     try {
-      await axios.post(`${API_URL}/api/amistad/solicitar`, { requester_id: usuarioId, addressee_id: perfil.id });
+      const headers = await authHeaders();
+      await axios.post(`${API_URL}/api/amistad/solicitar`, { addressee_id: perfil.id }, { headers });
       setEstadoAmistad({ status: "pending", requester_id: usuarioId });
     } catch (err) { console.error(err); }
   }
@@ -149,7 +161,8 @@ export default function Perfil({ usuarioId }) {
     setModalAmigos(true);
     setLoadingAmigos(true);
     try {
-      const res = await axios.get(`${API_URL}/api/amistad/amigos`, { params: { usuario_id: pid } });
+      const headers = await authHeaders();
+      const res = await axios.get(`${API_URL}/api/amistad/amigos`, { params: { usuario_id: pid }, headers });
       setListaAmigos(res.data || []);
     } catch { setListaAmigos([]); }
     finally { setLoadingAmigos(false); }
@@ -158,7 +171,8 @@ export default function Perfil({ usuarioId }) {
   async function handleEliminarAmistad() {
     if (!window.confirm("¿Dejar de seguir?")) return;
     try {
-      await axios.delete(`${API_URL}/api/amistad/${estadoAmistad.id}`);
+      const headers = await authHeaders();
+      await axios.delete(`${API_URL}/api/amistad/${estadoAmistad.id}`, { headers });
       setEstadoAmistad({ status: "none" });
       setItems([]);
     } catch (err) { console.error(err); }

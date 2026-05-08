@@ -143,8 +143,11 @@ function CalendarioContent({ usuarioId }) {
   const fetchEntradas = useCallback(async () => {
     if (!usuarioId) return;
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers = session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {};
       const res = await axios.get(`${API_URL}/api/calendario`, {
-        params: { usuario_id: usuarioId, year: año, month: mes + 1 },
+        params: { year: año, month: mes + 1 },
+        headers,
       });
       const map = {};
       (res.data || []).forEach(e => { map[e.fecha] = e; });
@@ -169,7 +172,8 @@ function CalendarioContent({ usuarioId }) {
     if (ids?.length > 0) {
       setLoadingOutfit(true);
       try {
-        const res = await axios.get(`${API_URL}/api/prendas`);
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const res = await axios.get(`${API_URL}/api/prendas`, { headers });
         const coincidentes = (res.data || []).filter(p => ids.includes(p.id));
         if (coincidentes.length > 0) setModalOutfit(coincidentes);
       } catch {}
@@ -180,7 +184,8 @@ function CalendarioContent({ usuarioId }) {
   async function fetchPrendas() {
     setLoadingCloset(true);
     try {
-      const res = await axios.get(`${API_URL}/api/prendas`);
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const res = await axios.get(`${API_URL}/api/prendas`, { headers });
       setPrendas(res.data || []);
     } catch (err) { console.error(err); }
     finally { setLoadingCloset(false); }
@@ -469,7 +474,8 @@ function CalendarioContent({ usuarioId }) {
           onUploaded={async () => {
             if (fechaUpload) {
               try {
-                const res = await axios.get(`${API_URL}/api/prendas`);
+                const headers = token ? { Authorization: `Bearer ${token}` } : {};
+                const res = await axios.get(`${API_URL}/api/prendas`, { headers });
                 const ultima = res.data?.[0];
                 if (ultima) await guardar(fechaUpload, ultima);
               } catch {}
