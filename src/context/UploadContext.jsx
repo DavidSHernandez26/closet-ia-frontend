@@ -26,6 +26,7 @@ export function UploadProvider({ children }) {
 
   const terminarUpload = useCallback((done, errors) => {
     setEstado(prev => prev ? { ...prev, done, errors, isUploading: false } : null);
+    if (done > 0) window.dispatchEvent(new CustomEvent('prendas-updated'));
     setTimeout(() => setEstado(null), 4000);
   }, []);
 

@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutGrid, Shirt, Layers, Footprints, GraduationCap, Handbag,
   Wind, Trash2, FolderOpen, Sparkles,
@@ -82,6 +83,12 @@ export default function Closet({ refresh }) {
 
   /* Invalidar recomendaciones cuando el closet cambia */
   useEffect(() => { setRecomendaciones([]); }, [prendas]);
+
+  useEffect(() => {
+    const onUpdate = () => fetchPrendas();
+    window.addEventListener('prendas-updated', onUpdate);
+    return () => window.removeEventListener('prendas-updated', onUpdate);
+  }, [tabActiva]);
 
   async function authHeaders() {
     const { data: { session } } = await supabase.auth.getSession();
@@ -460,13 +467,23 @@ export default function Closet({ refresh }) {
                 </p>
               </div>
             ) : tabActiva === "outfit" ? (
-              <div className="mac-masonry">
+              <motion.div
+                key={`outfit-${prendas.length}`}
+                className="mac-masonry"
+                initial="hidden"
+                animate="visible"
+                variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.05 } } }}
+              >
                 {prendasFiltradas.map((p, i) => (
-                  <div
+                  <motion.div
                     key={p.id}
                     className="mac-masonry-item"
                     style={{ '--i': Math.min(i, 8) }}
                     onClick={() => setModalItem(p)}
+                    variants={{
+                      hidden: { opacity: 0, y: 14 },
+                      visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 240, damping: 20 } },
+                    }}
                   >
                     <img
                       src={supaImg(p.imagen_url, 600)}
@@ -478,25 +495,35 @@ export default function Closet({ refresh }) {
                       className="mac-thumb-del"
                       onClick={e => { e.stopPropagation(); handleDelete(p.id); }}
                     ><Trash2 size={11} /></button>
-                  </div>
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             ) : (
-              <div className="mac-grid">
+              <motion.div
+                key={`prenda-${prendas.length}`}
+                className="mac-grid"
+                initial="hidden"
+                animate="visible"
+                variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.04 } } }}
+              >
                 {prendasFiltradas.map(p => (
-                  <div
+                  <motion.div
                     key={p.id}
                     className="mac-thumb stagger-item"
                     onClick={() => setModalItem(p)}
+                    variants={{
+                      hidden: { opacity: 0, scale: 0.9 },
+                      visible: { opacity: 1, scale: 1, transition: { type: "spring", stiffness: 260, damping: 22 } },
+                    }}
                   >
                     <img src={supaImg(p.imagen_url, 400)} alt={p.descripcion} loading="lazy" decoding="async" />
                     <button
                       className="mac-thumb-del"
                       onClick={e => { e.stopPropagation(); handleDelete(p.id); }}
                     ><Trash2 size={11} /></button>
-                  </div>
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             )}
           </main>
         </div>

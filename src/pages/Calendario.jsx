@@ -125,7 +125,6 @@ function CalendarioContent({ usuarioId }) {
   const [loadingOutfit, setLoadingOutfit] = useState(false);
   const [modalAgregar,  setModalAgregar]  = useState(null);
   const [modalCloset,   setModalCloset]   = useState(null);
-  const [editandoEntrada, setEditandoEntrada] = useState(null);
   const [showUpload,    setShowUpload]    = useState(false);
   const [fechaUpload,   setFechaUpload]   = useState(null);
   const [prendas,       setPrendas]       = useState([]);
@@ -133,6 +132,9 @@ function CalendarioContent({ usuarioId }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [vista,         setVista]         = useState("mes"); // "mes" | "semana"
   const [semanaOffset,  setSemanaOffset]  = useState(0);
+  // Estado del editor de outfit por partes
+  // { fecha, dia, id, prendas: [...], editingIdx: null|number }
+  const [editandoOutfit, setEditandoOutfit] = useState(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) =>
@@ -203,18 +205,19 @@ function CalendarioContent({ usuarioId }) {
     } catch (err) { console.error(err); }
   }
 
-  async function guardarEdicion(fecha, prenda) {
-    /* Borra el anterior y guarda el nuevo */
+  async function guardarOutfitEditado() {
+    if (!editandoOutfit) return;
+    const { fecha, prendas: nuevasPrendas } = editandoOutfit;
     try {
-      if (editandoEntrada?.id) {
-        await axios.delete(`${API_URL}/api/calendario/${editandoEntrada.id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-      }
-      await guardar(fecha, prenda);
-      setEditandoEntrada(null);
-      setModalDetalle(null);
-      setModalOutfit(null);
+      const primera = nuevasPrendas[0] || {};
+      await axios.post(`${API_URL}/api/calendario`, {
+        fecha,
+        imagen_url:  primera.imagen_url  || "",
+        descripcion: primera.descripcion || "",
+        metadata: { outfit: nuevasPrendas },
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      await fetchEntradas();
+      setEditandoOutfit(null);
     } catch (err) { console.error(err); }
   }
 
@@ -387,8 +390,14 @@ function CalendarioContent({ usuarioId }) {
                 <button
                   className="cal-btn-editar"
                   onClick={() => {
-                    setEditandoEntrada(modalDetalle);
-                    setModalCloset({ fecha: modalDetalle.fecha || getKey(año, mes, modalDetalle.dia), dia: modalDetalle.dia, editar: true });
+                    const prendasActuales = getPrendas(modalDetalle);
+                    setEditandoOutfit({
+                      fecha:  modalDetalle.fecha || getKey(año, mes, modalDetalle.dia),
+                      dia:    modalDetalle.dia,
+                      id:     modalDetalle.id,
+                      prendas: prendasActuales.map(p => ({ imagen_url: p.imagen_url, descripcion: p.descripcion })),
+                      editingIdx: null,
+                    });
                     setModalDetalle(null);
                     setModalOutfit(null);
                     fetchPrendas();
@@ -450,11 +459,25 @@ function CalendarioContent({ usuarioId }) {
               <div className="cal-closet-grid">
                 {prendas.map(p => (
                   <div key={p.id} className="cal-closet-item" onClick={async () => {
-                    if (modalCloset.editar) {
-                      await guardarEdicion(modalCloset.fecha, p);
-                    } else {
-                      await guardar(modalCloset.fecha, p);
+                    const nueva = { imagen_url: p.imagen_url, descripcion: p.descripcion };
+
+                    // Modo editar-outfit: reemplazar o añadir prenda concreta
+                    if (editandoOutfit) {
+                      setEditandoOutfit(prev => {
+                        const arr = [...prev.prendas];
+                        if (prev.editingIdx !== null) {
+                          arr[prev.editingIdx] = nueva;
+                        } else {
+                          arr.push(nueva);
+                        }
+                        return { ...prev, prendas: arr, editingIdx: null };
+                      });
+                      setModalCloset(null);
+                      return;
                     }
+
+                    // Modo agregar nuevo día
+                    await guardar(modalCloset.fecha, p);
                     setModalCloset(null);
                   }}>
                     <img src={p.imagen_url} alt={p.descripcion} />
@@ -463,6 +486,63 @@ function CalendarioContent({ usuarioId }) {
                 ))}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal editar outfit por partes ── */}
+      {editandoOutfit && !modalCloset && (
+        <div className="cal-modal-overlay" onClick={() => setEditandoOutfit(null)}>
+          <div className="cal-modal cal-modal-wide" onClick={e => e.stopPropagation()}>
+            <button className="cal-modal-close" onClick={() => setEditandoOutfit(null)}>✕</button>
+            <h3>Editar outfit — {DIAS_LARGO[new Date(año, mes, editandoOutfit.dia).getDay()]} {editandoOutfit.dia}</h3>
+            <p className="cal-modal-desc">Toca una prenda para cambiarla o quítala con ✕. Puedes añadir más.</p>
+
+            <div className="cal-edit-outfit-grid">
+              {editandoOutfit.prendas.map((p, i) => (
+                <div key={i} className="cal-edit-outfit-item">
+                  <img src={p.imagen_url} alt={p.descripcion} />
+                  <span className="cal-edit-outfit-desc">{p.descripcion?.split(" - ")[0]}</span>
+                  <div className="cal-edit-outfit-actions">
+                    <button
+                      className="cal-edit-btn-cambiar"
+                      onClick={() => {
+                        setEditandoOutfit(prev => ({ ...prev, editingIdx: i }));
+                        setModalCloset({ fecha: editandoOutfit.fecha, dia: editandoOutfit.dia });
+                      }}
+                    >Cambiar</button>
+                    <button
+                      className="cal-edit-btn-quitar"
+                      onClick={() => setEditandoOutfit(prev => ({
+                        ...prev,
+                        prendas: prev.prendas.filter((_, idx) => idx !== i),
+                      }))}
+                    >✕</button>
+                  </div>
+                </div>
+              ))}
+
+              {/* Añadir prenda */}
+              <button
+                className="cal-edit-outfit-add"
+                onClick={() => {
+                  setEditandoOutfit(prev => ({ ...prev, editingIdx: null }));
+                  setModalCloset({ fecha: editandoOutfit.fecha, dia: editandoOutfit.dia });
+                }}
+              >
+                <span className="cal-edit-add-icon">+</span>
+                <span>Añadir prenda</span>
+              </button>
+            </div>
+
+            <div className="cal-edit-outfit-footer">
+              <button className="cal-btn-cancelar-del" onClick={() => setEditandoOutfit(null)}>Cancelar</button>
+              <button
+                className="cal-btn-editar"
+                onClick={guardarOutfitEditado}
+                disabled={editandoOutfit.prendas.length === 0}
+              >Guardar cambios</button>
+            </div>
           </div>
         </div>
       )}

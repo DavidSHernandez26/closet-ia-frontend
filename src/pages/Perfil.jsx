@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import "./Perfil.css";
@@ -60,6 +61,16 @@ export default function Perfil({ usuarioId }) {
       cargarItems(perfil.id, tabActiva, esAmigoActual);
     }
   }, [tabActiva]);
+
+  useEffect(() => {
+    const onUpdate = () => {
+      if (!perfil || !esPropio) return;
+      cargarStats(perfil.id);
+      cargarItems(perfil.id, tabActiva, true);
+    };
+    window.addEventListener('prendas-updated', onUpdate);
+    return () => window.removeEventListener('prendas-updated', onUpdate);
+  }, [perfil, tabActiva, esPropio]);
 
   async function cargarPerfil() {
     setLoading(true);
@@ -291,19 +302,42 @@ export default function Perfil({ usuarioId }) {
                 </button>
               ))}
             </div>
-            {items.length === 0 ? (
-              <div className="perfil-empty">
-                <p>{esPropio ? "Aún no tienes nada aquí. ¡Sube algo!" : "Sin contenido todavía."}</p>
-              </div>
-            ) : (
-              <div className="perfil-grid">
-                {items.map(p => (
-                  <div key={p.id} className="perfil-card" onClick={() => setModalItem(p)}>
-                    <LazyImg src={p.imagen_url || p.post?.imagen_url} alt={p.descripcion} className="perfil-card-img" />
-                  </div>
-                ))}
-              </div>
-            )}
+            <AnimatePresence mode="wait">
+              {items.length === 0 ? (
+                <motion.div
+                  key="empty"
+                  className="perfil-empty"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.25 }}
+                >
+                  <p>{esPropio ? "Aún no tienes nada aquí. ¡Sube algo!" : "Sin contenido todavía."}</p>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key={`grid-${tabActiva}-${items.length}`}
+                  className="perfil-grid"
+                  initial="hidden"
+                  animate="visible"
+                  variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.04 } } }}
+                >
+                  {items.map(p => (
+                    <motion.div
+                      key={p.id}
+                      className="perfil-card"
+                      onClick={() => setModalItem(p)}
+                      variants={{
+                        hidden: { opacity: 0, scale: 0.92, y: 10 },
+                        visible: { opacity: 1, scale: 1, y: 0, transition: { type: "spring", stiffness: 260, damping: 22 } },
+                      }}
+                    >
+                      <LazyImg src={p.imagen_url || p.post?.imagen_url} alt={p.descripcion} className="perfil-card-img" />
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </>
         ) : (
           <div className="perfil-privado">
