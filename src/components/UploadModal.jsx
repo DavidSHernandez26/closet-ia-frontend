@@ -11,6 +11,7 @@ import { API_URL } from "../config";
 import { useNativeCamera } from "../hooks/useNativeCamera";
 import { haptics } from "../hooks/useHaptics";
 import { Capacitor } from "@capacitor/core";
+import { useUpload } from "../context/UploadContext";
 
 async function comprimirImagen(file, maxWidth = 1200, quality = 0.82) {
   return new Promise((resolve) => {
@@ -60,6 +61,7 @@ export default function UploadModal({ onClose, onUploaded }) {
   const intervaloRef = useRef(null);
   const fileInputRef = useRef(null);
   const { pickPhoto, pickMultiplePhotos } = useNativeCamera();
+  const { iniciarUpload, actualizarUpload, terminarUpload } = useUpload();
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === "Escape") onClose(); };
@@ -159,6 +161,7 @@ export default function UploadModal({ onClose, onUploaded }) {
     try {
       setUploading(true);
       setFinalMsg(""); setFinalOk(null);
+      iniciarUpload(total);
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) throw new Error("no-auth");
       const user  = session.user;
@@ -185,12 +188,11 @@ export default function UploadModal({ onClose, onUploaded }) {
           setStatuses(prev => { const s = [...prev]; s[i] = "done"; return s; });
           haptics.success();
           subidas++;
+          actualizarUpload(subidas, errores + noPrendas);
           if (onUploaded) onUploaded();
         } catch (err) {
           clearInterval(intervaloRef.current);
           setProgreso(0);
-          const msg = err?.response?.data?.error;
-          // 422 = no es prenda: marcar como "no_prenda" para mostrar mensaje específico
           const esNoPrenda = err?.response?.status === 422;
           setStatuses(prev => {
             const s = [...prev];
@@ -199,10 +201,13 @@ export default function UploadModal({ onClose, onUploaded }) {
           });
           if (esNoPrenda) { noPrendas++; }
           else errores++;
+          actualizarUpload(subidas, errores + noPrendas);
         }
 
         if (i < total - 1) await new Promise(r => setTimeout(r, 400));
       }
+
+      terminarUpload(subidas, errores + noPrendas);
 
       const totalFallos = errores + noPrendas;
       if (totalFallos === 0) {
@@ -220,6 +225,7 @@ export default function UploadModal({ onClose, onUploaded }) {
     } catch {
       setFinalOk(false);
       setFinalMsg("Error de autenticación. Recarga la página.");
+      terminarUpload(0, total);
     } finally {
       setUploading(false);
     }

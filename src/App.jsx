@@ -14,6 +14,8 @@ import "./App.css";
 import "./styles/animations.css";
 import { Capacitor } from "@capacitor/core";
 import Navbar from "./components/Navbar";
+import { UploadProvider } from "./context/UploadContext";
+import UploadToast from "./components/UploadToast";
 
 // Lazy load — cada página se descarga solo cuando el usuario la visita
 const Asistente   = React.lazy(() => import("./pages/Asistente"));
@@ -215,36 +217,40 @@ export default function App() {
   }
 
   return (
-    <Router>
-      <ThemeSyncer />
-      <div className="app-container">
-        {isAuthenticated && perfilListo && (
-          <Navbar
-            onUploaded={handleUploaded}
-            usuarioId={usuarioId}
-          />
-        )}
+    <UploadProvider>
+      <Router>
+        <ThemeSyncer />
+        <div className="app-container">
+          {isAuthenticated && perfilListo && (
+            <Navbar
+              onUploaded={handleUploaded}
+              usuarioId={usuarioId}
+            />
+          )}
 
-        <React.Suspense fallback={<PageFallback />}>
-          <Routes>
-            <Route path="/waitlist" element={!isAuthenticated ? <Waitlist />  : <Navigate to="/" />} />
-            <Route path="/login"    element={!isAuthenticated ? <Login />     : <Navigate to="/" />} />
-            <Route path="/register" element={!isAuthenticated ? <Register />  : <Navigate to="/" />} />
+          <React.Suspense fallback={<PageFallback />}>
+            <Routes>
+              <Route path="/waitlist" element={!isAuthenticated ? <Waitlist />  : <Navigate to="/" />} />
+              <Route path="/login"    element={!isAuthenticated ? <Login />     : <Navigate to="/" />} />
+              <Route path="/register" element={!isAuthenticated ? <Register />  : <Navigate to="/" />} />
 
-            <Route path="*" element={
-              <main className="main-content">
-                <AnimatedRoutes
-                  usuarioId={usuarioId}
-                  refreshCloset={refreshCloset}
-                  isAuthenticated={isAuthenticated}
-                  perfilListo={perfilListo}
-                  onPerfilComplete={handlePerfilComplete}
-                />
-              </main>
-            } />
-          </Routes>
-        </React.Suspense>
-      </div>
-    </Router>
+              <Route path="*" element={
+                <main className="main-content">
+                  <AnimatedRoutes
+                    usuarioId={usuarioId}
+                    refreshCloset={refreshCloset}
+                    isAuthenticated={isAuthenticated}
+                    perfilListo={perfilListo}
+                    onPerfilComplete={handlePerfilComplete}
+                  />
+                </main>
+              } />
+            </Routes>
+          </React.Suspense>
+
+          <UploadToast />
+        </div>
+      </Router>
+    </UploadProvider>
   );
 }

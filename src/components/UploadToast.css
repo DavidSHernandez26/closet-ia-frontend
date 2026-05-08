@@ -1,0 +1,204 @@
+/* ─── Shared spinner ─── */
+.upload-toast-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(139, 92, 246, 0.3);
+  border-top-color: #a78bfa;
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: spin 0.7s linear infinite;
+}
+
+.upload-toast-check {
+  font-size: 1rem;
+}
+
+/* ─── Mobile pill toast ─── */
+.upload-toast-mobile {
+  position: fixed;
+  bottom: 88px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: toast-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.upload-toast-mobile.upload-toast--active {
+  background: rgba(30, 30, 40, 0.92);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  color: #e0e0ff;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+}
+
+.upload-toast-mobile.upload-toast--done {
+  background: rgba(16, 40, 28, 0.92);
+  border: 1px solid rgba(52, 211, 153, 0.4);
+  color: #6ee7b7;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  animation: toast-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+             toast-out 0.4s ease 3.6s forwards;
+}
+
+/* Hide mobile pill on desktop */
+@media (min-width: 768px) {
+  .upload-toast-mobile {
+    display: none;
+  }
+}
+
+/* ─── Desktop expandable panel ─── */
+.upload-panel {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .upload-panel {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    z-index: 9999;
+    width: 280px;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(16px);
+    animation: panel-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .upload-panel--active {
+    background: rgba(22, 20, 38, 0.95);
+    border: 1px solid rgba(139, 92, 246, 0.35);
+    color: #e0e0ff;
+  }
+
+  .upload-panel--done {
+    background: rgba(12, 32, 22, 0.95);
+    border: 1px solid rgba(52, 211, 153, 0.35);
+    color: #6ee7b7;
+    animation: panel-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+               panel-out 0.4s ease 3.6s forwards;
+  }
+
+  .upload-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    width: 100%;
+    text-align: left;
+    gap: 8px;
+  }
+
+  .upload-panel-header:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .upload-panel-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .upload-panel-toggle {
+    font-size: 0.65rem;
+    opacity: 0.6;
+    flex-shrink: 0;
+  }
+
+  .upload-panel-body {
+    padding: 0 14px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .upload-panel-counts {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    opacity: 0.8;
+  }
+
+  .upload-panel-errors {
+    color: #f87171;
+    font-size: 0.75rem;
+  }
+
+  .upload-panel-bar-track {
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    overflow: hidden;
+  }
+
+  .upload-panel--active .upload-panel-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #7c3aed, #a78bfa);
+    transition: width 0.4s ease;
+  }
+
+  .upload-panel--done .upload-panel-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #059669, #34d399);
+    transition: width 0.4s ease;
+  }
+
+  .upload-panel-done-msg {
+    font-size: 0.78rem;
+    opacity: 0.75;
+    margin: 0;
+  }
+
+  /* Collapsed: only show header */
+  .upload-panel--collapsed .upload-panel-body {
+    display: none;
+  }
+}
+
+/* ─── Keyframes ─── */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(12px) scale(0.9); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0)    scale(1);   }
+}
+
+@keyframes toast-out {
+  from { opacity: 1; transform: translateX(-50%) translateY(0)    scale(1);   }
+  to   { opacity: 0; transform: translateX(-50%) translateY(8px)  scale(0.95);}
+}
+
+@keyframes panel-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+
+@keyframes panel-out {
+  from { opacity: 1; transform: translateY(0)   scale(1);    }
+  to   { opacity: 0; transform: translateY(10px) scale(0.95); }
+}
