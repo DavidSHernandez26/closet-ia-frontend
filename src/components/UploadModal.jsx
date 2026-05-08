@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import {
   Upload, Scissors, Brain, CheckCircle2, AlertTriangle, Ban,
-  Camera, Image, Shirt, Layers, ArrowRight, ArrowLeft, RotateCcw,
+  Camera, Image, Shirt, Layers, ArrowRight, ArrowLeft,
   X, Plus, Loader2,
 } from "lucide-react";
 import "./UploadModal.css";
@@ -56,7 +56,6 @@ export default function UploadModal({ onClose, onUploaded }) {
   const [finalOk,           setFinalOk]           = useState(null);
   const [finalMsg,          setFinalMsg]          = useState("");
   const [showSourcePicker,  setShowSourcePicker]  = useState(false);
-  const [mensajesError,     setMensajesError]     = useState({});
 
   const intervaloRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -149,7 +148,7 @@ export default function UploadModal({ onClose, onUploaded }) {
   const resetTodo = () => {
     previews.forEach(url => URL.revokeObjectURL(url));
     setFiles([]); setPreviews([]); setStatuses([]);
-    setProgreso(0); setFinalMsg(""); setFinalOk(null); setUploadIndex(0); setMensajesError({});
+    setProgreso(0); setFinalMsg(""); setFinalOk(null); setUploadIndex(0);
   };
 
   async function onSubmit() {
@@ -198,7 +197,7 @@ export default function UploadModal({ onClose, onUploaded }) {
             s[i] = esNoPrenda ? "no_prenda" : "error";
             return s;
           });
-          if (esNoPrenda) { noPrendas++; setMensajesError(prev => ({ ...prev, [i]: msg })); }
+          if (esNoPrenda) { noPrendas++; }
           else errores++;
         }
 
@@ -214,7 +213,7 @@ export default function UploadModal({ onClose, onUploaded }) {
         setFinalOk(subidas > 0);
         const partes = [];
         if (subidas > 0)   partes.push(`${subidas} subida${subidas !== 1 ? "s" : ""}`);
-        if (noPrendas > 0) partes.push(`${noPrendas} sin prenda detectada`);
+        if (noPrendas > 0) partes.push(`${noPrendas} no era${noPrendas !== 1 ? "n" : ""} ropa`);
         if (errores > 0)   partes.push(`${errores} con error`);
         setFinalMsg(partes.join(" · "));
       }
@@ -362,7 +361,7 @@ export default function UploadModal({ onClose, onUploaded }) {
                           {statuses[i] === "no_prenda"  && <Ban size={14} className="up-icon-error" />}
                         </div>
                         {statuses[i] === "no_prenda" && (
-                          <div className="up-file-no-prenda">No es prenda</div>
+                          <div className="up-file-no-prenda">No es ropa</div>
                         )}
                         {!uploading && statuses[i] === "pending" && (
                           <button className="up-file-remove" onClick={() => quitarArchivo(i)}>
