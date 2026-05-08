@@ -10,6 +10,7 @@ import "swiper/css/effect-cards";
 import "./Feed.css";
 import { API_URL } from "../config";
 import { supaImg } from "../utils/imgUrl";
+import { supabase } from "../supabase";
 
 /* ─────────────────────────────────────
    Hook de detección de mobile
@@ -91,6 +92,11 @@ export default function Feed({ usuarioId }) {
   const isMobile    = useIsMobile();
   const sentinelRef = useRef(null);
 
+  async function authHeaders() {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {};
+  }
+
   /* ── Infinite scroll con IntersectionObserver ── */
   useEffect(() => {
     if (!sentinelRef.current) return;
@@ -119,7 +125,8 @@ export default function Feed({ usuarioId }) {
   async function cargarFeed() {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/api/feed`);
+      const headers = await authHeaders();
+      const res = await axios.get(`${API_URL}/api/feed`, { headers });
       setPosts(res.data.posts || []);
       setNextCursor(res.data.nextCursor || null);
     } catch (err) {
@@ -133,8 +140,10 @@ export default function Feed({ usuarioId }) {
     if (!nextCursor || loadingMore) return;
     setLoadingMore(true);
     try {
+      const headers = await authHeaders();
       const res = await axios.get(`${API_URL}/api/feed`, {
         params: { before: nextCursor },
+        headers,
       });
       setPosts((prev) => [...prev, ...(res.data.posts || [])]);
       setNextCursor(res.data.nextCursor || null);
@@ -151,7 +160,8 @@ export default function Feed({ usuarioId }) {
   async function cargarWishlist() {
     setLoadingWishlist(true);
     try {
-      const res = await axios.get(`${API_URL}/api/wishlist`);
+      const headers = await authHeaders();
+      const res = await axios.get(`${API_URL}/api/wishlist`, { headers });
       setWishlist(res.data || []);
     } catch (err) {
       console.error(err);
@@ -216,9 +226,8 @@ async function cargarSugeridos() {
   ────────────────────────────────── */
   async function handleLike(post) {
     try {
-      const res = await axios.post(`${API_URL}/api/likes`, {
-        post_id: post.id,
-      });
+      const headers = await authHeaders();
+      const res = await axios.post(`${API_URL}/api/likes`, { post_id: post.id }, { headers });
       const update = (p) =>
         p.id === post.id
           ? {
@@ -238,11 +247,12 @@ async function cargarSugeridos() {
 
   async function handleWishlist(post) {
     try {
+      const headers = await authHeaders();
       const res = await axios.post(`${API_URL}/api/wishlist`, {
         post_id: post.id,
         imagen_url: post.imagen_url,
         descripcion: post.descripcion,
-      });
+      }, { headers });
       setPosts((prev) =>
         prev.map((p) =>
           p.id === post.id ? { ...p, saved_by_me: res.data.saved } : p
@@ -279,10 +289,11 @@ async function cargarSugeridos() {
     if (!nuevoComentario.trim() || loadingComment) return;
     setLoadingComment(true);
     try {
+      const headers = await authHeaders();
       const res = await axios.post(`${API_URL}/api/comments`, {
         post_id: postActivo.id,
         texto: nuevoComentario,
-      });
+      }, { headers });
       setComentarios((prev) => [...prev, res.data]);
       setNuevoComentario("");
       setPosts((prev) =>
@@ -301,7 +312,8 @@ async function cargarSugeridos() {
 
   async function eliminarComentario(id) {
     try {
-      await axios.delete(`${API_URL}/api/comments/${id}`);
+      const headers = await authHeaders();
+      await axios.delete(`${API_URL}/api/comments/${id}`, { headers });
       setComentarios((prev) => prev.filter((c) => c.id !== id));
       setPosts((prev) =>
         prev.map((p) =>
@@ -318,7 +330,8 @@ async function cargarSugeridos() {
   async function eliminarPost(postId) {
     if (!window.confirm("¿Eliminar este post?")) return;
     try {
-      await axios.delete(`${API_URL}/api/posts/${postId}`);
+      const headers = await authHeaders();
+      await axios.delete(`${API_URL}/api/posts/${postId}`, { headers });
       setPosts((prev) => prev.filter((p) => p.id !== postId));
       cerrarModal();
     } catch (err) {
@@ -333,8 +346,9 @@ async function cargarSugeridos() {
       const fd = new FormData();
       fd.append("imagen", newPost.file);
       fd.append("descripcion", newPost.descripcion);
+      const baseHeaders = await authHeaders();
       const res = await axios.post(`${API_URL}/api/posts`, fd, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: { ...baseHeaders, "Content-Type": "multipart/form-data" },
       });
       /* Prepend inmediato para que aparezca sin recargar */
       if (res.data?.id) {

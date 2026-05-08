@@ -271,12 +271,12 @@ export default function Asistente({ usuarioId }) {
 
   // Prefetch prendas al entrar al modo probador para que el swap sea instantáneo
   useEffect(() => {
-    if (modo === "maniqui" && !prendasCacheRef.current) {
-      axios.get(`${API_URL}/api/prendas`)
+    if (modo === "maniqui" && token && !prendasCacheRef.current) {
+      axios.get(`${API_URL}/api/prendas`, { headers: { Authorization: `Bearer ${token}` } })
         .then(res => { prendasCacheRef.current = res.data || []; })
         .catch(() => {});
     }
-  }, [modo, usuarioId]);
+  }, [modo, token]);
 
   useEffect(() => { localStorage.setItem(STORAGE_CHAT, JSON.stringify(chat)); }, [chat]);
   useEffect(() => { localStorage.setItem(STORAGE_OUTFIT, JSON.stringify(outfit)); }, [outfit]);
@@ -350,7 +350,7 @@ export default function Asistente({ usuarioId }) {
           label:     clima.label,
           rain_prob: clima.rain_prob ?? 0,
         } : null,
-      });
+      }, { headers: { Authorization: `Bearer ${token}` } });
 
       haptics.success();
       setChat((prev) => [...prev, {
@@ -504,7 +504,7 @@ export default function Asistente({ usuarioId }) {
         mensaje: mensajeGeneracion,
         historial: [],
         outfit_ids_anteriores: outfitIds,
-      });
+      }, { headers: { Authorization: `Bearer ${token}` } });
 
       if (Array.isArray(res.data?.outfit) && res.data.outfit.length > 0) {
         setOutfit(res.data.outfit);
@@ -531,7 +531,7 @@ export default function Asistente({ usuarioId }) {
     }
     setSwapLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/api/prendas`);
+      const res = await axios.get(`${API_URL}/api/prendas`, { headers: { Authorization: `Bearer ${token}` } });
       prendasCacheRef.current = res.data || [];
       setSwapPrendas(prendasCacheRef.current);
     } catch (err) {
