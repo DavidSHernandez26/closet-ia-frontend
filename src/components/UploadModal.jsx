@@ -336,7 +336,7 @@ export default function UploadModal({ onClose, onUploaded }) {
               {!tieneFiles ? (
                 <div
                   className={`up-drop ${dragActive ? "drag" : ""}`}
-                  onClick={handlePickPhoto}
+                  onClick={() => handlePickPhoto()}
                   onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
                   onDragLeave={() => setDragActive(false)}
                   onDrop={onDrop}
@@ -390,7 +390,7 @@ export default function UploadModal({ onClose, onUploaded }) {
                     {!uploading && esMulti && (
                       <button
                         className="up-file-add"
-                        onClick={handlePickPhoto}
+                        onClick={() => handlePickPhoto()}
                         title="Agregar más fotos"
                       >
                         <Plus size={20} strokeWidth={1.8} />
