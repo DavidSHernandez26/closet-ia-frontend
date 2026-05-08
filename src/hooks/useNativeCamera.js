@@ -1,50 +1,63 @@
 import { Capacitor } from '@capacitor/core';
 
-async function webPathToFile(photo) {
-  const response = await fetch(photo.webPath);
-  const blob = await response.blob();
-  const ext = photo.format || 'jpeg';
-  const mime = blob.type || `image/${ext}`;
-  return new File([blob], `photo_${Date.now()}_${Math.random().toString(36).slice(2, 6)}.${ext}`, { type: mime });
+function pickViaInput({ multiple = false, capture = false } = {}) {
+  return new Promise((resolve) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    if (multiple) input.multiple = true;
+    if (capture) input.capture = 'environment';
+    input.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
+    document.body.appendChild(input);
+
+    input.onchange = (e) => {
+      const files = Array.from(e.target.files || []);
+      document.body.removeChild(input);
+      resolve(multiple ? files : (files[0] || null));
+    };
+
+    // Si el usuario cancela sin seleccionar
+    const onFocus = () => {
+      setTimeout(() => {
+        if (input.files?.length === 0) {
+          document.body.removeChild(input);
+          resolve(multiple ? [] : null);
+        }
+        window.removeEventListener('focus', onFocus);
+      }, 500);
+    };
+    window.addEventListener('focus', onFocus);
+
+    input.click();
+  });
 }
 
 export function useNativeCamera() {
   const isNative = Capacitor.isNativePlatform();
 
-  // Single photo (camera or prompt)
   async function pickPhoto(sourceOverride = null) {
-    if (isNative) {
+    if (isNative && sourceOverride === 'camera') {
+      // Cámara real: usar Capacitor para acceder a la cámara directamente
       const { Camera, CameraSource, CameraResultType } = await import('@capacitor/camera');
-      const source = sourceOverride === 'camera' ? CameraSource.Camera
-                   : sourceOverride === 'photos' ? CameraSource.Photos
-                   : CameraSource.Prompt;
       const photo = await Camera.getPhoto({
-        source,
+        source: CameraSource.Camera,
         resultType: CameraResultType.Uri,
         quality: 85,
         allowEditing: false,
       });
-      return webPathToFile(photo);
+      const response = await fetch(photo.webPath);
+      const blob = await response.blob();
+      const ext = photo.format || 'jpeg';
+      return new File([blob], `photo_${Date.now()}.${ext}`, { type: blob.type || `image/${ext}` });
     }
-    return new Promise((resolve) => {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = 'image/*';
-      input.onchange = (e) => resolve(e.target.files?.[0] || null);
-      input.click();
-    });
+
+    // Galería (nativo o web): input HTML — funciona en Capacitor WebView con multi-select
+    return pickViaInput({ multiple: false });
   }
 
-  // Multi-photo from gallery (Android/iOS native picker — supports Google Photos)
   async function pickMultiplePhotos() {
-    if (!isNative) return [];
-    const { Camera } = await import('@capacitor/camera');
-    const result = await Camera.pickImages({ quality: 85, limit: 0 });
-    const files = [];
-    for (const photo of result.photos) {
-      try { files.push(await webPathToFile(photo)); } catch (e) { console.warn(e); }
-    }
-    return files;
+    // Input con multiple=true — activa multi-select nativo en Android/iOS WebView
+    return pickViaInput({ multiple: true });
   }
 
   return { pickPhoto, pickMultiplePhotos };
