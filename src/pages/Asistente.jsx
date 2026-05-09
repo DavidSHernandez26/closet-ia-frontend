@@ -7,7 +7,7 @@ import axios from "axios";
 import "./Asistente.css";
 import VirtualMannequin from "../components/VirtualMannequin";
 import { API_URL } from "../config";
-import { supabase } from "../supabase";
+import { supabase, getAuthHeaders } from "../supabase";
 import { getWeather } from "../services/weatherService";
 import { haptics } from "../hooks/useHaptics";
 
@@ -85,11 +85,6 @@ export default function Asistente({ usuarioId }) {
   const prendasCacheRef  = useRef(null);
   const forecastRef      = useRef(null);
   const fondoRef         = useRef(null);
-
-  async function authHeaders() {
-    const { data: { session } } = await supabase.auth.getSession();
-    return session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {};
-  }
 
   // Teclado estilo WhatsApp: sube al abrir, baja al cerrar
   useEffect(() => {
@@ -232,7 +227,7 @@ export default function Asistente({ usuarioId }) {
     let cancelled = false;
     async function cargarRacha() {
       try {
-        const headers = await authHeaders();
+        const headers = getAuthHeaders();
         const res = await axios.get(`${API_URL}/api/racha`, { headers });
         if (cancelled) return;
         const { racha: r, registroHoy } = res.data;
@@ -279,7 +274,7 @@ export default function Asistente({ usuarioId }) {
     let cancelled = false;
     async function prefetchPrendas() {
       try {
-        const headers = await authHeaders();
+        const headers = getAuthHeaders();
         const res = await axios.get(`${API_URL}/api/prendas`, { headers });
         if (!cancelled) prendasCacheRef.current = res.data || [];
       } catch {}
@@ -362,7 +357,7 @@ export default function Asistente({ usuarioId }) {
           label:     clima.label,
           rain_prob: clima.rain_prob ?? 0,
         } : null,
-      }, { headers: await authHeaders() });
+      }, { headers: getAuthHeaders() });
 
       haptics.success();
       setChat((prev) => [...prev, {
@@ -493,7 +488,7 @@ export default function Asistente({ usuarioId }) {
         imagen_url,
         descripcion,
         metadata,
-      }, { headers: await authHeaders() });
+      }, { headers: getAuthHeaders() });
 
       setShowCalPicker(false);
       setCalConfirmado(true);
@@ -516,7 +511,7 @@ export default function Asistente({ usuarioId }) {
         mensaje: mensajeGeneracion,
         historial: [],
         outfit_ids_anteriores: outfitIds,
-      }, { headers: await authHeaders() });
+      }, { headers: getAuthHeaders() });
 
       if (Array.isArray(res.data?.outfit) && res.data.outfit.length > 0) {
         setOutfit(res.data.outfit);
@@ -543,7 +538,7 @@ export default function Asistente({ usuarioId }) {
     }
     setSwapLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/api/prendas`, { headers: await authHeaders() });
+      const res = await axios.get(`${API_URL}/api/prendas`, { headers: getAuthHeaders() });
       prendasCacheRef.current = res.data || [];
       setSwapPrendas(prendasCacheRef.current);
     } catch (err) {

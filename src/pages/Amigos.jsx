@@ -4,7 +4,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "./Perfil.css";   // ← cambia Amigos.css por Perfil.css (archivo unificado)
 import { API_URL } from "../config";
-import { supabase } from "../supabase";
+import { getAuthHeaders } from "../supabase";
 
 export default function Amigos({ usuarioId }) {
   const [busqueda,           setBusqueda]           = useState("");
@@ -16,11 +16,6 @@ export default function Amigos({ usuarioId }) {
   const [tab,                setTab]                = useState("amigos");
   const [loading,            setLoading]            = useState(false);
   const navigate = useNavigate();
-
-  async function authHeaders() {
-    const { data: { session } } = await supabase.auth.getSession();
-    return session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {};
-  }
 
   useEffect(() => {
     cargarSolicitudes();
@@ -35,7 +30,7 @@ export default function Amigos({ usuarioId }) {
 
   async function cargarSolicitudes() {
     try {
-      const headers = await authHeaders();
+      const headers = getAuthHeaders();
       const res = await axios.get(`${API_URL}/api/amistad/solicitudes`, { headers });
       setSolicitudes(res.data || []);
     } catch (err) { console.error(err); }
@@ -43,7 +38,7 @@ export default function Amigos({ usuarioId }) {
 
   async function cargarAmigos() {
     try {
-      const headers = await authHeaders();
+      const headers = getAuthHeaders();
       const res = await axios.get(`${API_URL}/api/amistad/amigos`, { headers });
       setAmigos(res.data || []);
     } catch (err) { console.error(err); }
@@ -69,7 +64,7 @@ export default function Amigos({ usuarioId }) {
 
   async function responderSolicitud(friendship_id, status) {
     try {
-      const headers = await authHeaders();
+      const headers = getAuthHeaders();
       await axios.put(`${API_URL}/api/amistad/responder`, { friendship_id, status }, { headers });
       await cargarSolicitudes();
       await cargarAmigos();
@@ -79,7 +74,7 @@ export default function Amigos({ usuarioId }) {
   async function eliminarAmigo(friendship_id) {
     if (!window.confirm("¿Eliminar esta amistad?")) return;
     try {
-      const headers = await authHeaders();
+      const headers = getAuthHeaders();
       await axios.delete(`${API_URL}/api/amistad/${friendship_id}`, { headers });
       setAmigos(prev => prev.filter(a => a.friendship_id !== friendship_id));
     } catch (err) { console.error(err); }
@@ -87,7 +82,7 @@ export default function Amigos({ usuarioId }) {
 
   async function enviarSolicitud(usuario) {
     try {
-      const headers = await authHeaders();
+      const headers = getAuthHeaders();
       await axios.post(`${API_URL}/api/amistad/solicitar`, { addressee_id: usuario.id }, { headers });
       setSolicitudesEnviadas(prev => new Set([...prev, usuario.id]));
     } catch (err) { console.error(err); }

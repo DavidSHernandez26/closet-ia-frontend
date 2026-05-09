@@ -45,11 +45,7 @@ function redirectToLoginAfterAuthFailure() {
 
 axios.interceptors.request.use((config) => {
   config.headers = config.headers || {};
-  if (_authToken) {
-    config.headers["Authorization"] = `Bearer ${_authToken}`;
-  } else {
-    delete config.headers["Authorization"];
-  }
+  if (_authToken) config.headers["Authorization"] = `Bearer ${_authToken}`;
   return config;
 });
 

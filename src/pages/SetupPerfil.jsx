@@ -3,7 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "./Auth.css";
 import { API_URL } from "../config";
-import { supabase } from "../supabase";
+import { getAuthHeaders } from "../supabase";
 
 export default function SetupPerfil({ usuarioId, onComplete }) {
   const [username, setUsername] = useState("");
@@ -22,9 +22,7 @@ export default function SetupPerfil({ usuarioId, onComplete }) {
     setError("");
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const headers = session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {};
-      await axios.put(`${API_URL}/api/perfil`, { username, nombre }, { headers });
+      await axios.put(`${API_URL}/api/perfil`, { username, nombre }, { headers: getAuthHeaders() });
       onComplete();
     } catch (err) {
       setError(err.response?.data?.error || "Error al guardar perfil");

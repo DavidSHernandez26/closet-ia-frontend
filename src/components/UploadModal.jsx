@@ -5,7 +5,7 @@ import {
   X, Plus, Loader2,
 } from "lucide-react";
 import "./UploadModal.css";
-import { supabase } from "../supabase";
+import { supabase, getAuthHeaders } from "../supabase";
 import axios from "axios";
 import { API_URL } from "../config";
 import { useNativeCamera } from "../hooks/useNativeCamera";
@@ -169,8 +169,7 @@ export default function UploadModal({ onClose, onUploaded }) {
       iniciarUpload(total);
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) throw new Error("no-auth");
-      const user  = session.user;
-      const token = session.access_token;
+      const user = session.user;
 
       for (let i = 0; i < total; i++) {
         setUploadIndex(i);
@@ -186,7 +185,7 @@ export default function UploadModal({ onClose, onUploaded }) {
           await axios.post(`${API_URL}/api/subir-prenda`, fd, {
             headers: {
               "Content-Type": "multipart/form-data",
-              Authorization: `Bearer ${token}`,
+              ...getAuthHeaders(),
             },
           });
           completarProgreso();

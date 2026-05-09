@@ -8,7 +8,7 @@ import axios from "axios";
 import "./Closet.css";
 import { API_URL } from "../config";
 import { supaImg } from "../utils/imgUrl";
-import { supabase } from "../supabase";
+import { getAuthHeaders } from "../supabase";
 
 const COLOR_HEX = {
   negro: '#2a2a2e', blanco: '#f0f0f0', azul: '#2563eb', rojo: '#dc2626',
@@ -90,15 +90,10 @@ export default function Closet({ refresh }) {
     return () => window.removeEventListener('prendas-updated', onUpdate);
   }, [tabActiva]);
 
-  async function authHeaders() {
-    const { data: { session } } = await supabase.auth.getSession();
-    return session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {};
-  }
-
   async function fetchPrendas() {
     try {
       setLoading(true);
-      const headers = await authHeaders();
+      const headers = getAuthHeaders();
       const res = await axios.get(`${API_URL}/api/prendas`, {
         params: { usuario_id: usuarioId, tipo: tabActiva },
         headers,
@@ -115,7 +110,7 @@ export default function Closet({ refresh }) {
     if (loadingRecs || recomendaciones.length > 0) return;
     setLoadingRecs(true);
     try {
-      const headers = await authHeaders();
+      const headers = getAuthHeaders();
       const res = await axios.post(
         `${API_URL}/api/recomendaciones-compra`,
         { usuario_id: usuarioId },
@@ -134,7 +129,7 @@ export default function Closet({ refresh }) {
     setReanalizando(true);
     setMensajeReanalisis("");
     try {
-      const headers = await authHeaders();
+      const headers = getAuthHeaders();
       const res = await axios.post(
         `${API_URL}/api/prendas/reanalizar`,
         {},
@@ -154,7 +149,7 @@ export default function Closet({ refresh }) {
   async function handleDelete(id) {
     if (!window.confirm("¿Eliminar esta prenda?")) return;
     try {
-      const headers = await authHeaders();
+      const headers = getAuthHeaders();
       await axios.delete(`${API_URL}/api/prendas/${id}`, { headers });
       setPrendas(prev => prev.filter(p => p.id !== id));
       if (modalItem?.id === id) setModalItem(null);

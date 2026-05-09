@@ -3,7 +3,7 @@ import { Bell, Heart, MessageCircle, UserPlus, PartyPopper } from "lucide-react"
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../config";
-import { supabase } from "../supabase";
+import { getAuthHeaders } from "../supabase";
 import "./NotifPanel.css";
 
 export default function NotifPanel({ usuarioId }) {
@@ -13,11 +13,6 @@ export default function NotifPanel({ usuarioId }) {
   const [loading, setLoading] = useState(false);
   const panelRef = useRef(null);
   const navigate = useNavigate();
-
-  async function authHeaders() {
-    const { data: { session } } = await supabase.auth.getSession();
-    return session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {};
-  }
 
   useEffect(() => {
     if (!usuarioId) return;
@@ -38,7 +33,7 @@ export default function NotifPanel({ usuarioId }) {
 
   async function fetchCount() {
     try {
-      const headers = await authHeaders();
+      const headers = getAuthHeaders();
       const res = await axios.get(`${API_URL}/api/notificaciones/count`, { headers });
       setCount(res.data.count || 0);
     } catch (err) { console.error(err); }
@@ -47,7 +42,7 @@ export default function NotifPanel({ usuarioId }) {
   async function fetchNotifs() {
     setLoading(true);
     try {
-      const headers = await authHeaders();
+      const headers = getAuthHeaders();
       const res = await axios.get(`${API_URL}/api/notificaciones`, { headers });
       setNotifs(res.data || []);
     } catch (err) { console.error(err); }
@@ -65,7 +60,7 @@ export default function NotifPanel({ usuarioId }) {
 
   async function marcarLeidas() {
     try {
-      const headers = await authHeaders();
+      const headers = getAuthHeaders();
       await axios.put(`${API_URL}/api/notificaciones/leer`, {}, { headers });
       setCount(0);
       setNotifs((prev) => prev.map((n) => ({ ...n, leida: true })));
@@ -75,7 +70,7 @@ export default function NotifPanel({ usuarioId }) {
   async function eliminarNotif(id, e) {
     e.stopPropagation();
     try {
-      const headers = await authHeaders();
+      const headers = getAuthHeaders();
       await axios.delete(`${API_URL}/api/notificaciones/${id}`, { headers });
       setNotifs((prev) => prev.filter((n) => n.id !== id));
     } catch (err) { console.error(err); }
@@ -83,7 +78,7 @@ export default function NotifPanel({ usuarioId }) {
 
   async function eliminarTodas() {
     try {
-      const headers = await authHeaders();
+      const headers = getAuthHeaders();
       await axios.delete(`${API_URL}/api/notificaciones`, { headers });
       setNotifs([]);
       setCount(0);
