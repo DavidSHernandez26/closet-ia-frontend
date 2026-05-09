@@ -32,46 +32,40 @@ const Feed        = React.lazy(() => import("./pages/Feed"));
 // Token cacheado — se actualiza sincrónicamente desde onAuthStateChange
 let _authToken = null;
 
-function redirectToLoginAfterAuthFailure() {
-  _authToken = null;
-  localStorage.removeItem("usuarioId");
-  supabase.auth.signOut({ scope: "local" }).catch(() => {});
-
-  const publicRoutes = ["/login", "/register", "/waitlist"];
-  if (!publicRoutes.includes(window.location.pathname)) {
-    window.location.assign("/login");
-  }
-}
-
 axios.interceptors.request.use((config) => {
   config.headers = config.headers || {};
   if (_authToken) config.headers["Authorization"] = `Bearer ${_authToken}`;
   return config;
 });
 
+// Cuando se recibe un 401, NO llamamos refreshSession() manualmente porque
+// Supabase ya refresca el token automáticamente vía onAuthStateChange (TOKEN_REFRESHED).
+// Llamar refreshSession() en paralelo con el refresh automático consume el refresh
+// token rotativo y causa que uno de los dos falle → logout involuntario.
+// En su lugar: esperamos hasta 3s a que _authToken cambie, luego reintentamos.
 axios.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true;
-      try {
-        const { data } = await supabase.auth.refreshSession();
-        const token = data?.session?.access_token;
-        if (token) {
-          _authToken = token;
-          originalRequest.headers = originalRequest.headers || {};
-          originalRequest.headers["Authorization"] = `Bearer ${token}`;
-          return axios(originalRequest);
-        }
-      } catch {
-        // refresh falló
+      const failedToken = (originalRequest.headers?.Authorization || "").replace("Bearer ", "") || null;
+
+      // Si el token ya cambió (onAuthStateChange fue más rápido) → reintentar ya
+      if (_authToken && _authToken !== failedToken) {
+        originalRequest.headers = originalRequest.headers || {};
+        originalRequest.headers["Authorization"] = `Bearer ${_authToken}`;
+        return axios(originalRequest);
       }
-      if (!originalRequest._noRedirect) redirectToLoginAfterAuthFailure();
-      return Promise.reject(error);
-    }
-    if (error.response?.status === 401 && originalRequest?._retry) {
-      if (!originalRequest._noRedirect) redirectToLoginAfterAuthFailure();
+
+      // Esperar hasta 3s a que TOKEN_REFRESHED actualice _authToken
+      await new Promise(r => setTimeout(r, 3000));
+
+      if (_authToken && _authToken !== failedToken) {
+        originalRequest.headers = originalRequest.headers || {};
+        originalRequest.headers["Authorization"] = `Bearer ${_authToken}`;
+        return axios(originalRequest);
+      }
     }
     return Promise.reject(error);
   }
@@ -266,7 +260,6 @@ export default function App() {
       const res = await axios.get(`${API_URL}/api/perfil/me`, {
         params: { usuario_id: uid },
         timeout: 6000,
-        _noRedirect: true,
       });
       setPerfilListo(res.data?.setup_completo === true);
     } catch {
