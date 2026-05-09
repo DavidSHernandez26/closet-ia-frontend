@@ -146,10 +146,6 @@ export default function App() {
   const [loadingSession, setLoadingSession] = useState(!_cachedSession);
   const [refreshCloset,  setRefreshCloset]  = useState(0);
   const [perfilListo,    setPerfilListo]    = useState(true);
-  // usuarioId arranca null aunque haya caché — se confirma cuando onAuthStateChange
-  // dispara INITIAL_SESSION o TOKEN_REFRESHED con sesión válida.
-  // Esto evita que los componentes hagan llamadas API con token potencialmente expirado
-  // antes de que Supabase haya refrescado la sesión.
   const [usuarioId,      setUsuarioId]      = useState(
     _cachedSession?.user?.id || localStorage.getItem("usuarioId") || null
   );

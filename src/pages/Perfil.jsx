@@ -123,7 +123,7 @@ export default function Perfil({ usuarioId }) {
       }
       if (!esPropio && !esAmigoActual) { setItems([]); return; }
       const url    = esPropio ? `${API_URL}/api/prendas` : `${API_URL}/api/prendas/amigo/${pid}`;
-      const params = esPropio ? { tipo: tab } : { usuario_id: usuarioId, tipo: tab };
+      const params = esPropio ? { tipo: tab } : { tipo: tab };
       const res    = await axios.get(url, { params, headers });
       setItems(res.data || []);
     } catch { setItems([]); }

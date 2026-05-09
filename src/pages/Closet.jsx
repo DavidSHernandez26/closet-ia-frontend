@@ -112,7 +112,7 @@ export default function Closet({ refresh, usuarioId }) {
       const headers = getAuthHeaders();
       const res = await axios.post(
         `${API_URL}/api/recomendaciones-compra`,
-        { usuario_id: usuarioId },
+        {},
         { headers }
       );
       setRecomendaciones(res.data?.recomendaciones || []);
