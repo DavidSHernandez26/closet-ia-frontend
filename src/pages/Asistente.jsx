@@ -39,7 +39,6 @@ export default function Asistente({ usuarioId }) {
   const [swapLoading, setSwapLoading]       = useState(false);
   const [loadingManiqui, setLoadingManiqui] = useState(false);
   const [ocasionManiqui, setOcasionManiqui] = useState(null);
-  const [token, setToken]                   = useState("");
 
   const [chat, setChat] = useState(() => {
     try { return JSON.parse(localStorage.getItem(STORAGE_CHAT)) || []; }
@@ -86,6 +85,11 @@ export default function Asistente({ usuarioId }) {
   const prendasCacheRef  = useRef(null);
   const forecastRef      = useRef(null);
   const fondoRef         = useRef(null);
+
+  async function authHeaders() {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {};
+  }
 
   // Teclado estilo WhatsApp: sube al abrir, baja al cerrar
   useEffect(() => {
@@ -178,12 +182,6 @@ export default function Asistente({ usuarioId }) {
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, [showForecast]);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) =>
-      setToken(data?.session?.access_token || "")
-    );
-  }, []);
-
   const lastWeatherRef = useRef(0);
   const WEATHER_TTL    = 20 * 60 * 1000; // refrescar si han pasado 20 min o si hay nueva ubicación
 
@@ -230,15 +228,21 @@ export default function Asistente({ usuarioId }) {
 
   // Carga racha y programa notificación diaria
   useEffect(() => {
-    if (!token) return;
-    axios.get(`${API_URL}/api/racha`, {
-      headers: { Authorization: `Bearer ${token}` }
-    }).then(res => {
-      const { racha: r, registroHoy } = res.data;
-      setRacha(r);
-      programarNotificacion(r, registroHoy);
-    }).catch(() => {});
-  }, [token]);
+    if (!usuarioId) return;
+    let cancelled = false;
+    async function cargarRacha() {
+      try {
+        const headers = await authHeaders();
+        const res = await axios.get(`${API_URL}/api/racha`, { headers });
+        if (cancelled) return;
+        const { racha: r, registroHoy } = res.data;
+        setRacha(r);
+        programarNotificacion(r, registroHoy);
+      } catch {}
+    }
+    cargarRacha();
+    return () => { cancelled = true; };
+  }, [usuarioId]);
 
   async function programarNotificacion(r, registroHoy) {
     if (!Capacitor.isNativePlatform()) return;
@@ -271,12 +275,18 @@ export default function Asistente({ usuarioId }) {
 
   // Prefetch prendas al entrar al modo probador para que el swap sea instantáneo
   useEffect(() => {
-    if (modo === "maniqui" && token && !prendasCacheRef.current) {
-      axios.get(`${API_URL}/api/prendas`, { headers: { Authorization: `Bearer ${token}` } })
-        .then(res => { prendasCacheRef.current = res.data || []; })
-        .catch(() => {});
+    if (modo !== "maniqui" || !usuarioId || prendasCacheRef.current) return;
+    let cancelled = false;
+    async function prefetchPrendas() {
+      try {
+        const headers = await authHeaders();
+        const res = await axios.get(`${API_URL}/api/prendas`, { headers });
+        if (!cancelled) prendasCacheRef.current = res.data || [];
+      } catch {}
     }
-  }, [modo, token]);
+    prefetchPrendas();
+    return () => { cancelled = true; };
+  }, [modo, usuarioId]);
 
   useEffect(() => { localStorage.setItem(STORAGE_CHAT, JSON.stringify(chat)); }, [chat]);
   useEffect(() => { localStorage.setItem(STORAGE_OUTFIT, JSON.stringify(outfit)); }, [outfit]);
@@ -350,7 +360,7 @@ export default function Asistente({ usuarioId }) {
           label:     clima.label,
           rain_prob: clima.rain_prob ?? 0,
         } : null,
-      }, { headers: { Authorization: `Bearer ${token}` } });
+      }, { headers: await authHeaders() });
 
       haptics.success();
       setChat((prev) => [...prev, {
@@ -481,7 +491,7 @@ export default function Asistente({ usuarioId }) {
         imagen_url,
         descripcion,
         metadata,
-      }, { headers: { Authorization: `Bearer ${token}` } });
+      }, { headers: await authHeaders() });
 
       setShowCalPicker(false);
       setCalConfirmado(true);
@@ -504,7 +514,7 @@ export default function Asistente({ usuarioId }) {
         mensaje: mensajeGeneracion,
         historial: [],
         outfit_ids_anteriores: outfitIds,
-      }, { headers: { Authorization: `Bearer ${token}` } });
+      }, { headers: await authHeaders() });
 
       if (Array.isArray(res.data?.outfit) && res.data.outfit.length > 0) {
         setOutfit(res.data.outfit);
@@ -531,7 +541,7 @@ export default function Asistente({ usuarioId }) {
     }
     setSwapLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/api/prendas`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await axios.get(`${API_URL}/api/prendas`, { headers: await authHeaders() });
       prendasCacheRef.current = res.data || [];
       setSwapPrendas(prendasCacheRef.current);
     } catch (err) {

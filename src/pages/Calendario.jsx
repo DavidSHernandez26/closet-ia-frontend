@@ -119,7 +119,6 @@ function CalendarioContent({ usuarioId }) {
   const [año] = useCalendarYear();
 
   const [entradas,      setEntradas]      = useState({});
-  const [token,         setToken]         = useState("");
   const [modalDetalle,  setModalDetalle]  = useState(null);
   const [modalOutfit,   setModalOutfit]   = useState(null);
   const [loadingOutfit, setLoadingOutfit] = useState(false);
@@ -136,17 +135,15 @@ function CalendarioContent({ usuarioId }) {
   // { fecha, dia, id, prendas: [...], editingIdx: null|number }
   const [editandoOutfit, setEditandoOutfit] = useState(null);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) =>
-      setToken(data?.session?.access_token || "")
-    );
-  }, []);
+  async function authHeaders() {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {};
+  }
 
   const fetchEntradas = useCallback(async () => {
     if (!usuarioId) return;
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const headers = session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {};
+      const headers = await authHeaders();
       const res = await axios.get(`${API_URL}/api/calendario`, {
         params: { year: año, month: mes + 1 },
         headers,
@@ -174,7 +171,7 @@ function CalendarioContent({ usuarioId }) {
     if (ids?.length > 0) {
       setLoadingOutfit(true);
       try {
-        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const headers = await authHeaders();
         const res = await axios.get(`${API_URL}/api/prendas`, { headers });
         const coincidentes = (res.data || []).filter(p => ids.includes(p.id));
         if (coincidentes.length > 0) setModalOutfit(coincidentes);
@@ -186,7 +183,7 @@ function CalendarioContent({ usuarioId }) {
   async function fetchPrendas() {
     setLoadingCloset(true);
     try {
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const headers = await authHeaders();
       const res = await axios.get(`${API_URL}/api/prendas`, { headers });
       setPrendas(res.data || []);
     } catch (err) { console.error(err); }
@@ -200,7 +197,7 @@ function CalendarioContent({ usuarioId }) {
         imagen_url:  prenda.imagen_url,
         descripcion: prenda.descripcion,
         metadata:    prenda.metadata_ia || {},
-      }, { headers: { Authorization: `Bearer ${token}` } });
+      }, { headers: await authHeaders() });
       await fetchEntradas();
     } catch (err) { console.error(err); }
   }
@@ -215,7 +212,7 @@ function CalendarioContent({ usuarioId }) {
         imagen_url:  primera.imagen_url  || "",
         descripcion: primera.descripcion || "",
         metadata: { outfit: nuevasPrendas },
-      }, { headers: { Authorization: `Bearer ${token}` } });
+      }, { headers: await authHeaders() });
       await fetchEntradas();
       setEditandoOutfit(null);
     } catch (err) { console.error(err); }
@@ -224,7 +221,7 @@ function CalendarioContent({ usuarioId }) {
   async function eliminar(id) {
     try {
       await axios.delete(`${API_URL}/api/calendario/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: await authHeaders(),
       });
       await fetchEntradas();
       setModalDetalle(null);
@@ -554,7 +551,7 @@ function CalendarioContent({ usuarioId }) {
           onUploaded={async () => {
             if (fechaUpload) {
               try {
-                const headers = token ? { Authorization: `Bearer ${token}` } : {};
+                const headers = await authHeaders();
                 const res = await axios.get(`${API_URL}/api/prendas`, { headers });
                 const ultima = res.data?.[0];
                 if (ultima) await guardar(fechaUpload, ultima);

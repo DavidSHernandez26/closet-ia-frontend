@@ -11,6 +11,8 @@ export default defineConfig({
       // Usamos el manifest.json existente en /public
       manifest: false,
       workbox: {
+        skipWaiting: true,
+        clientsClaim: true,
         // Precachea todos los assets generados por Vite
         globPatterns: ["**/*.{js,css,html,ico,png,svg,webp,woff2}"],
         // Rutas de navegación → siempre sirve index.html (SPA)
@@ -19,7 +21,7 @@ export default defineConfig({
         runtimeCaching: [
           {
             // Imágenes de Supabase Storage: CacheFirst 24h
-            urlPattern: /^https:\/\/lhvwexbejhdqtbprypmk\.supabase\.co\//,
+            urlPattern: /^https:\/\/lhvwexbejhdqtbprypmk\.supabase\.co\/storage\/v1\/object\//,
             handler: "CacheFirst",
             options: {
               cacheName: "supabase-images",
@@ -39,19 +41,6 @@ export default defineConfig({
               expiration: {
                 maxEntries: 5,
                 maxAgeSeconds: 60 * 30,
-              },
-            },
-          },
-          {
-            // API del backend: NetworkFirst con caché de 5 min
-            urlPattern: ({ url }) => url.pathname.startsWith("/api/"),
-            handler: "NetworkFirst",
-            options: {
-              cacheName: "api-cache",
-              networkTimeoutSeconds: 8,
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 5,
               },
             },
           },

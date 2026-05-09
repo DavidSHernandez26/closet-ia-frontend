@@ -134,12 +134,11 @@ export default function Closet({ refresh }) {
     setReanalizando(true);
     setMensajeReanalisis("");
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const accessToken = session?.access_token;
+      const headers = await authHeaders();
       const res = await axios.post(
         `${API_URL}/api/prendas/reanalizar`,
         {},
-        { headers: { Authorization: `Bearer ${accessToken}` } }
+        { headers }
       );
       setMensajeReanalisis(res.data.mensaje);
       if (res.data.actualizadas > 0) await fetchPrendas();

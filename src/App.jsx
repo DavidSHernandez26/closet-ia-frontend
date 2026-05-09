@@ -32,10 +32,46 @@ const Feed        = React.lazy(() => import("./pages/Feed"));
 // Token cacheado — se actualiza sincrónicamente desde onAuthStateChange
 let _authToken = null;
 
-axios.interceptors.request.use((config) => {
-  if (_authToken) config.headers["Authorization"] = `Bearer ${_authToken}`;
+axios.interceptors.request.use(async (config) => {
+  try {
+    const { data } = await supabase.auth.getSession();
+    const token = data?.session?.access_token || _authToken;
+    _authToken = token || null;
+    config.headers = config.headers || {};
+    if (token) {
+      config.headers["Authorization"] = `Bearer ${token}`;
+    } else {
+      delete config.headers["Authorization"];
+    }
+  } catch {
+    config.headers = config.headers || {};
+    if (_authToken) {
+      config.headers["Authorization"] = `Bearer ${_authToken}`;
+    } else {
+      delete config.headers["Authorization"];
+    }
+  }
   return config;
 });
+
+axios.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+      originalRequest._retry = true;
+      const { data } = await supabase.auth.refreshSession();
+      const token = data?.session?.access_token;
+      if (token) {
+        _authToken = token;
+        originalRequest.headers = originalRequest.headers || {};
+        originalRequest.headers["Authorization"] = `Bearer ${token}`;
+        return axios(originalRequest);
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 /* ─── Componentes estables (definidos fuera de App para evitar remounts) ─── */
 
