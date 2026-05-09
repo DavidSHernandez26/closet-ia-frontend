@@ -42,6 +42,7 @@ export default function Perfil({ usuarioId }) {
   const [modalAmigos,     setModalAmigos]     = useState(false);
   const [listaAmigos,     setListaAmigos]     = useState([]);
   const [loadingAmigos,   setLoadingAmigos]   = useState(false);
+  const [loggingOut,      setLoggingOut]      = useState(false);
   const [stats,           setStats]           = useState({ posts: 0, amigos: 0, prendas: 0 });
   const fileRef = useRef();
 
@@ -189,6 +190,19 @@ export default function Perfil({ usuarioId }) {
     } catch (err) { console.error(err); }
   }
 
+  async function handleLogout() {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      await supabase.auth.signOut();
+      localStorage.removeItem("usuarioId");
+      navigate("/login", { replace: true });
+    } catch (err) {
+      console.error("Error cerrando sesión:", err);
+      setLoggingOut(false);
+    }
+  }
+
   if (loading) return (
     <div className="perfil-loading">
       <div className="perfil-loading-dot" /><div className="perfil-loading-dot" /><div className="perfil-loading-dot" />
@@ -278,6 +292,13 @@ export default function Perfil({ usuarioId }) {
                   <>
                     <button className="perfil-btn-action" onClick={() => setEditando(true)}>Editar perfil</button>
                     <button className="perfil-btn-action">Compartir</button>
+                    <button
+                      className="perfil-btn-action perfil-btn-danger perfil-btn-logout-mobile"
+                      onClick={handleLogout}
+                      disabled={loggingOut}
+                    >
+                      {loggingOut ? "Cerrando..." : "Cerrar sesión"}
+                    </button>
                   </>
                 ) : (
                   <>

@@ -54,7 +54,7 @@ const PageFallback = () => (
 );
 
 function PrivateRoute({ children, isAuthenticated, perfilListo, usuarioId, onPerfilComplete }) {
-  if (!isAuthenticated) return <Navigate to="/waitlist" replace />;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (!perfilListo) return (
     <SetupPerfil usuarioId={usuarioId} onComplete={onPerfilComplete} />
   );

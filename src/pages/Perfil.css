@@ -152,6 +152,7 @@
 .perfil-btn-action.perfil-btn-primary { background: rgba(196,181,232,0.15); border-color: rgba(196,181,232,0.3); color: #C4B5E8; }
 .perfil-btn-action.perfil-btn-primary:hover { background: rgba(196,181,232,0.22); }
 .perfil-btn-action.perfil-btn-danger { background: rgba(255,80,80,0.08); border-color: rgba(255,80,80,0.2); color: #ff6b6b; }
+.perfil-btn-logout-mobile { display: none; }
 
 .perfil-edit-form { display: flex; flex-direction: column; gap: 10px; width: 100%; margin-bottom: 4px; }
 .perfil-edit-field { position: relative; display: flex; align-items: center; }
@@ -395,6 +396,11 @@ body.light-mode .amigos-avatar-sm, body.light-mode .amigos-avatar-md { backgroun
 @media (max-width: 600px) {
   .perfil-container { padding: 12px 12px 80px; }
   .perfil-window    { border-radius: 14px; }
+  .perfil-btn-logout-mobile {
+    display: block;
+    flex-basis: 100%;
+    margin-top: 2px;
+  }
   .amigos-container { padding: 16px 12px 80px; }
   .amigos-tab       { font-size: 0.78rem; padding: 9px 6px; }
   .amigos-item      { padding: 12px 14px; }

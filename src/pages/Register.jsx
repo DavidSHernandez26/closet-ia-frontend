@@ -1,33 +1,65 @@
 import React, { useState } from "react";
 import { supabase } from "../supabase";
 import { useNavigate } from "react-router-dom";
-import { Loader2, Sparkles, CheckCircle2 } from "lucide-react";
+import { Loader2, CheckCircle2 } from "lucide-react";
 import AuthShell from "./AuthShell";
 import "./AuthShell.css";
 import "./Register.css";
 
 export default function Register() {
-  const [email,    setEmail]    = useState("");
-  const [loading,  setLoading]  = useState(false);
-  const [done,     setDone]     = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
+  const [email,       setEmail]       = useState("");
+  const [password,    setPassword]    = useState("");
+  const [confirmPwd,  setConfirmPwd]  = useState("");
+  const [showPwd,     setShowPwd]     = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [loading,     setLoading]     = useState(false);
+  const [done,        setDone]        = useState(false);
+  const [errorMsg,    setErrorMsg]    = useState("");
   const navigate = useNavigate();
+
+  function translateError(msg) {
+    const m = (msg || "").toLowerCase();
+    if (m.includes("already registered") || m.includes("already exists"))
+      return "Este correo ya tiene una cuenta. Inicia sesión.";
+    if (m.includes("password") && m.includes("weak"))
+      return "La contraseña es demasiado débil.";
+    if (m.includes("password") && m.includes("6"))
+      return "La contraseña debe tener al menos 6 caracteres.";
+    if (m.includes("email")) return "Ingresa un correo válido.";
+    if (m.includes("rate")) return "Demasiados intentos. Espera un momento.";
+    if (m.includes("network") || m.includes("fetch"))
+      return "Sin conexión. Inténtalo de nuevo.";
+    return msg || "No pudimos crear la cuenta. Intenta de nuevo.";
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!email.trim()) return;
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail) return setErrorMsg("Ingresa tu correo.");
+    if (password.length < 6) return setErrorMsg("La contraseña debe tener al menos 6 caracteres.");
+    if (password !== confirmPwd) return setErrorMsg("Las contraseñas no coinciden.");
+
     setLoading(true);
     setErrorMsg("");
 
-    const { error } = await supabase
-      .from("waitlist")
-      .insert({ email: email.toLowerCase().trim() });
+    const { data, error } = await supabase.auth.signUp({
+      email: cleanEmail,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/`,
+      },
+    });
 
     setLoading(false);
 
-    // duplicate key = ya estaba en lista, igual lo tratamos como éxito
-    if (error && !error.message?.includes("duplicate") && !error.code?.includes("23505")) {
-      setErrorMsg("Algo salió mal. Inténtalo de nuevo.");
+    if (error) {
+      setErrorMsg(translateError(error.message));
+      return;
+    }
+
+    if (data?.session?.user) {
+      localStorage.setItem("usuarioId", data.session.user.id);
+      navigate("/");
       return;
     }
 
@@ -43,11 +75,11 @@ export default function Register() {
       <div className="be-auth-card">
 
         <div>
-          <p className="be-eyebrow">Únete al closet</p>
+          <p className="be-eyebrow">Crea tu cuenta</p>
           <h1 className="be-title">
             {done
-              ? <>¡Estás en<br /><em>la lista!</em></>
-              : <>Pronto<br /><em>disponible.</em></>}
+              ? <>Revisa<br /><em>tu correo.</em></>
+              : <>Empieza tu<br /><em>closet.</em></>}
           </h1>
         </div>
 
@@ -62,17 +94,12 @@ export default function Register() {
 
         {!done ? (
           <>
-            <div className="be-waitlist-badge">
-              <Sparkles size={13} strokeWidth={1.8} />
-              <span>Estamos en beta cerrada — te avisamos cuando abra tu lugar</span>
-            </div>
-
             <form className="be-form" onSubmit={handleSubmit} noValidate>
               <div className="be-field">
-                <label htmlFor="wl-email">Tu correo</label>
+                <label htmlFor="register-email">Correo</label>
                 <div className="be-input-wrap">
                   <input
-                    id="wl-email"
+                    id="register-email"
                     type="email"
                     inputMode="email"
                     autoComplete="email"
@@ -84,18 +111,64 @@ export default function Register() {
                 </div>
               </div>
 
+              <div className="be-field">
+                <label htmlFor="register-password">Contraseña</label>
+                <div className="be-input-wrap">
+                  <input
+                    id="register-password"
+                    type={showPwd ? "text" : "password"}
+                    autoComplete="new-password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="be-toggle-pwd"
+                    onClick={() => setShowPwd((s) => !s)}
+                    aria-label={showPwd ? "Ocultar contraseña" : "Mostrar contraseña"}
+                  >
+                    {showPwd ? "Hide" : "Show"}
+                  </button>
+                </div>
+              </div>
+
+              <div className="be-field">
+                <label htmlFor="register-confirm">Confirmar contraseña</label>
+                <div className="be-input-wrap">
+                  <input
+                    id="register-confirm"
+                    type={showConfirm ? "text" : "password"}
+                    autoComplete="new-password"
+                    placeholder="••••••••"
+                    value={confirmPwd}
+                    onChange={(e) => setConfirmPwd(e.target.value)}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="be-toggle-pwd"
+                    onClick={() => setShowConfirm((s) => !s)}
+                    aria-label={showConfirm ? "Ocultar contraseña" : "Mostrar contraseña"}
+                  >
+                    {showConfirm ? "Hide" : "Show"}
+                  </button>
+                </div>
+              </div>
+
               {errorMsg && <p className="be-error be-shake">{errorMsg}</p>}
 
               <button
                 type="submit"
                 className="be-submit-btn"
-                disabled={loading || !email.trim()}
+                disabled={loading || !email.trim() || !password || !confirmPwd}
               >
                 {loading ? (
-                  <><Loader2 size={18} className="be-spin" strokeWidth={2.2} /> Guardando…</>
+                  <><Loader2 size={18} className="be-spin" strokeWidth={2.2} /> Creando cuenta...</>
                 ) : (
                   <>
-                    <span>Unirme a la lista</span>
+                    <span>Crear cuenta</span>
                     <svg className="be-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                       <path d="M3 8h10m0 0L8.5 3.5M13 8l-4.5 4.5"
                         stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
@@ -111,8 +184,8 @@ export default function Register() {
               <CheckCircle2 size={40} strokeWidth={1.4} />
             </div>
             <p className="be-sub">
-              Te escribiremos a <strong>{email}</strong> cuando tu lugar esté listo.
-              Mientras tanto puedes iniciar sesión si ya tienes cuenta.
+              Te enviamos un enlace de confirmación a <strong>{email}</strong>.
+              Cuando confirmes tu correo, podrás iniciar sesión.
             </p>
             <button type="button" className="be-submit-btn" onClick={() => navigate("/login")}>
               Ir al inicio de sesión
