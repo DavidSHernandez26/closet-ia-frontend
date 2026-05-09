@@ -9,10 +9,23 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Token síncrono — actualizado SOLO desde App.jsx mediante setAuthToken.
+// Lee el token cacheado de localStorage en el momento en que este módulo se importa
+// (síncrono, sin red) para que getAuthHeaders() ya devuelva un header válido incluso
+// antes de que onAuthStateChange dispare su INITIAL_SESSION.
+// Supabase v2 persiste la sesión en: sb-<project-ref>-auth-token
+function _readCachedToken() {
+  try {
+    const ref = supabaseUrl.match(/https:\/\/([^.]+)\.supabase\.co/)?.[1];
+    if (!ref) return null;
+    const raw = localStorage.getItem(`sb-${ref}-auth-token`);
+    return raw ? JSON.parse(raw)?.access_token || null : null;
+  } catch { return null; }
+}
+
+// Token síncrono — inicializado desde localStorage, actualizado desde App.jsx.
 // NO registramos onAuthStateChange aquí: tener dos listeners en v2 con refresh
 // tokens rotativos provoca que uno de los dos falle el refresh → SIGNED_OUT.
-let _token = null;
+let _token = _readCachedToken();
 
 export function setAuthToken(token) { _token = token; }
 export function getAuthHeaders() {

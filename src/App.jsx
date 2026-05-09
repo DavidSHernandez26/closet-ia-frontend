@@ -29,8 +29,21 @@ const Register    = React.lazy(() => import("./pages/Register"));
 const Waitlist    = React.lazy(() => import("./pages/Waitlist"));
 const Feed        = React.lazy(() => import("./pages/Feed"));
 
-// Token cacheado — se actualiza sincrónicamente desde onAuthStateChange
-let _authToken = null;
+// Lee la sesión guardada en localStorage de forma síncrona.
+// Supabase v2 persiste la sesión en: sb-<project-ref>-auth-token
+function _readCachedSession() {
+  try {
+    const url = import.meta.env.VITE_SUPABASE_URL || "";
+    const ref = url.match(/https:\/\/([^.]+)\.supabase\.co/)?.[1];
+    if (!ref) return null;
+    const raw = localStorage.getItem(`sb-${ref}-auth-token`);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+const _cachedSession = _readCachedSession();
+
+// Token cacheado — inicializado desde localStorage, actualizado desde onAuthStateChange
+let _authToken = _cachedSession?.access_token || null;
 
 axios.interceptors.request.use((config) => {
   config.headers = config.headers || {};
@@ -138,11 +151,15 @@ const AnimatedRoutes = memo(function AnimatedRoutes({ usuarioId, refreshCloset, 
 /* ─── App principal ─── */
 
 export default function App() {
-  const [session,        setSession]        = useState(null);
-  const [loadingSession, setLoadingSession] = useState(true);
+  // Inicializar desde localStorage síncrono para evitar el flash de login en reload.
+  // onAuthStateChange reemplazará estos valores con la sesión refrescada cuando llegue.
+  const [session,        setSession]        = useState(_cachedSession);
+  const [loadingSession, setLoadingSession] = useState(!_cachedSession);
   const [refreshCloset,  setRefreshCloset]  = useState(0);
   const [perfilListo,    setPerfilListo]    = useState(true);
-  const [usuarioId,      setUsuarioId]      = useState(null);
+  const [usuarioId,      setUsuarioId]      = useState(
+    _cachedSession?.user?.id || localStorage.getItem("usuarioId") || null
+  );
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
@@ -220,20 +237,37 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    // Fallback por si onAuthStateChange no dispara en 3s (red muy lenta)
-    let initialDone = false;
-    const safetyTimer = setTimeout(() => {
+    // Si ya teníamos sesión cacheada, la pantalla de carga ya está oculta.
+    // initialDone arranca en true para que el primer INITIAL_SESSION no llame a
+    // setLoadingSession(false) de nuevo (no rompe nada, pero es innecesario).
+    let initialDone = !!_cachedSession;
+
+    // Fallback por si onAuthStateChange no dispara en 3s (sin caché + red lenta)
+    const safetyTimer = !initialDone ? setTimeout(() => {
       if (!initialDone) { initialDone = true; setLoadingSession(false); }
-    }, 3000);
+    }, 3000) : null;
 
-    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-      const token = session?.access_token || null;
+    const { data: listener } = supabase.auth.onAuthStateChange((event, newSession) => {
+      // INITIAL_SESSION puede llegar con session=null cuando el access_token está
+      // expirado y Supabase aún está esperando el refresh de red (TOKEN_REFRESHED
+      // llegará en unos ms). Si ya teníamos una sesión cacheada, la conservamos
+      // para que el usuario no vea un flash hacia /login.
+      if (event === 'INITIAL_SESSION' && !newSession && _cachedSession) {
+        if (!initialDone) {
+          initialDone = true;
+          if (safetyTimer) clearTimeout(safetyTimer);
+          setLoadingSession(false);
+        }
+        return;
+      }
+
+      const token = newSession?.access_token || null;
       _authToken = token;
-      setAuthToken(token); // sincronizar getAuthHeaders() en supabase.js
-      setSession(session);
+      setAuthToken(token);
+      setSession(newSession);
 
-      if (session?.user) {
-        const uid = session.user.id;
+      if (newSession?.user) {
+        const uid = newSession.user.id;
         setUsuarioId(uid);
         localStorage.setItem("usuarioId", uid);
         verificarPerfil(uid);
@@ -242,17 +276,15 @@ export default function App() {
         setPerfilListo(true);
       }
 
-      // INITIAL_SESSION dispara al registrar el listener, con la sesión en caché
-      // No hace red — desbloquea la pantalla de carga de inmediato
       if (!initialDone) {
         initialDone = true;
-        clearTimeout(safetyTimer);
+        if (safetyTimer) clearTimeout(safetyTimer);
         setLoadingSession(false);
       }
     });
 
     return () => {
-      clearTimeout(safetyTimer);
+      if (safetyTimer) clearTimeout(safetyTimer);
       listener.subscription.unsubscribe();
     };
   }, []);
