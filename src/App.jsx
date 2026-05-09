@@ -226,29 +226,16 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    async function getSession() {
-      try {
-        const { data } = await supabase.auth.getSession();
-        _authToken = data?.session?.access_token || null;
-        setSession(data?.session || null);
-        if (data?.session?.user) {
-          const uid = data.session.user.id;
-          setUsuarioId(uid);
-          localStorage.setItem("usuarioId", uid);
-          verificarPerfil(uid);
-        }
-      } catch {
-        // error de Supabase → tratar como no autenticado
-      } finally {
-        setLoadingSession(false);
-      }
-    }
+    // Fallback por si onAuthStateChange no dispara en 3s (red muy lenta)
+    let initialDone = false;
+    const safetyTimer = setTimeout(() => {
+      if (!initialDone) { initialDone = true; setLoadingSession(false); }
+    }, 3000);
 
-    getSession();
-
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       _authToken = session?.access_token || null;
       setSession(session);
+
       if (session?.user) {
         const uid = session.user.id;
         setUsuarioId(uid);
@@ -258,9 +245,20 @@ export default function App() {
         setUsuarioId(null);
         setPerfilListo(true);
       }
+
+      // INITIAL_SESSION dispara al registrar el listener, con la sesión en caché
+      // No hace red — desbloquea la pantalla de carga de inmediato
+      if (!initialDone) {
+        initialDone = true;
+        clearTimeout(safetyTimer);
+        setLoadingSession(false);
+      }
     });
 
-    return () => listener.subscription.unsubscribe();
+    return () => {
+      clearTimeout(safetyTimer);
+      listener.subscription.unsubscribe();
+    };
   }, []);
 
   async function verificarPerfil(uid) {

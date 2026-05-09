@@ -9,15 +9,9 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Token síncrono — se actualiza con onAuthStateChange sin hacer await
+// Token síncrono — se actualiza con onAuthStateChange sin hacer await ni getSession
 let _token = null;
 
-// Inicializar desde la sesión en caché (sin bloquear)
-supabase.auth.getSession().then(({ data }) => {
-  if (data?.session?.access_token) _token = data.session.access_token;
-}).catch(() => {});
-
-// Mantenerse en sync con cualquier cambio de sesión
 supabase.auth.onAuthStateChange((_event, session) => {
   _token = session?.access_token || null;
 });
