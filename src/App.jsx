@@ -91,6 +91,7 @@ const PageFallback = () => (
 
 function PrivateRoute({ children, isAuthenticated, perfilListo, usuarioId, onPerfilComplete }) {
   if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!usuarioId) return <div className="loading-screen"><p>Cargando...</p></div>;
   if (!perfilListo) return (
     <SetupPerfil usuarioId={usuarioId} onComplete={onPerfilComplete} />
   );
@@ -146,9 +147,7 @@ export default function App() {
   const [loadingSession, setLoadingSession] = useState(!_cachedSession);
   const [refreshCloset,  setRefreshCloset]  = useState(0);
   const [perfilListo,    setPerfilListo]    = useState(true);
-  const [usuarioId,      setUsuarioId]      = useState(
-    _cachedSession?.user?.id || localStorage.getItem("usuarioId") || null
-  );
+  const [usuarioId,      setUsuarioId]      = useState(null);
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
@@ -243,11 +242,9 @@ export default function App() {
       // caché para que los componentes puedan hacer sus llamadas API (el interceptor
       // reintentará si reciben 401 hasta que llegue TOKEN_REFRESHED).
       if (event === 'INITIAL_SESSION' && !newSession && _cachedSession) {
-        const cachedUid = _cachedSession.user?.id;
-        if (cachedUid) {
-          setUsuarioId(cachedUid);
-          localStorage.setItem("usuarioId", cachedUid);
-        }
+        // Token expirado — Supabase está refrescando en background.
+        // NO seteamos usuarioId desde caché para evitar llamadas API con token inválido.
+        // Los componentes esperan con loading hasta que TOKEN_REFRESHED llegue.
         if (!initialDone) {
           initialDone = true;
           if (safetyTimer) clearTimeout(safetyTimer);
