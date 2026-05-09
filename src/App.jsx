@@ -8,7 +8,7 @@ import {
   useLocation,
 } from "react-router-dom";
 import axios from "axios";
-import { supabase } from "./supabase";
+import { supabase, setAuthToken } from "./supabase";
 import { API_URL } from "./config";
 import "./App.css";
 import "./styles/animations.css";
@@ -227,7 +227,9 @@ export default function App() {
     }, 3000);
 
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-      _authToken = session?.access_token || null;
+      const token = session?.access_token || null;
+      _authToken = token;
+      setAuthToken(token); // sincronizar getAuthHeaders() en supabase.js
       setSession(session);
 
       if (session?.user) {

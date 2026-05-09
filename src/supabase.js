@@ -9,14 +9,12 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Token síncrono — se actualiza con onAuthStateChange sin hacer await ni getSession
+// Token síncrono — actualizado SOLO desde App.jsx mediante setAuthToken.
+// NO registramos onAuthStateChange aquí: tener dos listeners en v2 con refresh
+// tokens rotativos provoca que uno de los dos falle el refresh → SIGNED_OUT.
 let _token = null;
 
-supabase.auth.onAuthStateChange((_event, session) => {
-  _token = session?.access_token || null;
-});
-
-/** Devuelve el header de Authorization de forma síncrona, sin await */
+export function setAuthToken(token) { _token = token; }
 export function getAuthHeaders() {
   return _token ? { Authorization: `Bearer ${_token}` } : {};
 }
