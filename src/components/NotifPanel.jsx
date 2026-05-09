@@ -18,7 +18,11 @@ export default function NotifPanel({ usuarioId }) {
     if (!usuarioId) return;
     fetchCount();
     const interval = setInterval(fetchCount, 30000);
-    return () => clearInterval(interval);
+    window.addEventListener('auth-token-refreshed', fetchCount);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('auth-token-refreshed', fetchCount);
+    };
   }, [usuarioId]);
 
   useEffect(() => {

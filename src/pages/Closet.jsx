@@ -86,7 +86,11 @@ export default function Closet({ refresh, usuarioId }) {
   useEffect(() => {
     const onUpdate = () => fetchPrendas();
     window.addEventListener('prendas-updated', onUpdate);
-    return () => window.removeEventListener('prendas-updated', onUpdate);
+    window.addEventListener('auth-token-refreshed', onUpdate);
+    return () => {
+      window.removeEventListener('prendas-updated', onUpdate);
+      window.removeEventListener('auth-token-refreshed', onUpdate);
+    };
   }, [tabActiva]);
 
   async function fetchPrendas() {

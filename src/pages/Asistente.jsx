@@ -73,6 +73,7 @@ export default function Asistente({ usuarioId }) {
   const [escuchando,     setEscuchando]     = useState(false);
   const [showHistorial,  setShowHistorial]  = useState(false);
   const [racha,          setRacha]          = useState(0);
+  const [rachaKey,       setRachaKey]       = useState(0);
   const [historial,      setHistorial]      = useState(() => {
     try { return JSON.parse(localStorage.getItem(`asistente_historial_${usuarioId}`)) || []; }
     catch { return []; }
@@ -237,7 +238,13 @@ export default function Asistente({ usuarioId }) {
     }
     cargarRacha();
     return () => { cancelled = true; };
-  }, [usuarioId]);
+  }, [usuarioId, rachaKey]);
+
+  useEffect(() => {
+    const onRefresh = () => setRachaKey(k => k + 1);
+    window.addEventListener('auth-token-refreshed', onRefresh);
+    return () => window.removeEventListener('auth-token-refreshed', onRefresh);
+  }, []);
 
   async function programarNotificacion(r, registroHoy) {
     if (!Capacitor.isNativePlatform()) return;

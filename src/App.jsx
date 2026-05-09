@@ -257,9 +257,13 @@ export default function App() {
       }
 
       const token = newSession?.access_token || null;
+      const prevToken = _authToken;
       _authToken = token;
       setAuthToken(token);
       setSession(newSession);
+      if (token && token !== prevToken) {
+        window.dispatchEvent(new CustomEvent('auth-token-refreshed'));
+      }
 
       if (newSession?.user) {
         const uid = newSession.user.id;
