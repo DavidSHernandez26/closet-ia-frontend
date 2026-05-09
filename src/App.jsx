@@ -42,11 +42,7 @@ function _readCachedSession() {
 }
 const _cachedSession = _readCachedSession();
 
-// El token es usable si tiene más de 60s de vida (expires_at es Unix en segundos).
-// Si está expirado, lo ignoramos y esperamos que onAuthStateChange entregue uno fresco.
-const _cachedTokenUsable = (_cachedSession?.expires_at ?? 0) > Math.floor(Date.now() / 1000) + 60;
-
-let _authToken = _cachedTokenUsable ? (_cachedSession?.access_token || null) : null;
+let _authToken = _cachedSession?.access_token || null;
 
 axios.interceptors.request.use((config) => {
   config.headers = config.headers || {};
@@ -61,10 +57,16 @@ axios.interceptors.response.use(
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true;
       const failedToken = (originalRequest.headers?.Authorization || "").replace("Bearer ", "").trim();
-      // Polling: esperar hasta 12s a que onAuthStateChange entregue un token nuevo
+      // Si el token ya cambió (onAuthStateChange fue más rápido) → reintentar ya
+      if (_authToken && _authToken !== failedToken) {
+        originalRequest.headers = originalRequest.headers || {};
+        originalRequest.headers["Authorization"] = `Bearer ${_authToken}`;
+        return axios(originalRequest);
+      }
+      // Polling: esperar hasta 12s a que TOKEN_REFRESHED actualice _authToken
       const deadline = Date.now() + 12000;
       while (Date.now() < deadline) {
-        await new Promise(r => setTimeout(r, 250));
+        await new Promise(r => setTimeout(r, 300));
         if (_authToken && _authToken !== failedToken) {
           originalRequest.headers = originalRequest.headers || {};
           originalRequest.headers["Authorization"] = `Bearer ${_authToken}`;
@@ -150,7 +152,7 @@ export default function App() {
   const [refreshCloset,  setRefreshCloset]  = useState(0);
   const [perfilListo,    setPerfilListo]    = useState(true);
   const [usuarioId,      setUsuarioId]      = useState(
-    _cachedTokenUsable ? (_cachedSession?.user?.id || null) : null
+    _cachedSession?.user?.id || localStorage.getItem("usuarioId") || null
   );
 
   useEffect(() => {
@@ -250,30 +252,6 @@ export default function App() {
           initialDone = true;
           if (safetyTimer) clearTimeout(safetyTimer);
           setLoadingSession(false);
-        }
-        // Token expirado — Supabase está refrescando. Puede que no dispare TOKEN_REFRESHED
-        // (error de red o comportamiento de v2). Leemos localStorage cada 300ms hasta 15s
-        // para detectar cuando el token nuevo sea escrito, y lo usamos directamente.
-        const ref = (import.meta.env.VITE_SUPABASE_URL || "").match(/https:\/\/([^.]+)\.supabase\.co/)?.[1];
-        const storageKey = ref ? `sb-${ref}-auth-token` : null;
-        const oldToken = _cachedSession?.access_token;
-        if (storageKey) {
-          const pollId = setInterval(() => {
-            try {
-              const raw = localStorage.getItem(storageKey);
-              const parsed = raw ? JSON.parse(raw) : null;
-              const freshToken = parsed?.access_token;
-              if (freshToken && freshToken !== oldToken && parsed?.user?.id) {
-                clearInterval(pollId);
-                _authToken = freshToken;
-                setAuthToken(freshToken);
-                setSession(parsed);
-                setUsuarioId(parsed.user.id);
-                localStorage.setItem("usuarioId", parsed.user.id);
-              }
-            } catch {}
-          }, 300);
-          setTimeout(() => clearInterval(pollId), 15000);
         }
         return;
       }
