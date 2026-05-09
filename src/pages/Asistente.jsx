@@ -316,7 +316,7 @@ export default function Asistente({ usuarioId }) {
     { id: "casual",  Icon: Footprints,   label: "Casual",  prompt: "Arma un outfit casual y cómodo para el día a día" },
     { id: "trabajo", Icon: Briefcase,    label: "Trabajo", prompt: "Necesito un outfit profesional para ir a trabajar u oficina" },
     { id: "cita",    Icon: Moon,         label: "Cita",    prompt: "Arma un outfit para una cita romántica, que se vea cuidado y atractivo" },
-    { id: "deporte", Icon: Zap,          label: "Deporte", prompt: "Quiero un look deportivo o activo para hacer ejercicio o salir a caminar" },
+    { id: "deporte", Icon: Zap,          label: "Deporte", prompt: "Arma un outfit deportivo para hacer ejercicio o entrenamiento físico" },
     { id: "salida",  Icon: PartyPopper,  label: "Salida",  prompt: "Arma un outfit para salir de noche con amigos, que se vea moderno y divertido" },
     { id: "viaje",   Icon: Plane,        label: "Viaje",   prompt: "Necesito un outfit cómodo pero estiloso para viajar" },
   ];
