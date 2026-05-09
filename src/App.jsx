@@ -157,7 +157,9 @@ export default function App() {
   // dispara INITIAL_SESSION o TOKEN_REFRESHED con sesión válida.
   // Esto evita que los componentes hagan llamadas API con token potencialmente expirado
   // antes de que Supabase haya refrescado la sesión.
-  const [usuarioId,      setUsuarioId]      = useState(null);
+  const [usuarioId,      setUsuarioId]      = useState(
+    _cachedSession?.user?.id || localStorage.getItem("usuarioId") || null
+  );
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
