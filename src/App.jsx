@@ -59,13 +59,17 @@ axios.interceptors.response.use(
     const originalRequest = error.config;
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true;
-      const { data } = await supabase.auth.refreshSession();
-      const token = data?.session?.access_token;
-      if (token) {
-        _authToken = token;
-        originalRequest.headers = originalRequest.headers || {};
-        originalRequest.headers["Authorization"] = `Bearer ${token}`;
-        return axios(originalRequest);
+      try {
+        const { data } = await supabase.auth.refreshSession();
+        const token = data?.session?.access_token;
+        if (token) {
+          _authToken = token;
+          originalRequest.headers = originalRequest.headers || {};
+          originalRequest.headers["Authorization"] = `Bearer ${token}`;
+          return axios(originalRequest);
+        }
+      } catch {
+        // refresh falló
       }
       redirectToLoginAfterAuthFailure();
       return Promise.reject(error);
@@ -227,8 +231,11 @@ export default function App() {
 
   useEffect(() => {
     async function getSession() {
+      const hardTimeout = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("session-timeout")), 7000)
+      );
       try {
-        const { data } = await supabase.auth.getSession();
+        const { data } = await Promise.race([supabase.auth.getSession(), hardTimeout]);
         _authToken = data?.session?.access_token || null;
         setSession(data?.session || null);
         if (data?.session?.user) {
@@ -238,7 +245,7 @@ export default function App() {
           await verificarPerfil(uid);
         }
       } catch {
-        // Si Supabase falla, tratar como no autenticado
+        // timeout o error de Supabase → tratar como no autenticado
       } finally {
         setLoadingSession(false);
       }

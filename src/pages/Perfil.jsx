@@ -181,6 +181,7 @@ export default function Perfil({ usuarioId }) {
   }
 
   async function handleEliminarAmistad() {
+    if (!estadoAmistad?.id) return;
     if (!window.confirm("¿Dejar de seguir?")) return;
     try {
       const headers = await authHeaders();

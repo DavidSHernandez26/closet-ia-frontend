@@ -288,7 +288,9 @@ export default function Asistente({ usuarioId }) {
     return () => { cancelled = true; };
   }, [modo, usuarioId]);
 
-  useEffect(() => { localStorage.setItem(STORAGE_CHAT, JSON.stringify(chat)); }, [chat]);
+  useEffect(() => {
+    try { localStorage.setItem(STORAGE_CHAT, JSON.stringify(chat.slice(-100))); } catch {}
+  }, [chat]);
   useEffect(() => { localStorage.setItem(STORAGE_OUTFIT, JSON.stringify(outfit)); }, [outfit]);
   useEffect(() => { localStorage.setItem(STORAGE_OUTFIT_IDS, JSON.stringify(outfitIds)); }, [outfitIds]);
   useEffect(() => { localStorage.setItem(STORAGE_OUTFIT_GUARDADO, JSON.stringify(outfitGuardado)); }, [outfitGuardado]);
