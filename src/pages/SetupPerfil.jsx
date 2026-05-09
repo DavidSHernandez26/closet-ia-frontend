@@ -22,7 +22,7 @@ export default function SetupPerfil({ usuarioId, onComplete }) {
     setError("");
 
     try {
-      await axios.put(`${API_URL}/api/perfil`, { username, nombre }, { headers: getAuthHeaders() });
+      await axios.put(`${API_URL}/api/perfil`, { username, nombre }, { headers: getAuthHeaders(), timeout: 10000 });
       onComplete();
     } catch (err) {
       setError(err.response?.data?.error || "Error al guardar perfil");

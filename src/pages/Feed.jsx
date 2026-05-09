@@ -69,6 +69,7 @@ export default function Feed({ usuarioId }) {
   const [wishlist,       setWishlist]       = useState([]);
   const [loadingWishlist,setLoadingWishlist]= useState(false);
   const [sugeridos,      setSugeridos]      = useState([]);
+  const [amigosIds,      setAmigosIds]      = useState(new Set());
   const [busqueda,       setBusqueda]       = useState("");
   const [resultados,     setResultados]     = useState([]);
   const [buscando,       setBuscando]       = useState(false);
@@ -107,6 +108,7 @@ export default function Feed({ usuarioId }) {
   useEffect(() => {
     cargarFeed();
     cargarSugeridos();
+    cargarAmigos();
   }, [usuarioId]);
 
   /* ── Wishlist solo cuando se activa el chip ── */
@@ -181,11 +183,22 @@ async function cargarSugeridos() {
     console.error(err);
   }
 }
+
+  async function cargarAmigos() {
+    if (!usuarioId) return;
+    try {
+      const res = await axios.get(`${API_URL}/api/amistad/amigos`, {
+        headers: getAuthHeaders(),
+      });
+      const ids = new Set((res.data || []).map(a => a.id));
+      setAmigosIds(ids);
+    } catch { /* silencioso — el filtro fallback muestra todos */ }
+  }
   /* ──────────────────────────────────
      Filtrado local de posts
   ────────────────────────────────── */
   const postsFiltrados = posts.filter((p) => {
-    if (filtro === "amigos")     return p.usuario_id !== usuarioId;
+    if (filtro === "amigos")     return amigosIds.size > 0 ? amigosIds.has(p.usuario_id) : p.usuario_id !== usuarioId;
     if (filtro === "tendencias") return p.likes_count >= 5;
     if (tagFiltro) return extractTags(p.descripcion).includes(tagFiltro);
     return true;
