@@ -155,22 +155,25 @@ export default function Register() {
                     {showPwd ? "Hide" : "Show"}
                   </button>
                 </div>
-                <div className={`be-password-meter ${passwordScoreClass}`}>
-                  <div className="be-password-meter-head">
-                    <span>{passwordScoreLabel}</span>
-                    <span>{Math.round((passedRules / passwordRules.length) * 100)}%</span>
-                  </div>
+                <div className={`be-password-strength ${passwordScoreClass}`}>
                   <div
-                    className="be-password-meter-track"
-                    aria-hidden="true"
-                    style={{ "--password-progress": `${(passedRules / passwordRules.length) * 100}%` }}
+                    className="be-password-bar"
+                    role="progressbar"
+                    aria-label="Seguridad de la contraseña"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    aria-valuenow={Math.round((passedRules / passwordRules.length) * 100)}
                   >
-                    <span />
+                    <span style={{ width: `${(passedRules / passwordRules.length) * 100}%` }} />
                   </div>
-                  <ul className="be-password-rules" aria-label="Requisitos de contraseña">
+                  <div className="be-password-status">
+                    <span>{passwordScoreLabel}</span>
+                    <strong>{Math.round((passedRules / passwordRules.length) * 100)}%</strong>
+                  </div>
+                  <ul className="be-password-checks" aria-label="Requisitos de contraseña">
                     {passwordRules.map((rule) => (
                       <li key={rule.id} className={rule.ok ? "ok" : ""}>
-                        <span className="be-rule-dot" aria-hidden="true">{rule.ok ? "✓" : ""}</span>
+                        <span aria-hidden="true">{rule.ok ? "✓" : "•"}</span>
                         {rule.label}
                       </li>
                     ))}
