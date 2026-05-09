@@ -379,7 +379,7 @@ export default function Closet({ refresh }) {
                 {recomendaciones.length === 0 ? (
                   <button
                     className="mac-sidebar-item mac-recs-btn"
-                    onClick={() => { setRecsVisible(true); fetchRecomendaciones(); }}
+                    onClick={() => { fetchRecomendaciones(); }}
                     disabled={loadingRecs}
                   >
                     {loadingRecs ? (

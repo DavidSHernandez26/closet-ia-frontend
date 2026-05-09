@@ -32,6 +32,17 @@ const Feed        = React.lazy(() => import("./pages/Feed"));
 // Token cacheado — se actualiza sincrónicamente desde onAuthStateChange
 let _authToken = null;
 
+function redirectToLoginAfterAuthFailure() {
+  _authToken = null;
+  localStorage.removeItem("usuarioId");
+  supabase.auth.signOut({ scope: "local" }).catch(() => {});
+
+  const publicRoutes = ["/login", "/register", "/waitlist"];
+  if (!publicRoutes.includes(window.location.pathname)) {
+    window.location.assign("/login");
+  }
+}
+
 axios.interceptors.request.use(async (config) => {
   try {
     const { data } = await supabase.auth.getSession();
@@ -68,6 +79,11 @@ axios.interceptors.response.use(
         originalRequest.headers["Authorization"] = `Bearer ${token}`;
         return axios(originalRequest);
       }
+      redirectToLoginAfterAuthFailure();
+      return Promise.reject(error);
+    }
+    if (error.response?.status === 401 && originalRequest?._retry) {
+      redirectToLoginAfterAuthFailure();
     }
     return Promise.reject(error);
   }
@@ -223,16 +239,21 @@ export default function App() {
 
   useEffect(() => {
     async function getSession() {
-      const { data } = await supabase.auth.getSession();
-      _authToken = data?.session?.access_token || null;
-      setSession(data?.session || null);
-      if (data?.session?.user) {
-        const uid = data.session.user.id;
-        setUsuarioId(uid);
-        localStorage.setItem("usuarioId", uid);
-        await verificarPerfil(uid);
+      try {
+        const { data } = await supabase.auth.getSession();
+        _authToken = data?.session?.access_token || null;
+        setSession(data?.session || null);
+        if (data?.session?.user) {
+          const uid = data.session.user.id;
+          setUsuarioId(uid);
+          localStorage.setItem("usuarioId", uid);
+          await verificarPerfil(uid);
+        }
+      } catch {
+        // Si Supabase falla, tratar como no autenticado
+      } finally {
+        setLoadingSession(false);
       }
-      setLoadingSession(false);
     }
 
     getSession();

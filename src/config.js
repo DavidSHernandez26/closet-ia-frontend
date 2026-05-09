@@ -1,1 +1,1 @@
-export const API_URL = "https://closet-ia-backend-production-d8da.up.railway.app";
+export const API_URL = import.meta.env.VITE_API_URL || "https://closet-ia-backend-production-d8da.up.railway.app";
