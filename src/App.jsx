@@ -42,8 +42,11 @@ function _readCachedSession() {
 }
 const _cachedSession = _readCachedSession();
 
-// Token cacheado — puede ser expirado; el interceptor reintenta tras TOKEN_REFRESHED
-let _authToken = _cachedSession?.access_token || null;
+// El token es usable si tiene más de 60s de vida (expires_at es Unix en segundos).
+// Si está expirado, lo ignoramos y esperamos que onAuthStateChange entregue uno fresco.
+const _cachedTokenUsable = (_cachedSession?.expires_at ?? 0) > Math.floor(Date.now() / 1000) + 60;
+
+let _authToken = _cachedTokenUsable ? (_cachedSession?.access_token || null) : null;
 
 axios.interceptors.request.use((config) => {
   config.headers = config.headers || {};
@@ -57,17 +60,17 @@ axios.interceptors.response.use(
     const originalRequest = error.config;
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true;
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        const fresh = session?.access_token;
-        if (fresh) {
-          _authToken = fresh;
-          setAuthToken(fresh);
+      const failedToken = (originalRequest.headers?.Authorization || "").replace("Bearer ", "").trim();
+      // Polling: esperar hasta 12s a que onAuthStateChange entregue un token nuevo
+      const deadline = Date.now() + 12000;
+      while (Date.now() < deadline) {
+        await new Promise(r => setTimeout(r, 250));
+        if (_authToken && _authToken !== failedToken) {
           originalRequest.headers = originalRequest.headers || {};
-          originalRequest.headers["Authorization"] = `Bearer ${fresh}`;
+          originalRequest.headers["Authorization"] = `Bearer ${_authToken}`;
           return axios(originalRequest);
         }
-      } catch { /* si getSession falla, propagar el 401 */ }
+      }
     }
     return Promise.reject(error);
   }
@@ -91,7 +94,6 @@ const PageFallback = () => (
 
 function PrivateRoute({ children, isAuthenticated, perfilListo, usuarioId, onPerfilComplete }) {
   if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (!usuarioId) return <div className="loading-screen"><p>Cargando...</p></div>;
   if (!perfilListo) return (
     <SetupPerfil usuarioId={usuarioId} onComplete={onPerfilComplete} />
   );
@@ -147,7 +149,9 @@ export default function App() {
   const [loadingSession, setLoadingSession] = useState(!_cachedSession);
   const [refreshCloset,  setRefreshCloset]  = useState(0);
   const [perfilListo,    setPerfilListo]    = useState(true);
-  const [usuarioId,      setUsuarioId]      = useState(null);
+  const [usuarioId,      setUsuarioId]      = useState(
+    _cachedTokenUsable ? (_cachedSession?.user?.id || null) : null
+  );
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
