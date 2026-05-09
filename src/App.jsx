@@ -67,11 +67,11 @@ axios.interceptors.response.use(
       } catch {
         // refresh falló
       }
-      redirectToLoginAfterAuthFailure();
+      if (!originalRequest._noRedirect) redirectToLoginAfterAuthFailure();
       return Promise.reject(error);
     }
     if (error.response?.status === 401 && originalRequest?._retry) {
-      redirectToLoginAfterAuthFailure();
+      if (!originalRequest._noRedirect) redirectToLoginAfterAuthFailure();
     }
     return Promise.reject(error);
   }
@@ -227,21 +227,18 @@ export default function App() {
 
   useEffect(() => {
     async function getSession() {
-      const hardTimeout = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("session-timeout")), 7000)
-      );
       try {
-        const { data } = await Promise.race([supabase.auth.getSession(), hardTimeout]);
+        const { data } = await supabase.auth.getSession();
         _authToken = data?.session?.access_token || null;
         setSession(data?.session || null);
         if (data?.session?.user) {
           const uid = data.session.user.id;
           setUsuarioId(uid);
           localStorage.setItem("usuarioId", uid);
-          await verificarPerfil(uid);
+          verificarPerfil(uid);
         }
       } catch {
-        // timeout o error de Supabase → tratar como no autenticado
+        // error de Supabase → tratar como no autenticado
       } finally {
         setLoadingSession(false);
       }
@@ -249,14 +246,14 @@ export default function App() {
 
     getSession();
 
-    const { data: listener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       _authToken = session?.access_token || null;
       setSession(session);
       if (session?.user) {
         const uid = session.user.id;
         setUsuarioId(uid);
         localStorage.setItem("usuarioId", uid);
-        await verificarPerfil(uid);
+        verificarPerfil(uid);
       } else {
         setUsuarioId(null);
         setPerfilListo(true);
@@ -271,6 +268,7 @@ export default function App() {
       const res = await axios.get(`${API_URL}/api/perfil/me`, {
         params: { usuario_id: uid },
         timeout: 6000,
+        _noRedirect: true,
       });
       setPerfilListo(res.data?.setup_completo === true);
     } catch {
@@ -295,6 +293,7 @@ export default function App() {
             <Navbar
               onUploaded={handleUploaded}
               usuarioId={usuarioId}
+              session={session}
             />
           )}
 

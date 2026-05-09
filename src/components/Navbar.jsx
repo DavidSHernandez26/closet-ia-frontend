@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import { motion, useAnimation } from "framer-motion";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import "./Navbar.css";
@@ -37,28 +37,17 @@ function DockIcon({ children }) {
   );
 }
 
-export default function Navbar({ onUploaded, usuarioId }) {
+export default function Navbar({ onUploaded, usuarioId, session }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
-  const [user, setUser] = useState(null);
+  const user = session?.user || null;
 
   const dockRef = useRef(null);
   const dockItemRefs = useRef({});
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setUser(data?.session?.user || null);
-    });
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user || null);
-    });
-    return () => authListener.subscription.unsubscribe();
-  }, []);
-
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    setUser(null);
     navigate("/");
   };
 
