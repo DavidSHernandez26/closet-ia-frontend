@@ -43,24 +43,12 @@ function redirectToLoginAfterAuthFailure() {
   }
 }
 
-axios.interceptors.request.use(async (config) => {
-  try {
-    const { data } = await supabase.auth.getSession();
-    const token = data?.session?.access_token || _authToken;
-    _authToken = token || null;
-    config.headers = config.headers || {};
-    if (token) {
-      config.headers["Authorization"] = `Bearer ${token}`;
-    } else {
-      delete config.headers["Authorization"];
-    }
-  } catch {
-    config.headers = config.headers || {};
-    if (_authToken) {
-      config.headers["Authorization"] = `Bearer ${_authToken}`;
-    } else {
-      delete config.headers["Authorization"];
-    }
+axios.interceptors.request.use((config) => {
+  config.headers = config.headers || {};
+  if (_authToken) {
+    config.headers["Authorization"] = `Bearer ${_authToken}`;
+  } else {
+    delete config.headers["Authorization"];
   }
   return config;
 });
@@ -277,7 +265,10 @@ export default function App() {
 
   async function verificarPerfil(uid) {
     try {
-      const res = await axios.get(`${API_URL}/api/perfil/me`, { params: { usuario_id: uid } });
+      const res = await axios.get(`${API_URL}/api/perfil/me`, {
+        params: { usuario_id: uid },
+        timeout: 6000,
+      });
       setPerfilListo(res.data?.setup_completo === true);
     } catch {
       setPerfilListo(true);
