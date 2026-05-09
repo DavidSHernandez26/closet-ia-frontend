@@ -1,16 +1,4 @@
-import React, { useState } from "react";
-import { supabase } from "../supabase";
-import { useNavigate } from "react-router-dom";
-import { Loader2, CheckCircle2 } from "lucide-react";
-import AuthShell from "./AuthShell";
-import "./AuthShell.css";
-import "./Register.css";
-
-export default function Register() {
-  const [email,       setEmail]       = useState("");
-  const [password,    setPassword]    = useState("");
-  const [confirmPwd,  setConfirmPwd]  = useState("");
-  const [showPwd,     setShowPwd]     = useState(false);
+import React, { useState } from "react"; import { supabase } from "../supabase"; import { useNavigate } from "react-router-dom"; import { Loader2, CheckCircle2 } from "lucide-react"; import AuthShell from "./AuthShell"; import "./AuthShell.css"; import "./Register.css"; export default function Register() { const [email,       setEmail]       = useState(""); const [password,    setPassword]    = useState(""); const [confirmPwd,  setConfirmPwd]  = useState(""); const [showPwd,     setShowPwd]     = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading,     setLoading]     = useState(false);
   const [done,        setDone]        = useState(false);
@@ -23,11 +11,7 @@ export default function Register() {
     { id: "number",  label: "Un número",           ok: /\d/.test(password) },
     { id: "special", label: "Un carácter especial", ok: /[^A-Za-z0-9]/.test(password) },
     { id: "length",  label: "Mínimo 8 caracteres",  ok: password.length >= 8 },
-  ];
-  const passedRules = passwordRules.filter((rule) => rule.ok).length;
-  const passwordValid = passedRules === passwordRules.length;
-  const passwordsMatch = confirmPwd.length > 0 && password === confirmPwd;
-  const passwordScoreClass = passwordValid
+  ]; const passedRules = passwordRules.filter((rule) => rule.ok).length; const passwordValid = passedRules === passwordRules.length; const passwordsMatch = confirmPwd.length > 0 && password === confirmPwd; const passwordScoreClass = passwordValid
     ? "is-valid"
     : passedRules >= 3
       ? "is-medium"
