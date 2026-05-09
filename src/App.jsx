@@ -42,18 +42,8 @@ function _readCachedSession() {
 }
 const _cachedSession = _readCachedSession();
 
-// Devuelve el token solo si aún es válido (60s de margen).
-// Si está expirado devuelve null — Supabase lo renovará vía TOKEN_REFRESHED.
-function _cachedTokenValid() {
-  const token = _cachedSession?.access_token;
-  if (!token) return null;
-  const exp = _cachedSession?.expires_at;
-  if (exp && Math.floor(Date.now() / 1000) > exp - 60) return null;
-  return token;
-}
-
-// Token cacheado — null si expirado, actualizado desde onAuthStateChange
-let _authToken = _cachedTokenValid();
+// Token cacheado — puede ser expirado; el interceptor reintenta tras TOKEN_REFRESHED
+let _authToken = _cachedSession?.access_token || null;
 
 axios.interceptors.request.use((config) => {
   config.headers = config.headers || {};
@@ -63,9 +53,8 @@ axios.interceptors.request.use((config) => {
 
 // Cuando se recibe un 401, NO llamamos refreshSession() manualmente porque
 // Supabase ya refresca el token automáticamente vía onAuthStateChange (TOKEN_REFRESHED).
-// Llamar refreshSession() en paralelo con el refresh automático consume el refresh
-// token rotativo y causa que uno de los dos falle → logout involuntario.
-// En su lugar: esperamos hasta 3s a que _authToken cambie, luego reintentamos.
+// Usamos polling cada 200ms durante hasta 8s para detectar el nuevo token en cuanto
+// llega, sin depender de un setTimeout fijo que puede ser más corto que el refresh.
 axios.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -74,20 +63,17 @@ axios.interceptors.response.use(
       originalRequest._retry = true;
       const failedToken = (originalRequest.headers?.Authorization || "").replace("Bearer ", "") || null;
 
-      // Si el token ya cambió (onAuthStateChange fue más rápido) → reintentar ya
-      if (_authToken && _authToken !== failedToken) {
-        originalRequest.headers = originalRequest.headers || {};
-        originalRequest.headers["Authorization"] = `Bearer ${_authToken}`;
-        return axios(originalRequest);
-      }
-
-      // Esperar hasta 3s a que TOKEN_REFRESHED actualice _authToken
-      await new Promise(r => setTimeout(r, 3000));
-
-      if (_authToken && _authToken !== failedToken) {
-        originalRequest.headers = originalRequest.headers || {};
-        originalRequest.headers["Authorization"] = `Bearer ${_authToken}`;
-        return axios(originalRequest);
+      // Polling: verificar cada 200ms si _authToken cambió (máx 8s)
+      const MAX_WAIT = 8000;
+      const POLL_MS  = 200;
+      const deadline = Date.now() + MAX_WAIT;
+      while (Date.now() < deadline) {
+        await new Promise(r => setTimeout(r, POLL_MS));
+        if (_authToken && _authToken !== failedToken) {
+          originalRequest.headers = originalRequest.headers || {};
+          originalRequest.headers["Authorization"] = `Bearer ${_authToken}`;
+          return axios(originalRequest);
+        }
       }
     }
     return Promise.reject(error);
@@ -147,7 +133,7 @@ const AnimatedRoutes = memo(function AnimatedRoutes({ usuarioId, refreshCloset, 
       <Routes location={location}>
         <Route path="/"                  element={guard(<Asistente  usuarioId={usuarioId} />)} />
         <Route path="/feed"              element={guard(<Feed       usuarioId={usuarioId} />)} />
-        <Route path="/closet"            element={guard(<Closet     refresh={refreshCloset} />)} />
+        <Route path="/closet"            element={guard(<Closet     refresh={refreshCloset} usuarioId={usuarioId} />)} />
         <Route path="/calendario"        element={guard(<Calendario usuarioId={usuarioId} />)} />
         <Route path="/perfil"            element={guard(<Perfil     usuarioId={usuarioId} />)} />
         <Route path="/perfil/:username"  element={guard(<Perfil     usuarioId={usuarioId} />)} />
@@ -261,10 +247,16 @@ export default function App() {
 
     const { data: listener } = supabase.auth.onAuthStateChange((event, newSession) => {
       // INITIAL_SESSION puede llegar con session=null cuando el access_token está
-      // expirado y Supabase aún está esperando el refresh de red (TOKEN_REFRESHED
-      // llegará en unos ms). Si ya teníamos una sesión cacheada, la conservamos
-      // para que el usuario no vea un flash hacia /login.
+      // expirado y Supabase aún está esperando el refresh de red. Conservamos la
+      // sesión cacheada para no hacer flash a /login, y seteamos usuarioId desde el
+      // caché para que los componentes puedan hacer sus llamadas API (el interceptor
+      // reintentará si reciben 401 hasta que llegue TOKEN_REFRESHED).
       if (event === 'INITIAL_SESSION' && !newSession && _cachedSession) {
+        const cachedUid = _cachedSession.user?.id;
+        if (cachedUid) {
+          setUsuarioId(cachedUid);
+          localStorage.setItem("usuarioId", cachedUid);
+        }
         if (!initialDone) {
           initialDone = true;
           if (safetyTimer) clearTimeout(safetyTimer);

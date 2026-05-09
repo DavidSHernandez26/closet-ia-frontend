@@ -63,8 +63,7 @@ function matchCategoria(prenda, categoria) {
   }
 }
 
-export default function Closet({ refresh }) {
-  const [usuarioId]  = useState(localStorage.getItem("usuarioId") || "user_demo");
+export default function Closet({ refresh, usuarioId }) {
   const [prendas,    setPrendas]    = useState([]);
   const [loading,    setLoading]    = useState(false);
   const [tabActiva,  setTabActiva]  = useState("prenda");
@@ -76,7 +75,7 @@ export default function Closet({ refresh }) {
   const [loadingRecs, setLoadingRecs]         = useState(false);
   const [reanalizando, setReanalizando]       = useState(false);
   const [mensajeReanalisis, setMensajeReanalisis] = useState("");
-  useEffect(() => { fetchPrendas(); }, [usuarioId, tabActiva, refresh]);
+  useEffect(() => { if (!usuarioId) return; fetchPrendas(); }, [usuarioId, tabActiva, refresh]);
 
   /* Al cambiar tab, resetear categoría y filtros */
   useEffect(() => { setCategoria("todas"); setColorFiltro(null); setOrdenar("fecha"); }, [tabActiva]);
@@ -95,7 +94,7 @@ export default function Closet({ refresh }) {
       setLoading(true);
       const headers = getAuthHeaders();
       const res = await axios.get(`${API_URL}/api/prendas`, {
-        params: { usuario_id: usuarioId, tipo: tabActiva },
+        params: { tipo: tabActiva },
         headers,
       });
       setPrendas(res.data || []);

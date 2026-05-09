@@ -9,23 +9,16 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Lee el token cacheado SOLO si aún no ha expirado (con 60s de margen).
-// Si está expirado devuelve null para que las llamadas no se hagan con un
-// token inválido — el interceptor de axios reintenará cuando llegue TOKEN_REFRESHED.
+// Lee el token cacheado de localStorage (puede estar expirado).
+// El interceptor de axios en App.jsx reintenta con el token fresco cuando
+// Supabase dispara TOKEN_REFRESHED tras un 401.
 // Supabase v2 persiste la sesión en: sb-<project-ref>-auth-token
 function _readCachedToken() {
   try {
     const ref = supabaseUrl.match(/https:\/\/([^.]+)\.supabase\.co/)?.[1];
     if (!ref) return null;
     const raw = localStorage.getItem(`sb-${ref}-auth-token`);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    const token = parsed?.access_token;
-    if (!token) return null;
-    // expires_at es Unix timestamp en segundos; 60s de margen
-    const exp = parsed?.expires_at;
-    if (exp && Math.floor(Date.now() / 1000) > exp - 60) return null;
-    return token;
+    return raw ? JSON.parse(raw)?.access_token || null : null;
   } catch { return null; }
 }
 
