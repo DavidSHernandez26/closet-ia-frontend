@@ -289,12 +289,9 @@ export default function App() {
     };
   }, []);
 
-  async function verificarPerfil(uid) {
+  async function verificarPerfil(_uid) {
     try {
-      const res = await axios.get(`${API_URL}/api/perfil/me`, {
-        params: { usuario_id: uid },
-        timeout: 6000,
-      });
+      const res = await axios.get(`${API_URL}/api/perfil/me`, { timeout: 6000 });
       setPerfilListo(res.data?.setup_completo === true);
     } catch {
       setPerfilListo(true);
