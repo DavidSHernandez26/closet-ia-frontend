@@ -246,13 +246,34 @@ export default function App() {
       // caché para que los componentes puedan hacer sus llamadas API (el interceptor
       // reintentará si reciben 401 hasta que llegue TOKEN_REFRESHED).
       if (event === 'INITIAL_SESSION' && !newSession && _cachedSession) {
-        // Token expirado — Supabase está refrescando en background.
-        // NO seteamos usuarioId desde caché para evitar llamadas API con token inválido.
-        // Los componentes esperan con loading hasta que TOKEN_REFRESHED llegue.
         if (!initialDone) {
           initialDone = true;
           if (safetyTimer) clearTimeout(safetyTimer);
           setLoadingSession(false);
+        }
+        // Token expirado — Supabase está refrescando. Puede que no dispare TOKEN_REFRESHED
+        // (error de red o comportamiento de v2). Leemos localStorage cada 300ms hasta 15s
+        // para detectar cuando el token nuevo sea escrito, y lo usamos directamente.
+        const ref = (import.meta.env.VITE_SUPABASE_URL || "").match(/https:\/\/([^.]+)\.supabase\.co/)?.[1];
+        const storageKey = ref ? `sb-${ref}-auth-token` : null;
+        const oldToken = _cachedSession?.access_token;
+        if (storageKey) {
+          const pollId = setInterval(() => {
+            try {
+              const raw = localStorage.getItem(storageKey);
+              const parsed = raw ? JSON.parse(raw) : null;
+              const freshToken = parsed?.access_token;
+              if (freshToken && freshToken !== oldToken && parsed?.user?.id) {
+                clearInterval(pollId);
+                _authToken = freshToken;
+                setAuthToken(freshToken);
+                setSession(parsed);
+                setUsuarioId(parsed.user.id);
+                localStorage.setItem("usuarioId", parsed.user.id);
+              }
+            } catch {}
+          }, 300);
+          setTimeout(() => clearInterval(pollId), 15000);
         }
         return;
       }
