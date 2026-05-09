@@ -197,6 +197,7 @@ export default function Asistente({ usuarioId }) {
     } catch { /* sin ubicación — no bloquear */ }
   }
 
+  const appListenerRef = useRef(null);
   useEffect(() => {
     actualizarClima(true); // primera carga siempre
 
@@ -206,18 +207,17 @@ export default function Asistente({ usuarioId }) {
     };
     document.addEventListener("visibilitychange", onVisible);
 
-    let appListener = null;
     if (Capacitor.isNativePlatform()) {
       import("@capacitor/app").then(({ App }) => {
         App.addListener("appStateChange", ({ isActive }) => {
           if (isActive) actualizarClima();
-        }).then(l => { appListener = l; });
+        }).then(l => { appListenerRef.current = l; });
       }).catch(() => {});
     }
 
     return () => {
       document.removeEventListener("visibilitychange", onVisible);
-      appListener?.remove?.();
+      appListenerRef.current?.remove?.();
     };
   }, []);
 

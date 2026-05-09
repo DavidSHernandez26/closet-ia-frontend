@@ -73,15 +73,13 @@ export default function Perfil({ usuarioId }) {
     try {
       let perfilData;
       if (esPropio) {
-        const res = await axios.get(`${API_URL}/api/perfil/me`, {
-          params: { usuario_id: usuarioId }
-        });
+        const res = await axios.get(`${API_URL}/api/perfil/me`);
         perfilData = res.data;
       } else {
         const res = await axios.get(`${API_URL}/api/perfil/${username}`);
         perfilData = res.data;
         const estadoRes = await axios.get(`${API_URL}/api/amistad/estado`, {
-          params: { usuario_id: usuarioId, otro_id: perfilData.id }
+          params: { otro_id: perfilData.id }
         });
         const estadoData = estadoRes.data || { status: "none" };
         setEstadoAmistad(estadoData);
@@ -104,7 +102,7 @@ export default function Perfil({ usuarioId }) {
       const headers = getAuthHeaders();
       const [postsRes, amigosRes, prendasRes] = await Promise.allSettled([
         axios.get(`${API_URL}/api/posts/${pid}`,   { params: { viewer_id: usuarioId } }),
-        axios.get(`${API_URL}/api/amistad/amigos`, { params: { usuario_id: pid }, headers }),
+        axios.get(`${API_URL}/api/amistad/amigos`, { params: { uid: pid }, headers }),
         axios.get(`${API_URL}/api/prendas`,        { headers }),
       ]);
       setStats({
@@ -169,7 +167,7 @@ export default function Perfil({ usuarioId }) {
     setLoadingAmigos(true);
     try {
       const headers = getAuthHeaders();
-      const res = await axios.get(`${API_URL}/api/amistad/amigos`, { params: { usuario_id: pid }, headers });
+      const res = await axios.get(`${API_URL}/api/amistad/amigos`, { params: { uid: pid }, headers });
       setListaAmigos(res.data || []);
     } catch { setListaAmigos([]); }
     finally { setLoadingAmigos(false); }

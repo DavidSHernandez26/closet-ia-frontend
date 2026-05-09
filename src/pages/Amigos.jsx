@@ -46,7 +46,7 @@ export default function Amigos({ usuarioId }) {
 
   async function cargarSugeridos() {
     try {
-      const res = await axios.get(`${API_URL}/api/usuarios/sugeridos`, { params: { usuario_id: usuarioId } });
+      const res = await axios.get(`${API_URL}/api/usuarios/sugeridos`);
       setSugeridos(res.data || []);
     } catch (err) { console.error(err); }
   }
@@ -55,7 +55,7 @@ export default function Amigos({ usuarioId }) {
     setLoading(true);
     try {
       const res = await axios.get(`${API_URL}/api/usuarios/buscar`, {
-        params: { q: busqueda, usuario_id: usuarioId }
+        params: { q: busqueda }
       });
       setResultados(res.data || []);
     } catch (err) { console.error(err); }

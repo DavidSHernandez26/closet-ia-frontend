@@ -175,9 +175,7 @@ export default function Feed({ usuarioId }) {
   ────────────────────────────────── */
 async function cargarSugeridos() {
   try {
-    const res = await axios.get(`${API_URL}/api/usuarios/sugeridos`, {
-      params: { usuario_id: usuarioId },
-    });
+    const res = await axios.get(`${API_URL}/api/usuarios/sugeridos`);
     setSugeridos(res.data || []);
   } catch (err) {
     console.error(err);
@@ -212,7 +210,7 @@ async function cargarSugeridos() {
     busquedaTimer.current = setTimeout(async () => {
       setBuscando(true);
       try {
-        const res = await axios.get(`${API_URL}/api/usuarios/buscar`, { params: { q, usuario_id: usuarioId } });
+        const res = await axios.get(`${API_URL}/api/usuarios/buscar`, { params: { q } });
         setResultados(res.data || []);
       } catch { setResultados([]); }
       finally { setBuscando(false); }

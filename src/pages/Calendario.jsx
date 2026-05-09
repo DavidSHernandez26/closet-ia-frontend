@@ -300,9 +300,9 @@ function CalendarioContent({ usuarioId }) {
       {vista === "semana" ? (
         <div className="cal-semana-wrap">
           <div className="cal-semana-nav">
-            <button className="cal-semana-btn" onClick={() => setSemanaOffset(o => o - 1)}>‹</button>
+            <button className="cal-semana-btn" onClick={() => setSemanaOffset(o => Math.max(-6, o - 1))}>‹</button>
             <span className="cal-semana-titulo">{tituloSemana}</span>
-            <button className="cal-semana-btn" onClick={() => setSemanaOffset(o => o + 1)}>›</button>
+            <button className="cal-semana-btn" onClick={() => setSemanaOffset(o => Math.min(6, o + 1))}>›</button>
           </div>
           <div className="cal-semana-grid">
             {semanaActual.map(fecha => {
