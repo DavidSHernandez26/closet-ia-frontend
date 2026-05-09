@@ -17,6 +17,29 @@ export default function Register() {
   const [errorMsg,    setErrorMsg]    = useState("");
   const navigate = useNavigate();
 
+  const passwordRules = [
+    { id: "lower",   label: "Una letra minúscula", ok: /[a-z]/.test(password) },
+    { id: "upper",   label: "Una letra mayúscula", ok: /[A-Z]/.test(password) },
+    { id: "number",  label: "Un número",           ok: /\d/.test(password) },
+    { id: "special", label: "Un carácter especial", ok: /[^A-Za-z0-9]/.test(password) },
+    { id: "length",  label: "Mínimo 8 caracteres",  ok: password.length >= 8 },
+  ];
+  const passedRules = passwordRules.filter((rule) => rule.ok).length;
+  const passwordValid = passedRules === passwordRules.length;
+  const passwordsMatch = confirmPwd.length > 0 && password === confirmPwd;
+  const passwordScoreClass = passwordValid
+    ? "is-valid"
+    : passedRules >= 3
+      ? "is-medium"
+      : password.length > 0
+        ? "is-weak"
+        : "";
+  const passwordScoreLabel = passwordValid
+    ? "Contraseña válida"
+    : password.length === 0
+      ? "Crea una contraseña segura"
+      : `${passedRules}/${passwordRules.length} requisitos`;
+
   function translateError(msg) {
     const m = (msg || "").toLowerCase();
     if (m.includes("already registered") || m.includes("already exists"))
@@ -36,7 +59,7 @@ export default function Register() {
     e.preventDefault();
     const cleanEmail = email.trim().toLowerCase();
     if (!cleanEmail) return setErrorMsg("Ingresa tu correo.");
-    if (password.length < 6) return setErrorMsg("La contraseña debe tener al menos 6 caracteres.");
+    if (!passwordValid) return setErrorMsg("La contraseña debe cumplir todos los requisitos.");
     if (password !== confirmPwd) return setErrorMsg("Las contraseñas no coinciden.");
 
     setLoading(true);
@@ -132,6 +155,27 @@ export default function Register() {
                     {showPwd ? "Hide" : "Show"}
                   </button>
                 </div>
+                <div className={`be-password-meter ${passwordScoreClass}`}>
+                  <div className="be-password-meter-head">
+                    <span>{passwordScoreLabel}</span>
+                    <span>{Math.round((passedRules / passwordRules.length) * 100)}%</span>
+                  </div>
+                  <div
+                    className="be-password-meter-track"
+                    aria-hidden="true"
+                    style={{ "--password-progress": `${(passedRules / passwordRules.length) * 100}%` }}
+                  >
+                    <span />
+                  </div>
+                  <ul className="be-password-rules" aria-label="Requisitos de contraseña">
+                    {passwordRules.map((rule) => (
+                      <li key={rule.id} className={rule.ok ? "ok" : ""}>
+                        <span className="be-rule-dot" aria-hidden="true">{rule.ok ? "✓" : ""}</span>
+                        {rule.label}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
 
               <div className="be-field">
@@ -155,6 +199,11 @@ export default function Register() {
                     {showConfirm ? "Hide" : "Show"}
                   </button>
                 </div>
+                {confirmPwd && (
+                  <p className={`be-password-match ${passwordsMatch ? "ok" : "bad"}`}>
+                    {passwordsMatch ? "Las contraseñas coinciden." : "Las contraseñas no coinciden."}
+                  </p>
+                )}
               </div>
 
               {errorMsg && <p className="be-error be-shake">{errorMsg}</p>}
@@ -162,7 +211,7 @@ export default function Register() {
               <button
                 type="submit"
                 className="be-submit-btn"
-                disabled={loading || !email.trim() || !password || !confirmPwd}
+                disabled={loading || !email.trim() || !passwordValid || !passwordsMatch}
               >
                 {loading ? (
                   <><Loader2 size={18} className="be-spin" strokeWidth={2.2} /> Creando cuenta...</>
