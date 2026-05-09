@@ -104,8 +104,9 @@ export default function Feed({ usuarioId }) {
     return () => observer.disconnect();
   }, [nextCursor, loadingMore]);
 
-  /* ── Carga inicial ── */
+  /* ── Carga inicial — esperar a que usuarioId esté confirmado ── */
   useEffect(() => {
+    if (!usuarioId) return;
     cargarFeed();
     cargarSugeridos();
     cargarAmigos();

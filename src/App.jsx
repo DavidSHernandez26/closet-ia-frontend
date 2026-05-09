@@ -42,8 +42,18 @@ function _readCachedSession() {
 }
 const _cachedSession = _readCachedSession();
 
-// Token cacheado — inicializado desde localStorage, actualizado desde onAuthStateChange
-let _authToken = _cachedSession?.access_token || null;
+// Devuelve el token solo si aún es válido (60s de margen).
+// Si está expirado devuelve null — Supabase lo renovará vía TOKEN_REFRESHED.
+function _cachedTokenValid() {
+  const token = _cachedSession?.access_token;
+  if (!token) return null;
+  const exp = _cachedSession?.expires_at;
+  if (exp && Math.floor(Date.now() / 1000) > exp - 60) return null;
+  return token;
+}
+
+// Token cacheado — null si expirado, actualizado desde onAuthStateChange
+let _authToken = _cachedTokenValid();
 
 axios.interceptors.request.use((config) => {
   config.headers = config.headers || {};
@@ -157,9 +167,11 @@ export default function App() {
   const [loadingSession, setLoadingSession] = useState(!_cachedSession);
   const [refreshCloset,  setRefreshCloset]  = useState(0);
   const [perfilListo,    setPerfilListo]    = useState(true);
-  const [usuarioId,      setUsuarioId]      = useState(
-    _cachedSession?.user?.id || localStorage.getItem("usuarioId") || null
-  );
+  // usuarioId arranca null aunque haya caché — se confirma cuando onAuthStateChange
+  // dispara INITIAL_SESSION o TOKEN_REFRESHED con sesión válida.
+  // Esto evita que los componentes hagan llamadas API con token potencialmente expirado
+  // antes de que Supabase haya refrescado la sesión.
+  const [usuarioId,      setUsuarioId]      = useState(null);
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;

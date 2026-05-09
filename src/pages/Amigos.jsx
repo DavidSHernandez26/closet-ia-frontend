@@ -18,6 +18,7 @@ export default function Amigos({ usuarioId }) {
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (!usuarioId) return;
     cargarSolicitudes();
     cargarAmigos();
     cargarSugeridos();
