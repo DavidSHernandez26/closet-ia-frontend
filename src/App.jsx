@@ -51,30 +51,23 @@ axios.interceptors.request.use((config) => {
   return config;
 });
 
-// Cuando se recibe un 401, NO llamamos refreshSession() manualmente porque
-// Supabase ya refresca el token automáticamente vía onAuthStateChange (TOKEN_REFRESHED).
-// Usamos polling cada 200ms durante hasta 8s para detectar el nuevo token en cuanto
-// llega, sin depender de un setTimeout fijo que puede ser más corto que el refresh.
 axios.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true;
-      const failedToken = (originalRequest.headers?.Authorization || "").replace("Bearer ", "") || null;
-
-      // Polling: verificar cada 200ms si _authToken cambió (máx 8s)
-      const MAX_WAIT = 8000;
-      const POLL_MS  = 200;
-      const deadline = Date.now() + MAX_WAIT;
-      while (Date.now() < deadline) {
-        await new Promise(r => setTimeout(r, POLL_MS));
-        if (_authToken && _authToken !== failedToken) {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const fresh = session?.access_token;
+        if (fresh) {
+          _authToken = fresh;
+          setAuthToken(fresh);
           originalRequest.headers = originalRequest.headers || {};
-          originalRequest.headers["Authorization"] = `Bearer ${_authToken}`;
+          originalRequest.headers["Authorization"] = `Bearer ${fresh}`;
           return axios(originalRequest);
         }
-      }
+      } catch { /* si getSession falla, propagar el 401 */ }
     }
     return Promise.reject(error);
   }
