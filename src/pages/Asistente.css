@@ -127,24 +127,6 @@
   box-shadow: 0 0 0 0.5px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.22);
 }
 
-.asistente-mac-dots:hover .asistente-mac-dot { transform: scale(1.15); }
-.asistente-mac-dots:hover .asistente-mac-dot::before { opacity: 1; }
-.asistente-mac-dots:hover .asistente-mac-dot::after  { opacity: 1; }
-
-.asistente-mac-dots:hover .asistente-mac-dot.red {
-  background: radial-gradient(circle at 35% 35%, #ffaaaa, #ff5f57 40%, #cc2e26 80%, #ff5f57);
-  box-shadow: 0 0 0 0.5px rgba(0,0,0,0.4), 0 2px 8px rgba(255,95,87,0.5), inset 0 1px 0 rgba(255,255,255,0.3);
-}
-
-.asistente-mac-dots:hover .asistente-mac-dot.yellow {
-  background: radial-gradient(circle at 35% 35%, #ffe9a0, #ffbd2e 40%, #aa7000 80%, #ffbd2e);
-  box-shadow: 0 0 0 0.5px rgba(0,0,0,0.4), 0 2px 8px rgba(255,189,46,0.5), inset 0 1px 0 rgba(255,255,255,0.3);
-}
-
-.asistente-mac-dots:hover .asistente-mac-dot.green {
-  background: radial-gradient(circle at 35% 35%, #aaffaa, #28c840 40%, #0f6020 80%, #28c840);
-  box-shadow: 0 0 0 0.5px rgba(0,0,0,0.4), 0 2px 8px rgba(40,200,64,0.5), inset 0 1px 0 rgba(255,255,255,0.3);
-}
 
 /* Centro HUD — avatar + título centrados */
 .asistente-hud-center {

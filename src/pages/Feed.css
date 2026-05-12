@@ -74,7 +74,6 @@ body.light-mode .feed-container {
 .mac-dot.red    { background: #ff5f57; box-shadow: 0 0 0 0.5px rgba(0,0,0,0.18); }
 .mac-dot.yellow { background: #febc2e; box-shadow: 0 0 0 0.5px rgba(0,0,0,0.18); }
 .mac-dot.green  { background: #28c840; box-shadow: 0 0 0 0.5px rgba(0,0,0,0.18); }
-.mac-dots:hover .mac-dot { transform: scale(1.15); filter: brightness(1.1); }
 
 .mac-title {
   font-size: 0.82rem;
@@ -1126,9 +1125,9 @@ body.light-mode .sidebar-follow:hover { background: rgba(15, 3, 38, 0.08); }
   .feed-container {
     position: fixed;
     top: 10px;
-    left: calc(var(--sb-col, 58px) + 14px);
-    right: 14px;
-    bottom: 14px;
+    left: calc(var(--sb-col, 58px) + 4px);
+    right: 10px;
+    bottom: 10px;
     padding: 0;
     background: rgba(12, 4, 28, 0.82);
     backdrop-filter: blur(40px) saturate(180%);

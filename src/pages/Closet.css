@@ -124,24 +124,6 @@
   box-shadow: 0 0 0 0.5px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.22);
 }
 
-.mac-dots:hover .mac-dot              { transform: scale(1.15); }
-.mac-dots:hover .mac-dot::before      { opacity: 1; }
-.mac-dots:hover .mac-dot::after       { opacity: 1; }
-
-.mac-dots:hover .mac-dot.red {
-  background: radial-gradient(circle at 35% 35%, #ffaaaa, #ff5f57 40%, #cc2e26 80%, #ff5f57);
-  box-shadow: 0 0 0 0.5px rgba(0,0,0,0.4), 0 2px 8px rgba(255,95,87,0.5), inset 0 1px 0 rgba(255,255,255,0.3);
-}
-
-.mac-dots:hover .mac-dot.yellow {
-  background: radial-gradient(circle at 35% 35%, #ffe9a0, #ffbd2e 40%, #aa7000 80%, #ffbd2e);
-  box-shadow: 0 0 0 0.5px rgba(0,0,0,0.4), 0 2px 8px rgba(255,189,46,0.5), inset 0 1px 0 rgba(255,255,255,0.3);
-}
-
-.mac-dots:hover .mac-dot.green {
-  background: radial-gradient(circle at 35% 35%, #aaffaa, #28c840 40%, #0f6020 80%, #28c840);
-  box-shadow: 0 0 0 0.5px rgba(0,0,0,0.4), 0 2px 8px rgba(40,200,64,0.5), inset 0 1px 0 rgba(255,255,255,0.3);
-}
 
 .mac-title {
   flex: 1;
@@ -726,9 +708,9 @@ body.light-mode .mac-modal-section-title { color: rgba(15,3,38,0.4); }
   .mac-wrap {
     position: fixed;
     top: 10px;
-    left: calc(var(--sb-col, 58px) + 14px);
-    right: 14px;
-    bottom: 14px;
+    left: calc(var(--sb-col, 58px) + 4px);
+    right: 10px;
+    bottom: 10px;
     padding: 0;
     min-height: unset;
     overflow: hidden;
