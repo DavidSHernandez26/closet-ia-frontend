@@ -1,218 +1,100 @@
-import React, { useState, useRef, useEffect } from "react";
-import "./UploadModal.css";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import axios from "axios";
+import { API_URL } from "../config";
+import { getAuthHeaders } from "../supabase";
+import "./NotifPanel.css";
 
-/**
- * UploadModal — Be: Confident
- * Soporta: prenda individual / outfit completo
- * Drag & drop + preview + flujo paso 1 (tipo) → paso 2 (subir)
- *
- * Props:
- *   onClose()
- *   onUploaded(file, type)   // file: File, type: "prenda" | "outfit"
- */
-export default function UploadModal({ onClose, onUploaded }) {
-  const [step, setStep] = useState(1);          // 1 = elegir tipo, 2 = subir archivo
-  const [type, setType] = useState(null);       // "prenda" | "outfit"
-  const [file, setFile] = useState(null);
-  const [preview, setPreview] = useState(null);
-  const [dragActive, setDragActive] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const inputRef = useRef(null);
+export default function NotifPanel({ usuarioId, onClose }) {
+  const [notifs, setNotifs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const panelRef = useRef(null);
 
-  // Cerrar con Escape
+  const cargar = useCallback(async () => {
+    if (!usuarioId) return;
+    try {
+      const headers = getAuthHeaders();
+      const [listRes] = await Promise.all([
+        axios.get(`${API_URL}/api/notificaciones`, { headers }),
+        axios.put(`${API_URL}/api/notificaciones/leer`, {}, { headers }),
+      ]);
+      setNotifs(listRes.data || []);
+    } catch {}
+    setLoading(false);
+  }, [usuarioId]);
+
+  useEffect(() => { cargar(); }, [cargar]);
+
   useEffect(() => {
-    const onKey = (e) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    const handler = (e) => {
+      if (panelRef.current && !panelRef.current.contains(e.target)) {
+        onClose?.();
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, [onClose]);
 
-  // Cleanup preview URL
-  useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
-
-  const pickType = (t) => {
-    setType(t);
-    setStep(2);
-  };
-
-  const handleFile = (f) => {
-    if (!f) return;
-    if (!f.type.startsWith("image/")) {
-      alert("Por favor sube una imagen (.jpg, .png, .webp)");
-      return;
-    }
-    if (f.size > 10 * 1024 * 1024) {
-      alert("La imagen debe pesar menos de 10MB");
-      return;
-    }
-    if (preview) URL.revokeObjectURL(preview);
-    setFile(f);
-    setPreview(URL.createObjectURL(f));
-  };
-
-  const onDrop = (e) => {
-    e.preventDefault();
-    setDragActive(false);
-    handleFile(e.dataTransfer.files?.[0]);
-  };
-
-  const onSubmit = async () => {
-    if (!file) return;
-    setUploading(true);
+  const handleDelete = async (id) => {
     try {
-      // Espera a que el padre maneje la subida real (Supabase, etc.)
-      await onUploaded?.(file, type);
-    } finally {
-      setUploading(false);
-    }
+      await axios.delete(`${API_URL}/api/notificaciones/${id}`, { headers: getAuthHeaders() });
+      setNotifs(prev => prev.filter(n => n.id !== id));
+    } catch {}
   };
 
-  const reset = () => {
-    if (preview) URL.revokeObjectURL(preview);
-    setFile(null);
-    setPreview(null);
+  const handleClearAll = async () => {
+    try {
+      await axios.delete(`${API_URL}/api/notificaciones`, { headers: getAuthHeaders() });
+      setNotifs([]);
+    } catch {}
   };
+
+  function tiempoRelativo(iso) {
+    const diff = Date.now() - new Date(iso).getTime();
+    const min = Math.floor(diff / 60000);
+    if (min < 1)  return "ahora";
+    if (min < 60) return `${min}m`;
+    const h = Math.floor(min / 60);
+    if (h < 24)   return `${h}h`;
+    return `${Math.floor(h / 24)}d`;
+  }
 
   return (
-    <div className="up-overlay" onClick={onClose}>
-      <div className="up-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
-        {/* ── Header ── */}
-        <header className="up-header">
-          <div className="up-header-left">
-            <span className="up-traffic">
-              <span className="up-light up-light-r" />
-              <span className="up-light up-light-y" />
-              <span className="up-light up-light-g" />
+    <div ref={panelRef} className="notif-panel">
+      <div className="notif-panel-header">
+        <span className="notif-panel-title">Notificaciones</span>
+        {notifs.length > 0 && (
+          <button className="notif-clear-all" onClick={handleClearAll}>
+            Limpiar todo
+          </button>
+        )}
+      </div>
+
+      <div className="notif-panel-body">
+        {loading ? (
+          <div className="notif-empty">
+            <span className="notif-empty-dots">
+              <span /><span /><span />
             </span>
           </div>
-          <div className="up-step-indicator">
-            <span className={`up-step ${step >= 1 ? "active" : ""}`}>
-              <span className="up-step-num">1</span>
-              <span className="up-step-label">Tipo</span>
-            </span>
-            <span className="up-step-bar"><span className={`up-step-fill ${step >= 2 ? "full" : ""}`} /></span>
-            <span className={`up-step ${step >= 2 ? "active" : ""}`}>
-              <span className="up-step-num">2</span>
-              <span className="up-step-label">Imagen</span>
-            </span>
+        ) : notifs.length === 0 ? (
+          <div className="notif-empty">
+            <span className="notif-empty-icon">🔔</span>
+            <p>Sin notificaciones nuevas</p>
           </div>
-          <button className="up-close" onClick={onClose} aria-label="Cerrar">✕</button>
-        </header>
-
-        {/* ── Body ── */}
-        <div className="up-body">
-          {step === 1 && (
-            <div className="up-step-1">
-              <h2 className="up-title">Subir al closet</h2>
-              <p className="up-sub">
-                ¿Qué quieres que la IA analice? Selecciona una opción para continuar.
-              </p>
-
-              <div className="up-type-grid">
-                <button
-                  className="up-type-card"
-                  onClick={() => pickType("prenda")}
-                >
-                  <div className="up-type-icon up-type-icon-lilac">
-                    <span className="up-type-emoji">👕</span>
-                    <span className="up-type-glow" />
-                  </div>
-                  <div className="up-type-text">
-                    <h3>Prenda individual</h3>
-                    <p>Una sola pieza · la IA detecta categoría, color y estilo</p>
-                  </div>
-                  <span className="up-arrow">→</span>
-                </button>
-
-                <button
-                  className="up-type-card"
-                  onClick={() => pickType("outfit")}
-                >
-                  <div className="up-type-icon up-type-icon-sage">
-                    <span className="up-type-emoji">🧥</span>
-                    <span className="up-type-glow" />
-                  </div>
-                  <div className="up-type-text">
-                    <h3>Outfit completo</h3>
-                    <p>Look entero · la IA separa cada prenda en tu closet</p>
-                  </div>
-                  <span className="up-arrow">→</span>
-                </button>
+        ) : (
+          notifs.map(n => (
+            <div key={n.id} className={`notif-item ${n.leida ? "leida" : "nueva"}`}>
+              <div className="notif-item-body">
+                {!n.leida && <span className="notif-dot" />}
+                <p className="notif-mensaje">{n.mensaje}</p>
               </div>
-
-              <div className="up-tip">
-                <span className="up-tip-dot" />
-                <span>Funciona mejor con fondo claro y la prenda extendida</span>
+              <div className="notif-item-meta">
+                <span className="notif-tiempo">{tiempoRelativo(n.created_at)}</span>
+                <button className="notif-delete" onClick={() => handleDelete(n.id)}>✕</button>
               </div>
             </div>
-          )}
-
-          {step === 2 && (
-            <div className="up-step-2">
-              <h2 className="up-title">
-                {type === "prenda" ? "Subir prenda" : "Subir outfit"}
-              </h2>
-              <p className="up-sub">
-                {type === "prenda"
-                  ? "Foto de una sola prenda — la IA la categorizará."
-                  : "Foto del look completo — la IA detectará cada pieza."}
-              </p>
-
-              {!preview ? (
-                <label
-                  className={`up-drop ${dragActive ? "drag" : ""}`}
-                  onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
-                  onDragLeave={() => setDragActive(false)}
-                  onDrop={onDrop}
-                >
-                  <input
-                    ref={inputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleFile(e.target.files?.[0])}
-                    hidden
-                  />
-                  <div className="up-drop-icon">
-                    <span>📸</span>
-                    <span className="up-drop-pulse" />
-                  </div>
-                  <h3 className="up-drop-title">Arrastra una imagen aquí</h3>
-                  <p className="up-drop-sub">o haz click para seleccionar · JPG / PNG / WEBP · máx 10MB</p>
-                  <span className="up-drop-cta">Seleccionar archivo</span>
-                </label>
-              ) : (
-                <div className="up-preview-wrap">
-                  <div className="up-preview">
-                    <img src={preview} alt="Preview" />
-                    <button className="up-preview-clear" onClick={reset} title="Cambiar">↻</button>
-                  </div>
-                  <div className="up-preview-meta">
-                    <div className="up-preview-name">{file.name}</div>
-                    <div className="up-preview-size">{(file.size / 1024 / 1024).toFixed(2)} MB</div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* ── Footer ── */}
-        <footer className="up-footer">
-          {step === 2 && (
-            <button className="up-btn up-btn-ghost" onClick={() => setStep(1)} disabled={uploading}>
-              ← Atrás
-            </button>
-          )}
-          <span style={{ flex: 1 }} />
-          {step === 2 && (
-            <button
-              className="up-btn up-btn-primary"
-              onClick={onSubmit}
-              disabled={!file || uploading}
-            >
-              {uploading ? <span className="up-spinner" /> : "Subir y analizar →"}
-            </button>
-          )}
-        </footer>
+          ))
+        )}
       </div>
     </div>
   );

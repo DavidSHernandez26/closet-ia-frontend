@@ -1,4 +1,7 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
+import axios from "axios";
+import { API_URL } from "../config";
+import { getAuthHeaders } from "../supabase";
 import { motion, useAnimation } from "framer-motion";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import "./Navbar.css";
@@ -35,10 +38,25 @@ function DockIcon({ children }) {
 export default function Navbar({ onUploaded, usuarioId, session }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const [showModal, setShowModal] = useState(false);
-  const [expanded, setExpanded] = useState(false);
-  const [pinned, setPinned] = useState(false);
+  const [showModal,   setShowModal]   = useState(false);
+  const [expanded,    setExpanded]    = useState(false);
+  const [pinned,      setPinned]      = useState(false);
+  const [showNotif,   setShowNotif]   = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const user = session?.user || null;
+
+  useEffect(() => {
+    if (!usuarioId) return;
+    const fetchCount = async () => {
+      try {
+        const res = await axios.get(`${API_URL}/api/notificaciones/count`, { headers: getAuthHeaders() });
+        setUnreadCount(res.data.count || 0);
+      } catch {}
+    };
+    fetchCount();
+    const id = setInterval(fetchCount, 30000);
+    return () => clearInterval(id);
+  }, [usuarioId]);
 
   const sbRef = useRef(null);
   const sbItemRefs = useRef({});
@@ -188,16 +206,20 @@ export default function Navbar({ onUploaded, usuarioId, session }) {
               </Link>
             ))}
             {user && usuarioId && (
-              <div
+              <button
                 ref={(el) => { sbItemRefs.current["__notif"] = el; }}
-                className="sb-item sb-item-notif"
+                className={`sb-item sb-item-notif ${showNotif ? "active" : ""}`}
+                onClick={() => setShowNotif(v => !v)}
               >
-                <span className="sb-icon-wrap"><Bell size={17} strokeWidth={1.7} /></span>
-                <span className="sb-item-label">
-                  <NotifPanel usuarioId={usuarioId} />
+                <span className="sb-icon-wrap" style={{ position: "relative" }}>
+                  <Bell size={17} strokeWidth={1.7} />
+                  {unreadCount > 0 && (
+                    <span className="sb-notif-badge">{unreadCount > 9 ? "9+" : unreadCount}</span>
+                  )}
                 </span>
+                <span className="sb-item-label">Notificaciones</span>
                 <span className="sb-item-tip">Notificaciones</span>
-              </div>
+              </button>
             )}
           </div>
         </nav>
@@ -280,6 +302,13 @@ export default function Navbar({ onUploaded, usuarioId, session }) {
             if (onUploaded) onUploaded();
             setShowModal(false);
           }}
+        />
+      )}
+
+      {showNotif && usuarioId && (
+        <NotifPanel
+          usuarioId={usuarioId}
+          onClose={() => { setShowNotif(false); setUnreadCount(0); }}
         />
       )}
     </>

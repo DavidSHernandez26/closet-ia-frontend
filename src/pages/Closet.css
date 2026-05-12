@@ -725,11 +725,11 @@ body.light-mode .mac-modal-section-title { color: rgba(15,3,38,0.4); }
 @media (min-width: 901px) {
   .mac-wrap {
     position: fixed;
-    top: 64px;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    padding: 24px 20px;
+    top: 10px;
+    left: calc(var(--sb-col, 58px) + 14px);
+    right: 14px;
+    bottom: 14px;
+    padding: 0;
     min-height: unset;
     overflow: hidden;
   }

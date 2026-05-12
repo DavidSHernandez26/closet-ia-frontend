@@ -19,8 +19,7 @@
   width: 100%;
   box-sizing: border-box;
   background:
-    radial-gradient(ellipse at 20% 0%, rgba(196, 181, 232, 0.12), transparent 50%),
-    radial-gradient(ellipse at 80% 100%, rgba(132, 160, 124, 0.10), transparent 50%),
+    radial-gradient(ellipse at 20% 0%, rgba(196, 181, 232, 0.10), transparent 50%),
     var(--purple);
   color: var(--white);
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
@@ -58,6 +57,33 @@ body.light-mode .feed-container {
   z-index: 1;
   display: flex;
   flex-direction: column;
+}
+
+/* ── HUD macOS (semáforo) — oculto en mobile, visible en desktop ── */
+.feed-hud { display: none; }
+
+.feed-mac-dots {
+  display: flex;
+  gap: 7px;
+  flex-shrink: 0;
+}
+
+.feed-mac-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  transition: transform 0.15s, filter 0.15s;
+}
+.feed-mac-dot.red    { background: #ff5f57; box-shadow: 0 0 0 0.5px rgba(0,0,0,0.18); }
+.feed-mac-dot.yellow { background: #febc2e; box-shadow: 0 0 0 0.5px rgba(0,0,0,0.18); }
+.feed-mac-dot.green  { background: #28c840; box-shadow: 0 0 0 0.5px rgba(0,0,0,0.18); }
+.feed-mac-dots:hover .feed-mac-dot { transform: scale(1.15); filter: brightness(1.1); }
+
+.feed-hud-title {
+  font-size: 0.8rem;
+  color: rgba(244,244,249,0.45);
+  font-weight: 500;
+  letter-spacing: 0.01em;
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -1107,9 +1133,9 @@ body.light-mode .sidebar-follow:hover { background: rgba(15, 3, 38, 0.08); }
   .feed-inner {
     display: grid;
     grid-template-columns: 220px minmax(0, 560px) 260px;
-    grid-template-rows: auto auto 1fr;
+    grid-template-rows: auto auto auto 1fr;
     column-gap: 28px;
-    row-gap: 20px;
+    row-gap: 0;
     max-width: 1200px;
     align-items: start;
     background: rgba(12, 4, 28, 0.72);
@@ -1121,31 +1147,44 @@ body.light-mode .sidebar-follow:hover { background: rgba(15, 3, 38, 0.08); }
       0 0 0 0.5px rgba(255, 255, 255, 0.04),
       0 32px 80px rgba(0, 0, 0, 0.5),
       inset 0 1px 0 rgba(196, 181, 232, 0.08);
-    padding: 28px 28px 36px;
+    padding: 20px 28px 36px;
+  }
+
+  /* ── Fila 1 — semáforo macOS ── */
+  .feed-hud {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    grid-column: 1 / -1;
+    grid-row: 1;
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid rgba(196,181,232,0.08);
   }
 
   /* ── Col 1 — nav rail ── */
   .feed-header {
     grid-column: 1;
-    grid-row: 1;
+    grid-row: 2;
     position: sticky;
     top: 28px;
     margin-bottom: 0;
     padding: 0;
+    padding-top: 4px;
   }
 
   .feed-header h1 { font-size: 1.8rem; }
 
   .feed-chips {
     grid-column: 1;
-    grid-row: 2;
+    grid-row: 3;
     flex-direction: column;
     gap: 4px;
     overflow: visible;
     margin-bottom: 0;
     padding: 0;
     position: sticky;
-    top: 130px;
+    top: 140px;
   }
 
   .feed-chip {
@@ -1159,28 +1198,25 @@ body.light-mode .sidebar-follow:hover { background: rgba(15, 3, 38, 0.08); }
   /* ── Col 2 — contenido principal ── */
   .feed-new-post {
     grid-column: 2;
-    grid-row: 1;
+    grid-row: 2;
     margin-bottom: 0;
+    padding-top: 4px;
   }
 
   .feed-list {
     grid-column: 2;
-    grid-row: 2 / span 2;
+    grid-row: 3 / span 2;
     gap: 24px;
   }
 
   .feed-loading {
     grid-column: 2;
-    grid-row: 2;
+    grid-row: 3;
   }
 
-  .feed-post {
-    border-radius: 20px;
-  }
+  .feed-post { border-radius: 20px; }
 
-  .feed-post-img-wrap {
-    aspect-ratio: 1 / 1;   /* cuadrado en desktop */
-  }
+  .feed-post-img-wrap { aspect-ratio: 1 / 1; }
 
   /* ── Col 3 — sidebar ── */
   .feed-sidebar {
@@ -1188,9 +1224,10 @@ body.light-mode .sidebar-follow:hover { background: rgba(15, 3, 38, 0.08); }
     flex-direction: column;
     gap: 16px;
     grid-column: 3;
-    grid-row: 1 / span 3;
+    grid-row: 2 / span 4;
     position: sticky;
     top: 28px;
+    padding-top: 4px;
   }
 }
 
