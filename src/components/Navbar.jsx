@@ -80,7 +80,6 @@ export default function Navbar({ onUploaded, usuarioId, session }) {
     { path: "/feed",       label: "Feed",        icon: <LayoutGrid size={17} strokeWidth={1.7} /> },
     { path: "/closet",     label: "Closet",      icon: <Shirt      size={17} strokeWidth={1.7} /> },
     { path: "/calendario", label: "Calendario",  icon: <Calendar   size={17} strokeWidth={1.7} /> },
-    { path: "/amigos",     label: "Comunidad",   icon: <Users      size={17} strokeWidth={1.7} /> },
     { path: "/perfil",     label: "Perfil",      icon: <User       size={17} strokeWidth={1.7} /> },
   ];
 

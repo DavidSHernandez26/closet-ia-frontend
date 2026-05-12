@@ -40,7 +40,7 @@ body.light-mode .feed-container {
 /* Noise overlay */
 .feed-container::before {
   content: "";
-  position: fixed;
+  position: absolute;
   inset: 0;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
   opacity: 0.06;
@@ -59,30 +59,27 @@ body.light-mode .feed-container {
   flex-direction: column;
 }
 
-/* ── HUD macOS (semáforo) — oculto en mobile, visible en desktop ── */
-.feed-hud { display: none; }
+/* ── Titlebar mac (oculto en mobile) ── */
+.feed-titlebar { display: none; }
 
-.feed-mac-dots {
-  display: flex;
-  gap: 7px;
-  flex-shrink: 0;
-}
+/* ── mac-dots / mac-dot — igual que Closet ── */
+.mac-dots { display: flex; gap: 7px; flex-shrink: 0; }
 
-.feed-mac-dot {
+.mac-dot {
   width: 12px;
   height: 12px;
   border-radius: 50%;
   transition: transform 0.15s, filter 0.15s;
 }
-.feed-mac-dot.red    { background: #ff5f57; box-shadow: 0 0 0 0.5px rgba(0,0,0,0.18); }
-.feed-mac-dot.yellow { background: #febc2e; box-shadow: 0 0 0 0.5px rgba(0,0,0,0.18); }
-.feed-mac-dot.green  { background: #28c840; box-shadow: 0 0 0 0.5px rgba(0,0,0,0.18); }
-.feed-mac-dots:hover .feed-mac-dot { transform: scale(1.15); filter: brightness(1.1); }
+.mac-dot.red    { background: #ff5f57; box-shadow: 0 0 0 0.5px rgba(0,0,0,0.18); }
+.mac-dot.yellow { background: #febc2e; box-shadow: 0 0 0 0.5px rgba(0,0,0,0.18); }
+.mac-dot.green  { background: #28c840; box-shadow: 0 0 0 0.5px rgba(0,0,0,0.18); }
+.mac-dots:hover .mac-dot { transform: scale(1.15); filter: brightness(1.1); }
 
-.feed-hud-title {
-  font-size: 0.8rem;
-  color: rgba(244,244,249,0.45);
+.mac-title {
+  font-size: 0.82rem;
   font-weight: 500;
+  color: rgba(244, 244, 249, 0.5);
   letter-spacing: 0.01em;
 }
 
@@ -1125,66 +1122,81 @@ body.light-mode .sidebar-follow:hover { background: rgba(15, 3, 38, 0.08); }
    Grid de 3 columnas: nav rail · feed · sidebar
 ══════════════════════════════════════════════════════════ */
 @media (min-width: 900px) {
-  .feed-container { padding: 14px 40px 96px; }
-
-  /* Seguridad: ocultar carousel si llega a renderizarse en desktop */
-  .feed-carousel-wrap { display: none !important; }
-
-  .feed-inner {
-    display: grid;
-    grid-template-columns: 220px minmax(0, 560px) 260px;
-    grid-template-rows: auto auto auto 1fr;
-    column-gap: 28px;
-    row-gap: 0;
-    max-width: 1200px;
-    align-items: start;
-    background: rgba(12, 4, 28, 0.72);
+  /* ── Ventana fija estilo macOS ── */
+  .feed-container {
+    position: fixed;
+    top: 10px;
+    left: calc(var(--sb-col, 58px) + 14px);
+    right: 14px;
+    bottom: 14px;
+    padding: 0;
+    background: rgba(12, 4, 28, 0.82);
     backdrop-filter: blur(40px) saturate(180%);
     -webkit-backdrop-filter: blur(40px) saturate(180%);
     border: 1px solid rgba(196, 181, 232, 0.12);
     border-radius: 20px;
     box-shadow:
-      0 0 0 0.5px rgba(255, 255, 255, 0.04),
-      0 32px 80px rgba(0, 0, 0, 0.5),
-      inset 0 1px 0 rgba(196, 181, 232, 0.08);
-    padding: 20px 28px 36px;
+      0 0 0 0.5px rgba(255,255,255,0.04),
+      0 32px 80px rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(196,181,232,0.08);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: unset;
   }
 
-  /* ── Fila 1 — semáforo macOS ── */
-  .feed-hud {
+  /* ── Titlebar ── */
+  .feed-titlebar {
     display: flex;
     align-items: center;
     gap: 10px;
-    grid-column: 1 / -1;
-    grid-row: 1;
-    padding-bottom: 16px;
-    margin-bottom: 16px;
-    border-bottom: 1px solid rgba(196,181,232,0.08);
+    padding: 13px 18px;
+    border-bottom: 1px solid rgba(196, 181, 232, 0.08);
+    flex-shrink: 0;
   }
+
+  /* ── Contenido scrollable ── */
+  .feed-inner {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+    display: grid;
+    grid-template-columns: 220px minmax(0, 560px) 260px;
+    grid-template-rows: auto auto 1fr;
+    column-gap: 28px;
+    row-gap: 20px;
+    max-width: unset;
+    padding: 20px 28px 40px;
+    align-items: start;
+  }
+  .feed-inner::-webkit-scrollbar { display: none; }
+
+  /* Seguridad: ocultar carousel si llega a renderizarse en desktop */
+  .feed-carousel-wrap { display: none !important; }
 
   /* ── Col 1 — nav rail ── */
   .feed-header {
     grid-column: 1;
-    grid-row: 2;
+    grid-row: 1;
     position: sticky;
-    top: 28px;
+    top: 0;
     margin-bottom: 0;
     padding: 0;
-    padding-top: 4px;
   }
 
   .feed-header h1 { font-size: 1.8rem; }
 
   .feed-chips {
     grid-column: 1;
-    grid-row: 3;
+    grid-row: 2;
     flex-direction: column;
     gap: 4px;
     overflow: visible;
     margin-bottom: 0;
     padding: 0;
     position: sticky;
-    top: 140px;
+    top: 110px;
   }
 
   .feed-chip {
@@ -1198,20 +1210,19 @@ body.light-mode .sidebar-follow:hover { background: rgba(15, 3, 38, 0.08); }
   /* ── Col 2 — contenido principal ── */
   .feed-new-post {
     grid-column: 2;
-    grid-row: 2;
+    grid-row: 1;
     margin-bottom: 0;
-    padding-top: 4px;
   }
 
   .feed-list {
     grid-column: 2;
-    grid-row: 3 / span 2;
+    grid-row: 2 / span 2;
     gap: 24px;
   }
 
   .feed-loading {
     grid-column: 2;
-    grid-row: 3;
+    grid-row: 2;
   }
 
   .feed-post { border-radius: 20px; }
@@ -1224,10 +1235,9 @@ body.light-mode .sidebar-follow:hover { background: rgba(15, 3, 38, 0.08); }
     flex-direction: column;
     gap: 16px;
     grid-column: 3;
-    grid-row: 2 / span 4;
+    grid-row: 1 / span 3;
     position: sticky;
-    top: 28px;
-    padding-top: 4px;
+    top: 0;
   }
 }
 
@@ -1235,12 +1245,10 @@ body.light-mode .sidebar-follow:hover { background: rgba(15, 3, 38, 0.08); }
    DESKTOP WIDE — 1280px+
 ══════════════════════════════════════════════════════════ */
 @media (min-width: 1280px) {
-  .feed-container { padding: 14px 56px 96px; }
-
   .feed-inner {
     grid-template-columns: 250px minmax(0, 680px) 300px;
-    max-width: 1440px;
     column-gap: 36px;
+    padding: 24px 40px 48px;
   }
 }
 

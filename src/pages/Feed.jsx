@@ -391,17 +391,18 @@ async function cargarSugeridos() {
   ────────────────────────────────── */
   return (
     <div className="feed-container">
-      <div className="feed-inner">
 
-        {/* ── HUD macOS — solo desktop ── */}
-        <div className="feed-hud">
-          <div className="feed-mac-dots">
-            <span className="feed-mac-dot red"    />
-            <span className="feed-mac-dot yellow" />
-            <span className="feed-mac-dot green"  />
-          </div>
-          <span className="feed-hud-title">Feed — Be: Confident</span>
+      {/* ── Titlebar macOS ── */}
+      <div className="feed-titlebar">
+        <div className="mac-dots">
+          <span className="mac-dot red"    />
+          <span className="mac-dot yellow" />
+          <span className="mac-dot green"  />
         </div>
+        <span className="mac-title">Feed — Be: Confident</span>
+      </div>
+
+      <div className="feed-inner">
 
         {/* ── HEADER ── */}
         <header className="feed-header">
