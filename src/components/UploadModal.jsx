@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import {
   Upload, Scissors, Brain, CheckCircle2, AlertTriangle, Ban,
-  Camera, Image, Shirt, Layers, ArrowRight, ArrowLeft,
+  Camera, Image, ArrowLeft,
   X, Plus, Loader2,
 } from "lucide-react";
 import "./UploadModal.css";
@@ -265,7 +265,7 @@ export default function UploadModal({ onClose, onUploaded }) {
               <span className="up-step-label">Imágenes</span>
             </span>
           </div>
-          <div className="up-header-right" />
+          <button className="up-close" onClick={onClose} aria-label="Cerrar">✕</button>
         </header>
 
         {/* ── Body ── */}
@@ -282,26 +282,26 @@ export default function UploadModal({ onClose, onUploaded }) {
               <div className="up-type-grid">
                 <button className="up-type-card" onClick={() => pickType("prenda")}>
                   <div className="up-type-icon up-type-icon-lilac">
-                    <Shirt size={22} strokeWidth={1.6} />
+                    <span className="up-type-emoji">👕</span>
                     <span className="up-type-glow" />
                   </div>
                   <div className="up-type-text">
                     <h3>Prenda individual</h3>
                     <p>Una o varias prendas — la IA detecta categoría, color y estilo</p>
                   </div>
-                  <ArrowRight size={16} className="up-arrow-icon" />
+                  <span className="up-arrow">→</span>
                 </button>
 
                 <button className="up-type-card" onClick={() => pickType("outfit")}>
                   <div className="up-type-icon up-type-icon-sage">
-                    <Layers size={22} strokeWidth={1.6} />
+                    <span className="up-type-emoji">🧥</span>
                     <span className="up-type-glow" />
                   </div>
                   <div className="up-type-text">
                     <h3>Outfit completo</h3>
                     <p>Look entero — la IA separa cada prenda en tu closet</p>
                   </div>
-                  <ArrowRight size={16} className="up-arrow-icon" />
+                  <span className="up-arrow">→</span>
                 </button>
               </div>
 
@@ -340,7 +340,7 @@ export default function UploadModal({ onClose, onUploaded }) {
                   onKeyDown={(e) => e.key === "Enter" && handlePickPhoto()}
                 >
                   <div className="up-drop-icon">
-                    <Camera size={32} strokeWidth={1.4} />
+                    <span>📸</span>
                     <span className="up-drop-pulse" />
                   </div>
                   <h3 className="up-drop-title">
