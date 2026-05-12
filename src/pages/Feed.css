@@ -26,7 +26,7 @@
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
     "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
-  padding: 24px 16px 96px;
+  padding: 14px 16px 96px;
   position: relative;
 }
 
@@ -1099,7 +1099,7 @@ body.light-mode .sidebar-follow:hover { background: rgba(15, 3, 38, 0.08); }
    Grid de 3 columnas: nav rail · feed · sidebar
 ══════════════════════════════════════════════════════════ */
 @media (min-width: 900px) {
-  .feed-container { padding: 32px 40px 96px; }
+  .feed-container { padding: 14px 40px 96px; }
 
   /* Seguridad: ocultar carousel si llega a renderizarse en desktop */
   .feed-carousel-wrap { display: none !important; }
@@ -1112,6 +1112,16 @@ body.light-mode .sidebar-follow:hover { background: rgba(15, 3, 38, 0.08); }
     row-gap: 20px;
     max-width: 1200px;
     align-items: start;
+    background: rgba(12, 4, 28, 0.72);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(196, 181, 232, 0.12);
+    border-radius: 20px;
+    box-shadow:
+      0 0 0 0.5px rgba(255, 255, 255, 0.04),
+      0 32px 80px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(196, 181, 232, 0.08);
+    padding: 28px 28px 36px;
   }
 
   /* ── Col 1 — nav rail ── */
@@ -1188,7 +1198,7 @@ body.light-mode .sidebar-follow:hover { background: rgba(15, 3, 38, 0.08); }
    DESKTOP WIDE — 1280px+
 ══════════════════════════════════════════════════════════ */
 @media (min-width: 1280px) {
-  .feed-container { padding: 36px 56px 96px; }
+  .feed-container { padding: 14px 56px 96px; }
 
   .feed-inner {
     grid-template-columns: 250px minmax(0, 680px) 300px;

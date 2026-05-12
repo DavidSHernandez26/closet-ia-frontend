@@ -382,10 +382,12 @@ export default function Asistente({ usuarioId }) {
           setOutfit([]);
           setOutfitIds([]);
         }
+        setRachaKey(k => k + 1);
       } else if (Array.isArray(res.data?.outfit) && res.data.outfit.length > 0) {
         setOutfit(res.data.outfit);
         setOutfitIds(res.data.outfit.map((p) => p.id));
         setOutfitGuardado(null);
+        setRachaKey(k => k + 1);
       }
     } catch (err) {
       console.error("❌ Error fashion:", err);
