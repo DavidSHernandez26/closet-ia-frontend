@@ -1,6 +1,5 @@
 .notif-panel {
   position: fixed;
-  top: 12px;
   left: calc(var(--sb-col, 58px) + 16px);
   width: 300px;
   max-height: 420px;

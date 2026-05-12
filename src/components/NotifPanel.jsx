@@ -4,7 +4,7 @@ import { API_URL } from "../config";
 import { getAuthHeaders } from "../supabase";
 import "./NotifPanel.css";
 
-export default function NotifPanel({ usuarioId, onClose }) {
+export default function NotifPanel({ usuarioId, topOffset = 12, onClose }) {
   const [notifs, setNotifs] = useState([]);
   const [loading, setLoading] = useState(true);
   const panelRef = useRef(null);
@@ -59,7 +59,7 @@ export default function NotifPanel({ usuarioId, onClose }) {
   }
 
   return (
-    <div ref={panelRef} className="notif-panel">
+    <div ref={panelRef} className="notif-panel" style={{ top: topOffset }}>
       <div className="notif-panel-header">
         <span className="notif-panel-title">Notificaciones</span>
         {notifs.length > 0 && (

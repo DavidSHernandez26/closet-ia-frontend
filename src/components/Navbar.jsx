@@ -43,6 +43,7 @@ export default function Navbar({ onUploaded, usuarioId, session }) {
   const [pinned,      setPinned]      = useState(false);
   const [showNotif,   setShowNotif]   = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [notifTop,    setNotifTop]    = useState(12);
   const user = session?.user || null;
 
   useEffect(() => {
@@ -176,7 +177,7 @@ export default function Navbar({ onUploaded, usuarioId, session }) {
 
           <div className="sb-section">
             <div className="sb-section-label">Social</div>
-            {navLinks.slice(3, 5).map((l) => (
+            {navLinks.slice(3, 4).map((l) => (
               <Link
                 key={l.path}
                 ref={(el) => { sbItemRefs.current[l.path] = el; }}
@@ -192,7 +193,7 @@ export default function Navbar({ onUploaded, usuarioId, session }) {
 
           <div className="sb-section">
             <div className="sb-section-label">Cuenta</div>
-            {navLinks.slice(5).map((l) => (
+            {navLinks.slice(4).map((l) => (
               <Link
                 key={l.path}
                 ref={(el) => { sbItemRefs.current[l.path] = el; }}
@@ -208,7 +209,11 @@ export default function Navbar({ onUploaded, usuarioId, session }) {
               <button
                 ref={(el) => { sbItemRefs.current["__notif"] = el; }}
                 className={`sb-item sb-item-notif ${showNotif ? "active" : ""}`}
-                onClick={() => setShowNotif(v => !v)}
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  setNotifTop(rect.top);
+                  setShowNotif(v => !v);
+                }}
               >
                 <span className="sb-icon-wrap" style={{ position: "relative" }}>
                   <Bell size={17} strokeWidth={1.7} />
@@ -307,6 +312,7 @@ export default function Navbar({ onUploaded, usuarioId, session }) {
       {showNotif && usuarioId && (
         <NotifPanel
           usuarioId={usuarioId}
+          topOffset={notifTop}
           onClose={() => { setShowNotif(false); setUnreadCount(0); }}
         />
       )}

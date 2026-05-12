@@ -320,6 +320,16 @@
 }
 .sb-tool:active { transform: scale(0.92); }
 
+/* Reset browser button defaults para sb-item-notif */
+button.sb-item {
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: inherit;
+  text-align: left;
+  width: 100%;
+}
+
 /* Focus visible a11y */
 .sb-item:focus-visible,
 .sb-upload:focus-visible,
