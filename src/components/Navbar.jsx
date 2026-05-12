@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import { motion, useAnimation } from "framer-motion";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import "./Navbar.css";
@@ -8,30 +8,28 @@ import NotifPanel from "./NotifPanel";
 import { haptics } from "../hooks/useHaptics";
 import { ThemeToggleButton } from "./ui/skiper-ui/skiper26";
 import {
-  Sparkles, LayoutGrid, Shirt, Calendar, Users, User,
-  Camera, Bell, Pin, LogOut, ChevronsLeft, ChevronsRight,
+  Sparkles, LayoutGrid, Shirt, Calendar, User, Camera,
 } from "lucide-react";
 
-/**
- * Navbar — Be: Confident
- * Desktop: sidebar vertical hover-expand + dock magnification
- * Mobile : floating bottom dock con magnificación + bounce
- * (Mismo nombre/contrato que tu Navbar previo — no requiere cambios en integraciones)
- */
-
-/* DockIcon — bounce "gota de agua" para mobile */
+// Icono con bounce "gota de agua" — la secuencia siempre termina en estado normal
+// useAnimation garantiza que la animación corre hasta el final sin importar si el
+// componente padre navega o re-renderiza (a diferencia de whileTap que pierde el
+// evento touchend cuando hay navegación en iOS)
 function DockIcon({ children }) {
   const controls = useAnimation();
+
   const bounce = () => {
     controls
       .start({ scale: 1.38, y: -11, transition: { duration: 0.08, ease: "easeOut" } })
       .then(() =>
         controls.start({
-          scale: 1, y: 0,
+          scale: 1,
+          y: 0,
           transition: { type: "spring", stiffness: 480, damping: 13 },
         })
       );
   };
+
   return (
     <motion.span className="navbar-mobile-icon" animate={controls} onTouchStart={bounce}>
       {children}
@@ -43,13 +41,8 @@ export default function Navbar({ onUploaded, usuarioId, session }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
-  const [expanded, setExpanded] = useState(false);
-  const [pinned, setPinned] = useState(false);
   const user = session?.user || null;
 
-  // Refs para magnificación
-  const sbRef = useRef(null);
-  const sbItemRefs = useRef({});
   const dockRef = useRef(null);
   const dockItemRefs = useRef({});
 
@@ -66,44 +59,14 @@ export default function Navbar({ onUploaded, usuarioId, session }) {
   const isActive = (path) => location.pathname === path;
 
   const navLinks = [
-    { path: "/",           label: "Asistente",  icon: <Sparkles   size={17} strokeWidth={1.7} /> },
-    { path: "/feed",       label: "Feed",        icon: <LayoutGrid size={17} strokeWidth={1.7} /> },
-    { path: "/closet",     label: "Closet",      icon: <Shirt      size={17} strokeWidth={1.7} /> },
-    { path: "/calendario", label: "Calendario",  icon: <Calendar   size={17} strokeWidth={1.7} /> },
-    { path: "/amigos",     label: "Comunidad",   icon: <Users      size={17} strokeWidth={1.7} /> },
-    { path: "/perfil",     label: "Perfil",      icon: <User       size={17} strokeWidth={1.7} /> },
+    { path: "/",           label: "Asistente",  icon: <Sparkles   size={16} /> },
+    { path: "/feed",       label: "Feed",        icon: <LayoutGrid size={16} /> },
+    { path: "/closet",     label: "Closet",      icon: <Shirt      size={16} /> },
+    { path: "/calendario", label: "Calendario",  icon: <Calendar   size={16} /> },
+    { path: "/perfil",     label: "Perfil",      icon: <User       size={16} /> },
   ];
 
-  /* ── Magnificación sidebar (eje Y) ── */
-  const applySidebarMag = useCallback((clientY) => {
-    Object.values(sbItemRefs.current).forEach((item) => {
-      if (!item) return;
-      const icon = item.querySelector(".sb-icon-wrap");
-      if (!icon) return;
-      const rect = icon.getBoundingClientRect();
-      const center = rect.top + rect.height / 2;
-      const distance = Math.abs(clientY - center);
-      const maxDistance = 90;
-      let scale = 1, liftX = 0;
-      if (distance < maxDistance) {
-        const t = 1 - distance / maxDistance;
-        const eased = (1 - Math.cos(t * Math.PI)) / 2;
-        scale = 1 + eased * 0.35;
-        liftX = eased * 4;
-      }
-      icon.style.transform = `translateX(${liftX}px) scale(${scale})`;
-    });
-  }, []);
-
-  const resetSidebarMag = useCallback(() => {
-    Object.values(sbItemRefs.current).forEach((item) => {
-      if (!item) return;
-      const icon = item.querySelector(".sb-icon-wrap");
-      if (icon) icon.style.transform = "";
-    });
-  }, []);
-
-  /* ── Magnificación dock móvil (eje X) ── */
+  // Magnificación tipo dock macOS al deslizar el dedo
   const applyDockScale = useCallback((clientX) => {
     Object.values(dockItemRefs.current).forEach((item) => {
       if (!item) return;
@@ -128,122 +91,55 @@ export default function Navbar({ onUploaded, usuarioId, session }) {
     });
   }, []);
 
-  const isOpen = expanded || pinned;
-
   return (
     <>
-      {/* ── DESKTOP: Sidebar hover-expand ── */}
-      <aside
-        className={`navbar-sidebar ${isOpen ? "expanded" : ""}`}
-        ref={sbRef}
-        onMouseEnter={() => setExpanded(true)}
-        onMouseLeave={() => { setExpanded(false); resetSidebarMag(); }}
-        onMouseMove={(e) => applySidebarMag(e.clientY)}
-      >
-        <div className="sb-brand" onClick={() => navigate("/")}>
-          <img src="/icon-192.png" alt="Be: Confident" className="sb-brand-logo" />
-          <div className="sb-brand-text">
-            <div className="sb-brand-name">Be: Confident</div>
-            <div className="sb-brand-sub">v1.0 · closet IA</div>
+      {/* ── DESKTOP: Floating Capsule ── */}
+      <nav className="navbar">
+        <div className="navbar-capsule">
+          <div className="navbar-brand" onClick={() => navigate("/")}>
+            <img src="/icon-192.png" alt="Be: Confident" className="navbar-logo-icon" />
+            <span className="navbar-title-text">Be: Confident</span>
           </div>
-        </div>
 
-        <nav className="sb-nav">
-          <div className="sb-section">
-            <div className="sb-section-label">Principal</div>
-            {navLinks.slice(0, 3).map((l) => (
+          <div className="navbar-links">
+            {navLinks.map((l) => (
               <Link
                 key={l.path}
-                ref={(el) => { sbItemRefs.current[l.path] = el; }}
                 to={l.path}
-                className={`sb-item ${isActive(l.path) ? "active" : ""}`}
+                className={`navbar-link ${isActive(l.path) ? "active" : ""}`}
               >
-                <span className="sb-icon-wrap">{l.icon}</span>
-                <span className="sb-item-label">{l.label}</span>
-                <span className="sb-item-tip">{l.label}</span>
+                <span className="navbar-link-icon" aria-hidden="true">{l.icon}</span>
+                <span className="navbar-link-label">{l.label}</span>
               </Link>
             ))}
           </div>
 
-          <div className="sb-section">
-            <div className="sb-section-label">Social</div>
-            {navLinks.slice(3, 5).map((l) => (
-              <Link
-                key={l.path}
-                ref={(el) => { sbItemRefs.current[l.path] = el; }}
-                to={l.path}
-                className={`sb-item ${isActive(l.path) ? "active" : ""}`}
-              >
-                <span className="sb-icon-wrap">{l.icon}</span>
-                <span className="sb-item-label">{l.label}</span>
-                <span className="sb-item-tip">{l.label}</span>
-              </Link>
-            ))}
-          </div>
+          <div className="navbar-actions">
+            <ThemeToggleButton
+              className="navbar-icon-btn"
+              variant="circle"
+              start="bottom-right"
+            />
 
-          <div className="sb-section">
-            <div className="sb-section-label">Cuenta</div>
-            {navLinks.slice(5).map((l) => (
-              <Link
-                key={l.path}
-                ref={(el) => { sbItemRefs.current[l.path] = el; }}
-                to={l.path}
-                className={`sb-item ${isActive(l.path) ? "active" : ""}`}
-              >
-                <span className="sb-icon-wrap">{l.icon}</span>
-                <span className="sb-item-label">{l.label}</span>
-                <span className="sb-item-tip">{l.label}</span>
-              </Link>
-            ))}
-            {user && usuarioId && (
-              <div
-                ref={(el) => { sbItemRefs.current["__notif"] = el; }}
-                className="sb-item sb-item-notif"
-              >
-                <span className="sb-icon-wrap"><Bell size={17} strokeWidth={1.7} /></span>
-                <span className="sb-item-label">
-                  <NotifPanel usuarioId={usuarioId} />
-                </span>
-                <span className="sb-item-tip">Notificaciones</span>
-              </div>
-            )}
-          </div>
-        </nav>
+            {user && usuarioId && <NotifPanel usuarioId={usuarioId} />}
 
-        <div className="sb-footer">
-          {user ? (
-            <button className="sb-upload" onClick={handleUploadClick}>
-              <span className="sb-upload-icon"><Camera size={17} strokeWidth={1.8} /></span>
-              <span className="sb-upload-label">Subir al closet</span>
-              <span className="sb-item-tip">Subir al closet</span>
-            </button>
-          ) : (
-            <button className="sb-upload" onClick={() => navigate("/login")}>
-              <span className="sb-upload-icon">🔐</span>
-              <span className="sb-upload-label">Iniciar sesión</span>
-              <span className="sb-item-tip">Iniciar sesión</span>
-            </button>
-          )}
-
-          <div className="sb-tools">
-            <div className="sb-tool-theme">
-              <ThemeToggleButton variant="circle" start="bottom-right" />
-            </div>
-            <button
-              className={`sb-tool ${pinned ? "active" : ""}`}
-              onClick={() => setPinned(!pinned)}
-              title={pinned ? "Soltar" : "Anclar abierto"}
-            >
-              <Pin size={15} strokeWidth={1.8} />
-            </button>
-            {user && (
-              <button className="sb-tool" onClick={handleLogout} title="Cerrar sesión">
-                <LogOut size={15} strokeWidth={1.8} />
+            {user ? (
+              <>
+                <button className="navbar-upload-btn" onClick={handleUploadClick}>
+                  <Camera size={16} />
+                  <span className="navbar-upload-label">Subir</span>
+                </button>
+                <button className="navbar-icon-btn navbar-logout" onClick={handleLogout} title="Cerrar sesión">🔒</button>
+              </>
+            ) : (
+              <button className="navbar-upload-btn" onClick={() => navigate("/login")}>
+                <span>🔐</span>
+                <span className="navbar-upload-label">Login</span>
               </button>
             )}
           </div>
         </div>
-      </aside>
+      </nav>
 
       {/* ── MOBILE: Floating bottom dock ── */}
       <div className="navbar-mobile">
@@ -275,7 +171,7 @@ export default function Navbar({ onUploaded, usuarioId, session }) {
             onClick={() => { haptics.medium(); handleUploadClick(); }}
             onTouchEnd={resetDock}
           >
-            <DockIcon><Camera size={18} strokeWidth={1.8} /></DockIcon>
+            <DockIcon><Camera size={18} /></DockIcon>
             <span className="navbar-mobile-label">Subir</span>
           </button>
         </div>

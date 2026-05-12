@@ -1,18 +1,18 @@
 /* ══════════════════════════════════════════════════════
    NAVBAR · Be: Confident — Floating Capsule
    Desktop: cápsula flotante con margen superior
-   Mobile : bottom dock estilo macOS, icon-only
+   Mobile : bottom dock estilo macOS con magnificación
 ══════════════════════════════════════════════════════ */
 
 .navbar,
 .navbar-mobile {
-  --nb-purple:      #0F0326;
+  --nb-purple: #0F0326;
   --nb-purple-deep: #08011a;
-  --nb-lilac:       #C4B5E8;
-  --nb-sage:        #84A07C;
-  --nb-white:       #F4F4F9;
-  --nb-spring:      cubic-bezier(0.34, 1.56, 0.64, 1);
-  --nb-ease:        cubic-bezier(0.4, 0, 0.2, 1);
+  --nb-lilac: #C4B5E8;
+  --nb-sage: #84A07C;
+  --nb-white: #F4F4F9;
+  --nb-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --nb-ease: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ══════════════════════════════════════
@@ -25,13 +25,11 @@
   right: 0;
   z-index: 100;
   padding: 0 20px;
-  pointer-events: none;                  /* clicks pasan al contenido en zonas vacías */
+  pointer-events: none;
 }
 
 .navbar-capsule {
   pointer-events: auto;
-  position: relative;                    /* ⬅ necesario para el ::before */
-  overflow: hidden;                      /* ⬅ encierra el noise dentro de la cápsula */
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
@@ -39,9 +37,9 @@
   max-width: 1320px;
   margin: 0 auto;
   padding: 8px 8px 8px 18px;
-  border-radius: 20px;
   background: linear-gradient(180deg, rgba(20, 8, 52, 0.82), rgba(15, 3, 38, 0.78));
   border: 1px solid rgba(196, 181, 232, 0.15);
+  border-radius: 20px;
   backdrop-filter: blur(28px) saturate(180%);
   -webkit-backdrop-filter: blur(28px) saturate(180%);
   box-shadow:
@@ -51,7 +49,7 @@
   color: var(--nb-white);
 }
 
-/* Noise overlay para textura sutil */
+/* Subtle noise overlay para profundidad */
 .navbar-capsule::before {
   content: "";
   position: absolute;
@@ -63,16 +61,16 @@
   pointer-events: none;
 }
 
-/* Brand ─────────────────────────────── */
+/* ── Brand ── */
 .navbar-brand {
-  position: relative;
-  z-index: 1;
   display: flex;
   align-items: center;
   gap: 10px;
   cursor: pointer;
   user-select: none;
   transition: transform 0.25s var(--nb-spring);
+  position: relative;
+  z-index: 1;
 }
 .navbar-brand:hover { transform: scale(1.03); }
 
@@ -91,19 +89,19 @@
 .navbar-title-text {
   font-weight: 700;
   font-size: 1.02rem;
-  letter-spacing: -0.02em;
   background: linear-gradient(90deg, #F4F4F9, #C4B5E8);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  letter-spacing: -0.02em;
 }
 
-/* Links ─────────────────────────────── */
+/* ── Links ── */
 .navbar-links {
-  position: relative;
-  z-index: 1;
   display: flex;
   justify-content: center;
   gap: 4px;
+  position: relative;
+  z-index: 1;
 }
 
 .navbar-link {
@@ -112,25 +110,21 @@
   gap: 7px;
   padding: 8px 16px;
   border-radius: 12px;
-  color: rgba(244, 244, 249, 0.55);
+  color: rgba(244, 244, 249, 0.5);
   font-size: 0.88rem;
   font-weight: 500;
   letter-spacing: -0.01em;
   text-decoration: none;
   cursor: pointer;
   white-space: nowrap;
-  transition:
-    color 0.25s var(--nb-ease),
-    background 0.25s var(--nb-ease),
-    box-shadow 0.25s var(--nb-ease),
-    transform 0.25s var(--nb-spring);
+  transition: all 0.25s var(--nb-spring);
 }
 
 .navbar-link-icon {
   font-size: 0.95rem;
   opacity: 0.65;
+  transition: transform 0.3s var(--nb-spring), opacity 0.25s ease;
   line-height: 1;
-  transition: transform 0.3s var(--nb-spring), opacity 0.25s var(--nb-ease);
 }
 
 .navbar-link:hover {
@@ -152,33 +146,31 @@
 }
 .navbar-link.active .navbar-link-icon { opacity: 1; }
 
-/* Actions ───────────────────────────── */
+/* ── Actions (right) ── */
 .navbar-actions {
-  position: relative;
-  z-index: 1;
   display: flex;
   align-items: center;
   gap: 6px;
   padding-right: 4px;
+  position: relative;
+  z-index: 1;
 }
 
 .navbar-icon-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: rgba(244, 244, 249, 0.7);
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
   display: grid;
   place-items: center;
   cursor: pointer;
   font-size: 1rem;
   line-height: 1;
+  transition: all 0.25s var(--nb-spring);
   font-family: inherit;
-  transition:
-    background 0.25s var(--nb-ease),
-    color 0.25s var(--nb-ease),
-    transform 0.25s var(--nb-spring);
+  backdrop-filter: blur(12px);
 }
 .navbar-icon-btn:hover {
   color: var(--nb-white);
@@ -189,24 +181,24 @@
 
 .navbar-logout:hover {
   color: #ff6b6b;
-  background: rgba(255, 80, 80, 0.1);
   border-color: rgba(255, 100, 100, 0.3);
+  background: rgba(255, 80, 80, 0.1);
 }
 
 .navbar-upload-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 36px;
   padding: 0 14px;
+  height: 36px;
   border-radius: 10px;
   background: linear-gradient(180deg, rgba(196, 181, 232, 0.18), rgba(196, 181, 232, 0.1));
   color: var(--nb-lilac);
   border: 1px solid rgba(196, 181, 232, 0.25);
   font-size: 0.85rem;
   font-weight: 500;
-  font-family: inherit;
   cursor: pointer;
+  font-family: inherit;
   white-space: nowrap;
   box-shadow:
     0 4px 12px rgba(0, 0, 0, 0.15),
@@ -220,68 +212,41 @@
 }
 .navbar-upload-btn:active { transform: translateY(0) scale(0.96); }
 
-/* Focus visible (a11y) ──────────────── */
-.navbar-link:focus-visible,
-.navbar-icon-btn:focus-visible,
-.navbar-upload-btn:focus-visible,
-.navbar-mobile-item:focus-visible {
-  outline: 2px solid var(--nb-lilac);
-  outline-offset: 2px;
-}
-
 /* ══════════════════════════════════════
-   LIGHT MODE — DESKTOP
+   MODO CLARO — DESKTOP
 ══════════════════════════════════════ */
 body.light-mode .navbar-capsule {
-  background: linear-gradient(180deg, rgba(132, 160, 124, 0.85), rgba(132, 160, 124, 0.7));
-  border-color: rgba(15, 3, 38, 0.12);
+  background: linear-gradient(180deg, rgba(132, 160, 124, 0.85), rgba(132, 160, 124, 0.7)) !important;
+  border-color: rgba(15, 3, 38, 0.12) !important;
 }
 body.light-mode .navbar-title-text {
-  background: linear-gradient(90deg, #0F0326, #1a0a40);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  background: linear-gradient(90deg, #0F0326, #1a0a40) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
 }
-body.light-mode .navbar-link { color: rgba(15, 3, 38, 0.55); }
+body.light-mode .navbar-link { color: rgba(15, 3, 38, 0.55) !important; }
 body.light-mode .navbar-link:hover {
-  color: #0F0326;
-  background: rgba(15, 3, 38, 0.06);
+  color: #0F0326 !important;
+  background: rgba(15, 3, 38, 0.06) !important;
 }
 body.light-mode .navbar-link.active {
-  color: #0F0326;
-  background: linear-gradient(180deg, rgba(15, 3, 38, 0.14), rgba(15, 3, 38, 0.06));
-  box-shadow: inset 0 1px 0 rgba(15, 3, 38, 0.1);
+  color: #0F0326 !important;
+  background: linear-gradient(180deg, rgba(15, 3, 38, 0.14), rgba(15, 3, 38, 0.06)) !important;
+  box-shadow: inset 0 1px 0 rgba(15, 3, 38, 0.1) !important;
 }
 body.light-mode .navbar-icon-btn {
-  background: rgba(15, 3, 38, 0.06);
-  border-color: rgba(15, 3, 38, 0.12);
-  color: #0F0326;
+  background: rgba(15, 3, 38, 0.06) !important;
+  border-color: rgba(15, 3, 38, 0.12) !important;
+  color: #0F0326 !important;
 }
 body.light-mode .navbar-upload-btn {
-  background: linear-gradient(180deg, rgba(15, 3, 38, 0.15), rgba(15, 3, 38, 0.08));
-  color: #0F0326;
-  border-color: rgba(15, 3, 38, 0.2);
+  background: linear-gradient(180deg, rgba(15, 3, 38, 0.15), rgba(15, 3, 38, 0.08)) !important;
+  color: #0F0326 !important;
+  border-color: rgba(15, 3, 38, 0.2) !important;
 }
 
 /* ══════════════════════════════════════
-   BREAKPOINTS DESKTOP RESPONSIVE
-══════════════════════════════════════ */
-@media (max-width: 1180px) {
-  .navbar-capsule { gap: 12px; padding-left: 14px; }
-  .navbar-link { padding: 8px 12px; font-size: 0.85rem; }
-}
-@media (max-width: 1024px) {
-  .navbar-title-text { display: none; }
-  .navbar-upload-label { display: none; }
-  .navbar-upload-btn { padding: 0 10px; }
-}
-@media (max-width: 920px) {
-  .navbar-link-label { display: none; }
-  .navbar-link-icon { font-size: 1.1rem; opacity: 1; }
-  .navbar-link { padding: 8px 12px; }
-}
-
-/* ══════════════════════════════════════
-   📱 BOTTOM DOCK MÓVIL  (≤768px)
+   📱 BOTTOM DOCK MÓVIL
 ══════════════════════════════════════ */
 .navbar-mobile { display: none; }
 
@@ -297,26 +262,26 @@ body.light-mode .navbar-upload-btn {
     right: 0;
     z-index: 300;
     padding: 0 12px calc(env(safe-area-inset-bottom) + 12px);
-    pointer-events: none;                /* ⬅ wrapper transparente — sólo el .inner intercepta clicks */
-    /* ⛔ NO usar background aquí — rompe el efecto flotante */
+    pointer-events: none;
+    background: var(--nb-purple-deep);
   }
 
   .navbar-mobile-inner {
     pointer-events: auto;
     display: flex;
-    align-items: center;                 /* ⬅ centrado vertical, sin label no necesitamos flex-end */
+    align-items: flex-end;
     justify-content: space-around;
     gap: 4px;
+    padding: 8px 10px;
     width: 100%;
     max-width: 460px;
     height: 64px;
-    padding: 0 10px;
-    border-radius: 22px;
     background: rgba(10, 2, 26, 0.85);
-    border: 1px solid rgba(196, 181, 232, 0.15);
     backdrop-filter: blur(28px) saturate(180%);
     -webkit-backdrop-filter: blur(28px) saturate(180%);
-    overflow: visible;                   /* ⬅ permite que la magnificación se salga arriba */
+    border: 1px solid rgba(196, 181, 232, 0.15);
+    border-radius: 22px;
+    overflow: visible;
     box-shadow:
       0 0 0 1px rgba(196, 181, 232, 0.06),
       0 -4px 24px rgba(0, 0, 0, 0.5),
@@ -326,18 +291,20 @@ body.light-mode .navbar-upload-btn {
 
   .navbar-mobile-item {
     flex: 1;
-    min-width: 0;
-    height: 100%;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
+    gap: 3px;
+    padding: 6px 2px;
     border-radius: 14px;
-    color: rgba(244, 244, 249, 0.55);
-    background: transparent;
-    border: none;
-    cursor: pointer;
     text-decoration: none;
+    color: rgba(244, 244, 249, 0.55);
+    border: none;
+    background: transparent;
+    cursor: pointer;
     font-family: inherit;
+    min-width: 0;
     position: relative;
     transform-origin: center bottom;
     will-change: transform;
@@ -346,33 +313,37 @@ body.light-mode .navbar-upload-btn {
       transform 0.18s var(--nb-spring),
       color 0.22s var(--nb-ease);
   }
-  .navbar-mobile-item:active { transform: scale(0.88); }   /* ⬅ press feedback nativo */
+
+  .navbar-mobile-item:active { opacity: 0.6; }
   .navbar-mobile-item.active { color: var(--nb-lilac); }
 
   .navbar-mobile-icon {
-    display: grid;
-    place-items: center;
     font-size: 1.35rem;
     line-height: 1;
+    display: block;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
   }
 
-  /* Si quieres re-activar los labels: borra esta regla */
   .navbar-mobile-label { display: none; }
+
+  .navbar-mobile-item {
+    justify-content: center;
+    gap: 0;
+  }
 
   .navbar-mobile-dot {
     position: absolute;
-    bottom: 4px;
+    bottom: 2px;
     left: 50%;
+    transform: translateX(-50%);
     width: 4px;
     height: 4px;
     border-radius: 50%;
     background: var(--nb-lilac);
     box-shadow: 0 0 8px var(--nb-lilac);
-    transform: translateX(-50%);
-    animation: navDotIn 0.35s var(--nb-spring);
+    animation: dotIn 0.35s var(--nb-spring);
   }
-  @keyframes navDotIn {
+  @keyframes dotIn {
     from { opacity: 0; transform: translateX(-50%) scale(0); }
     to   { opacity: 1; transform: translateX(-50%) scale(1); }
   }
@@ -380,24 +351,28 @@ body.light-mode .navbar-upload-btn {
   .navbar-mobile-upload { color: rgba(196, 181, 232, 0.7); }
 }
 
-/* Light mode — móvil */
 body.light-mode .navbar-mobile-inner {
-  background: rgba(132, 160, 124, 0.85);
-  border-color: rgba(15, 3, 38, 0.15);
+  background: rgba(132, 160, 124, 0.85) !important;
+  border-color: rgba(15, 3, 38, 0.15) !important;
 }
-body.light-mode .navbar-mobile-item        { color: rgba(15, 3, 38, 0.5); }
-body.light-mode .navbar-mobile-item.active { color: #0F0326; }
-body.light-mode .navbar-mobile-dot         { background: #0F0326; box-shadow: 0 0 8px rgba(15, 3, 38, 0.5); }
+body.light-mode .navbar-mobile-item { color: rgba(15, 3, 38, 0.5) !important; }
+body.light-mode .navbar-mobile-item.active { color: #0F0326 !important; }
+body.light-mode .navbar-mobile-dot { background: #0F0326 !important; box-shadow: 0 0 8px rgba(15,3,38,.5) !important; }
 
 /* ══════════════════════════════════════
-   Reduced motion (a11y)
+   BREAKPOINTS RESPONSIVE
 ══════════════════════════════════════ */
-@media (prefers-reduced-motion: reduce) {
-  .navbar-link,
-  .navbar-icon-btn,
-  .navbar-upload-btn,
-  .navbar-brand,
-  .navbar-logo-icon,
-  .navbar-mobile-item,
-  .navbar-mobile-icon { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+@media (max-width: 1180px) {
+  .navbar-capsule { gap: 12px; padding-left: 14px; }
+  .navbar-link { padding: 8px 12px; font-size: 0.85rem; }
+}
+@media (max-width: 1024px) {
+  .navbar-title-text { display: none; }
+  .navbar-upload-label { display: none; }
+  .navbar-upload-btn { padding: 0 10px; }
+}
+@media (max-width: 920px) {
+  .navbar-link-label { display: none; }
+  .navbar-link-icon { font-size: 1.1rem; opacity: 1; }
+  .navbar-link { padding: 8px 12px; }
 }
