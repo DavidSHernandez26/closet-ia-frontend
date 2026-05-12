@@ -74,15 +74,19 @@ body::before {
   z-index: 1;
 }
 
+.page-enter {
+  width: 100%; /* garantiza que el padding-left de .main-content se respete */
+}
+
 .main-content {
   flex: 1;
   display: flex;
   justify-content: center;
-  padding: 32px 24px 32px 90px; /* 90px = sidebar 58px + 12px margen + 20px gap */
+  padding: 14px 24px 32px 90px; /* top reducido: navbar ya no está arriba; left=sidebar 58+12+20 */
 }
 
 @media (min-width: 1400px) {
-  .main-content { padding: 40px 48px 40px 106px; }
+  .main-content { padding: 14px 48px 40px 106px; }
 }
 
 .page-wrapper { width: 100%; max-width: 1440px; }

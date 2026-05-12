@@ -8,7 +8,7 @@
   align-items: flex-start;
   justify-content: center;
   min-height: 100vh;
-  padding: 32px 20px 80px;
+  padding: 12px 20px 80px;
   box-sizing: border-box;
   width: 100%;
 }
@@ -18,7 +18,7 @@
 ══════════════════════════════════ */
 .mac-window {
   width: 100%;
-  max-width: 1800px;
+  max-width: 1420px;
   border-radius: 16px;
   overflow: hidden;
   background: rgba(12, 4, 28, 0.72);
