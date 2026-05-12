@@ -130,6 +130,7 @@
   letter-spacing: -0.02em;
   background: linear-gradient(90deg, #F4F4F9, #C4B5E8);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -552,7 +553,7 @@ body.light-mode .up-modal {
   border-color: rgba(15, 3, 38, 0.12) !important;
   color: #0F0326 !important;
 }
-body.light-mode .up-title { background: linear-gradient(90deg, #0F0326, #4a3877) !important; -webkit-background-clip: text !important; }
+body.light-mode .up-title { background: linear-gradient(90deg, #0F0326, #4a3877) !important; -webkit-background-clip: text !important; background-clip: text !important; }
 body.light-mode .up-sub { color: rgba(15, 3, 38, 0.6) !important; }
 body.light-mode .up-header,
 body.light-mode .up-footer { background: rgba(15, 3, 38, 0.04) !important; border-color: rgba(15, 3, 38, 0.08) !important; }
