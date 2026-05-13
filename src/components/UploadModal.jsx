@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import {
   Upload, Scissors, Brain, CheckCircle2, AlertTriangle, Ban,
-  Camera, Image, ArrowLeft,
+  Camera, Image, ArrowLeft, ArrowRight,
   X, Plus, Loader2,
 } from "lucide-react";
 import "./UploadModal.css";

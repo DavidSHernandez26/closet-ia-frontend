@@ -80,52 +80,13 @@
   width: 13px;
   height: 13px;
   border-radius: 50%;
-  position: relative;
   display: block;
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  flex-shrink: 0;
 }
 
-.asistente-mac-dot::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  opacity: 0;
-  transition: opacity 0.22s ease;
-  background: radial-gradient(
-    circle at 30% 25%,
-    rgba(255,255,255,0.45) 0%,
-    rgba(255,255,255,0.08) 45%,
-    transparent 70%
-  );
-}
-
-.asistente-mac-dot::after {
-  content: "";
-  position: absolute;
-  top: 2px; left: 3px;
-  width: 5px; height: 3px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.55);
-  opacity: 0;
-  transition: opacity 0.22s ease;
-  filter: blur(0.5px);
-}
-
-.asistente-mac-dot.red {
-  background: radial-gradient(circle at 35% 35%, #ff8080, #ff5f57 50%, #d93b33);
-  box-shadow: 0 0 0 0.5px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.22);
-}
-
-.asistente-mac-dot.yellow {
-  background: radial-gradient(circle at 35% 35%, #ffd97a, #ffbd2e 50%, #cc8f00);
-  box-shadow: 0 0 0 0.5px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.22);
-}
-
-.asistente-mac-dot.green {
-  background: radial-gradient(circle at 35% 35%, #7de87d, #28c840 50%, #1a8a2a);
-  box-shadow: 0 0 0 0.5px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.22);
-}
+.asistente-mac-dot.red    { background: #ff5f57; box-shadow: 0 0 0 0.5px rgba(0,0,0,0.2); }
+.asistente-mac-dot.yellow { background: #febc2e; box-shadow: 0 0 0 0.5px rgba(0,0,0,0.2); }
+.asistente-mac-dot.green  { background: #28c840; box-shadow: 0 0 0 0.5px rgba(0,0,0,0.2); }
 
 
 /* Centro HUD — avatar + título centrados */
@@ -1082,8 +1043,8 @@ body.light-mode .chat-item-desc { color: rgba(15, 3, 38, 0.65); }
 body.light-mode .asistente-fondo { background: var(--green); }
 
 body.light-mode .asistente-card {
-  background: rgba(255, 255, 255, 0.45) !important;
-  border-color: rgba(15, 3, 38, 0.08) !important;
+  background: rgba(255, 255, 255, 0.82) !important;
+  border-color: rgba(15, 3, 38, 0.1) !important;
 }
 
 body.light-mode .asistente-card::before {
@@ -1129,9 +1090,9 @@ body.light-mode .chat-bubble.user {
 }
 
 body.light-mode .chat-bubble.assistant {
-  background: rgba(255, 255, 255, 0.6) !important;
+  background: rgba(255, 255, 255, 0.88) !important;
   color: #0F0326 !important;
-  border-color: rgba(15, 3, 38, 0.07) !important;
+  border-color: rgba(15, 3, 38, 0.1) !important;
 }
 
 body.light-mode .chat-msg-avatar.assistant {
@@ -1145,8 +1106,8 @@ body.light-mode .chat-msg-avatar.user {
 }
 
 body.light-mode .asistente-form-inner {
-  background: rgba(255, 255, 255, 0.5) !important;
-  border-color: rgba(15, 3, 38, 0.12) !important;
+  background: rgba(255, 255, 255, 0.88) !important;
+  border-color: rgba(15, 3, 38, 0.15) !important;
 }
 
 body.light-mode .asistente-form-inner:focus-within {
@@ -1169,16 +1130,16 @@ body.light-mode .btn-clear-chat {
 }
 
 body.light-mode .outfit-panel {
-  background: rgba(255, 255, 255, 0.4) !important;
-  border-color: rgba(15, 3, 38, 0.08) !important;
+  background: rgba(255, 255, 255, 0.82) !important;
+  border-color: rgba(15, 3, 38, 0.1) !important;
 }
 
 body.light-mode .outfit-panel-hud {
-  background: rgba(255, 255, 255, 0.3) !important;
-  border-bottom-color: rgba(15, 3, 38, 0.07) !important;
+  background: rgba(255, 255, 255, 0.5) !important;
+  border-bottom-color: rgba(15, 3, 38, 0.08) !important;
 }
 
-body.light-mode .outfit-panel-hud h3  { color: rgba(15, 3, 38, 0.6) !important; }
+body.light-mode .outfit-panel-hud h3  { color: rgba(15, 3, 38, 0.85) !important; }
 
 body.light-mode .outfit-panel-icon {
   background: rgba(15, 3, 38, 0.08) !important;

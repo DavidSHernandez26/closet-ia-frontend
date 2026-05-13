@@ -365,8 +365,12 @@ async function cargarSugeridos() {
         };
         setPosts(prev => [nuevoPost, ...prev]);
       }
-      setNewPost({ file: null, preview: "", descripcion: "", tags: [] });
+      setNewPost((p) => {
+        if (p.preview) URL.revokeObjectURL(p.preview);
+        return { file: null, preview: "", descripcion: "", tags: [] };
+      });
       setTagInput("");
+      if (fileRef.current) fileRef.current.value = "";
     } catch (err) {
       console.error(err);
       cargarFeed();
@@ -509,9 +513,13 @@ async function cargarSugeridos() {
                   <div className="feed-new-btns">
                     <button
                       className="feed-btn-cancelar"
-                      onClick={() =>
-                        setNewPost({ file: null, preview: "", descripcion: "", tags: [] })
-                      }
+                      onClick={() => {
+                        setNewPost((p) => {
+                          if (p.preview) URL.revokeObjectURL(p.preview);
+                          return { file: null, preview: "", descripcion: "", tags: [] };
+                        });
+                        if (fileRef.current) fileRef.current.value = "";
+                      }}
                     >
                       Cancelar
                     </button>
@@ -542,11 +550,10 @@ async function cargarSugeridos() {
               onChange={(e) => {
                 const f = e.target.files[0];
                 if (f)
-                  setNewPost((p) => ({
-                    ...p,
-                    file: f,
-                    preview: URL.createObjectURL(f),
-                  }));
+                  setNewPost((p) => {
+                    if (p.preview) URL.revokeObjectURL(p.preview);
+                    return { ...p, file: f, preview: URL.createObjectURL(f) };
+                  });
               }}
             />
           </div>

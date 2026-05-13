@@ -11,18 +11,30 @@ import { supabase, getAuthHeaders } from "../supabase";
 import { getWeather } from "../services/weatherService";
 import { haptics } from "../hooks/useHaptics";
 
-// Debe coincidir con getTipo de VirtualMannequin
-function getTipoPrenda(descripcion = "") {
+const TIPOS_VALIDOS = ["parte superior","parte inferior","calzado","abrigo","gorra","accesorio"];
+
+function getTipoTexto(descripcion = "") {
   const d = descripcion.toLowerCase();
   if (d.includes("abrigo") || d.includes("chaqueta") || d.includes("jacket") || d.includes("hoodie") || d.includes("sudadera")) return "abrigo";
   if (d.includes("gorra") || d.includes("sombrero") || d.includes("gorro") || d.includes("beanie") || d.includes("snapback")) return "gorra";
   if (d.includes("superior") || d.includes("camiseta") || d.includes("camisa") || d.includes("polo") || d.includes("blusa") || d.includes("playera") || d.includes("top")) return "parte superior";
   if (d.includes("inferior") || d.includes("pantalón") || d.includes("pantalon") || d.includes("jean") || d.includes("short") || d.includes("falda") || d.includes("pants")) return "parte inferior";
   if (d.includes("calzado") || d.includes("tenis") || d.includes("zapato") || d.includes("bota") || d.includes("zapatilla") || d.includes("sandalia") || d.includes("sneaker")) return "calzado";
-  // Fallback: usar el tipo almacenado al final de la descripción
-  const tipoAlmacenado = descripcion.split(" - ").pop()?.trim().toLowerCase();
-  if (["calzado","parte superior","parte inferior","accesorio","abrigo"].includes(tipoAlmacenado)) return tipoAlmacenado;
+  const tipoFinal = descripcion.split(" - ").pop()?.trim().toLowerCase();
+  if (TIPOS_VALIDOS.includes(tipoFinal)) return tipoFinal;
   return "parte superior";
+}
+
+// Usa metadata_ia.tipo (más fiable) antes de recurrir al texto
+function getCategoriaPrenda(prenda) {
+  const meta = prenda.metadata_ia?.tipo?.toLowerCase();
+  if (meta && TIPOS_VALIDOS.includes(meta)) return meta;
+  return getTipoTexto(prenda.descripcion || "");
+}
+
+// Compatibilidad con VirtualMannequin que pasa string
+function getTipoPrenda(descripcion = "") {
+  return getTipoTexto(descripcion);
 }
 
 export default function Asistente({ usuarioId }) {
@@ -277,12 +289,13 @@ export default function Asistente({ usuarioId }) {
 
   // Prefetch prendas al entrar al modo probador para que el swap sea instantáneo
   useEffect(() => {
-    if (modo !== "maniqui" || !usuarioId || prendasCacheRef.current) return;
+    if (modo !== "maniqui" || !usuarioId) return;
+    prendasCacheRef.current = null; // invalidar en cada entrada para evitar datos viejos
     let cancelled = false;
     async function prefetchPrendas() {
       try {
         const headers = getAuthHeaders();
-        const res = await axios.get(`${API_URL}/api/prendas`, { headers });
+        const res = await axios.get(`${API_URL}/api/prendas`, { params: { tipo: "prenda" }, headers });
         if (!cancelled) prendasCacheRef.current = res.data || [];
       } catch {}
     }
@@ -547,7 +560,7 @@ export default function Asistente({ usuarioId }) {
     }
     setSwapLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/api/prendas`, { headers: getAuthHeaders() });
+      const res = await axios.get(`${API_URL}/api/prendas`, { params: { tipo: "prenda" }, headers: getAuthHeaders() });
       prendasCacheRef.current = res.data || [];
       setSwapPrendas(prendasCacheRef.current);
     } catch (err) {
@@ -1102,7 +1115,7 @@ export default function Asistente({ usuarioId }) {
 
       {/* ── Modal swap (fuera del fondo para z-index correcto) ── */}
       {swapTipo && (() => {
-        const filtradas = swapPrendas.filter(p => getTipoPrenda(p.descripcion || "") === swapTipo);
+        const filtradas = swapPrendas.filter(p => getCategoriaPrenda(p) === swapTipo);
         const etiquetas = {
           "gorra": "gorras", "abrigo": "chaquetas / abrigos",
           "parte superior": "camisetas", "parte inferior": "pantalones",

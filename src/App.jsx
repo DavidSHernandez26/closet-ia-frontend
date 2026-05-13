@@ -27,7 +27,8 @@ const SetupPerfil = React.lazy(() => import("./pages/SetupPerfil"));
 const Login       = React.lazy(() => import("./pages/Login"));
 const Register    = React.lazy(() => import("./pages/Register"));
 const Waitlist    = React.lazy(() => import("./pages/Waitlist"));
-const Feed        = React.lazy(() => import("./pages/Feed"));
+const Feed         = React.lazy(() => import("./pages/Feed"));
+const ResetPassword = React.lazy(() => import("./pages/ResetPassword"));
 
 // Lee la sesión guardada en localStorage de forma síncrona.
 // Supabase v2 persiste la sesión en: sb-<project-ref>-auth-token
@@ -321,8 +322,9 @@ export default function App() {
           <React.Suspense fallback={<PageFallback />}>
             <Routes>
               <Route path="/waitlist" element={!isAuthenticated ? <Waitlist />  : <Navigate to="/" />} />
-              <Route path="/login"    element={!isAuthenticated ? <Login />     : <Navigate to="/" />} />
-              <Route path="/register" element={!isAuthenticated ? <Register />  : <Navigate to="/" />} />
+              <Route path="/login"          element={!isAuthenticated ? <Login />          : <Navigate to="/" />} />
+              <Route path="/register"       element={!isAuthenticated ? <Register />       : <Navigate to="/" />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
 
               <Route path="*" element={
                 <main className="main-content">

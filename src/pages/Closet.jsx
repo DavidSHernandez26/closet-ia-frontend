@@ -542,7 +542,7 @@ export default function Closet({ refresh, usuarioId }) {
             </div>
             <div className="mac-modal-body">
               <div className="mac-modal-img">
-                <img src={supaImg(modalItem.imagen_url, 900)} alt={modalItem.descripcion} decoding="async" />
+                <img src={supaImg(modalItem.imagen_url, 900)} alt={modalItem.descripcion} loading="lazy" decoding="async" />
               </div>
               <div className="mac-modal-info">
                 <span className="mac-modal-tipo">

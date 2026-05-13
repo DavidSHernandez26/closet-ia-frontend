@@ -77,52 +77,12 @@
   height: 13px;
   border-radius: 50%;
   display: block;
-  position: relative;
   flex-shrink: 0;
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.mac-dot::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  opacity: 0;
-  transition: opacity 0.22s ease;
-  background: radial-gradient(
-    circle at 30% 25%,
-    rgba(255, 255, 255, 0.45) 0%,
-    rgba(255, 255, 255, 0.08) 45%,
-    transparent 70%
-  );
-}
-
-.mac-dot::after {
-  content: "";
-  position: absolute;
-  top: 2px; left: 3px;
-  width: 5px; height: 3px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.55);
-  opacity: 0;
-  transition: opacity 0.22s ease;
-  filter: blur(0.5px);
-}
-
-.mac-dot.red {
-  background: radial-gradient(circle at 35% 35%, #ff8080, #ff5f57 50%, #d93b33);
-  box-shadow: 0 0 0 0.5px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.22);
-}
-
-.mac-dot.yellow {
-  background: radial-gradient(circle at 35% 35%, #ffd97a, #ffbd2e 50%, #cc8f00);
-  box-shadow: 0 0 0 0.5px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.22);
-}
-
-.mac-dot.green {
-  background: radial-gradient(circle at 35% 35%, #7de87d, #28c840 50%, #1a8a2a);
-  box-shadow: 0 0 0 0.5px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.22);
-}
+.mac-dot.red    { background: #ff5f57; box-shadow: 0 0 0 0.5px rgba(0,0,0,0.2); }
+.mac-dot.yellow { background: #febc2e; box-shadow: 0 0 0 0.5px rgba(0,0,0,0.2); }
+.mac-dot.green  { background: #28c840; box-shadow: 0 0 0 0.5px rgba(0,0,0,0.2); }
 
 
 .mac-title {
