@@ -1283,6 +1283,11 @@ body.light-mode .feed-comment-time               { color: rgba(15, 3, 38, 0.3); 
 body.light-mode .feed-no-comments                { color: rgba(15, 3, 38, 0.35); }
 body.light-mode .feed-modal-desc                 { color: rgba(15, 3, 38, 0.65); }
 
+body.light-mode .feed-btn-cancelar { background: rgba(15, 3, 38, 0.05); border-color: rgba(15, 3, 38, 0.1); color: rgba(15, 3, 38, 0.5); }
+body.light-mode .feed-btn-publicar { color: var(--purple); }
+body.light-mode .feed-wishlist-overlay p { color: #F4F4F9; }
+body.light-mode .feed-wishlist-remove { background: rgba(15, 3, 38, 0.5); border-color: rgba(255,255,255,0.15); color: rgba(255,255,255,0.8); }
+
 body.light-mode .feed-modal {
   background: rgba(240, 236, 255, 0.98);
   border-color: rgba(15, 3, 38, 0.1);

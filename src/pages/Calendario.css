@@ -683,6 +683,80 @@ body.light-mode .cal-celda.hoy {
 body.light-mode .cal-numero { color: rgba(15, 3, 38, 0.55) !important; }
 body.light-mode .cal-celda.hoy .cal-numero { color: #0F0326 !important; }
 
+/* Modales */
+body.light-mode .cal-modal {
+  background: rgba(240, 236, 255, 0.98) !important;
+  border-color: rgba(15, 3, 38, 0.1) !important;
+  box-shadow: 0 32px 80px rgba(15, 3, 38, 0.15) !important;
+}
+body.light-mode .cal-modal h3 { color: rgba(60, 30, 120, 0.85) !important; }
+body.light-mode .cal-modal-close { color: rgba(15, 3, 38, 0.55) !important; background: rgba(15, 3, 38, 0.06) !important; }
+body.light-mode .cal-modal-desc { color: rgba(15, 3, 38, 0.6) !important; }
+body.light-mode .cal-chip { background: rgba(15, 3, 38, 0.06) !important; border-color: rgba(15, 3, 38, 0.1) !important; color: rgba(15, 3, 38, 0.65) !important; }
+
+/* Detalle de outfit */
+body.light-mode .cal-detalle-dia-semana { color: rgba(80, 50, 140, 0.7) !important; }
+body.light-mode .cal-detalle-dia-num { color: #0F0326 !important; }
+body.light-mode .cal-detalle-mes { color: rgba(15, 3, 38, 0.5) !important; }
+body.light-mode .cal-detalle-fecha { border-bottom-color: rgba(15, 3, 38, 0.08) !important; }
+body.light-mode .cal-detalle-prenda-card { background: rgba(15, 3, 38, 0.04) !important; border-color: rgba(15, 3, 38, 0.08) !important; }
+body.light-mode .cal-detalle-prenda-label { color: rgba(15, 3, 38, 0.55) !important; }
+
+/* Botones del detalle */
+body.light-mode .cal-confirm-delete p { color: rgba(15, 3, 38, 0.6) !important; }
+body.light-mode .cal-btn-cancelar-del { background: rgba(15, 3, 38, 0.06) !important; border-color: rgba(15, 3, 38, 0.12) !important; color: rgba(15, 3, 38, 0.7) !important; }
+body.light-mode .cal-btn-editar { background: rgba(15, 3, 38, 0.06) !important; border-color: rgba(15, 3, 38, 0.15) !important; color: #0F0326 !important; }
+
+/* Opciones agregar */
+body.light-mode .cal-opcion-btn { background: rgba(255, 255, 255, 0.5) !important; border-color: rgba(15, 3, 38, 0.1) !important; color: #0F0326 !important; }
+body.light-mode .cal-opcion-btn:hover { background: rgba(255, 255, 255, 0.75) !important; border-color: rgba(15, 3, 38, 0.2) !important; }
+body.light-mode .cal-opcion-label { color: #0F0326 !important; }
+body.light-mode .cal-opcion-sub { color: rgba(15, 3, 38, 0.45) !important; }
+
+/* Closet picker dentro del modal */
+body.light-mode .cal-closet-item { background: rgba(15, 3, 38, 0.04) !important; border-color: rgba(15, 3, 38, 0.08) !important; }
+body.light-mode .cal-closet-item:hover { border-color: rgba(15, 3, 38, 0.25) !important; }
+body.light-mode .cal-closet-item span { color: rgba(15, 3, 38, 0.6) !important; }
+body.light-mode .cal-closet-loading { color: rgba(15, 3, 38, 0.45) !important; }
+
+/* Picker de fecha (desde Asistente) */
+body.light-mode .cal-picker-modal {
+  background: rgba(240, 236, 255, 0.98) !important;
+  border-color: rgba(15, 3, 38, 0.1) !important;
+  box-shadow: 0 32px 80px rgba(15, 3, 38, 0.15) !important;
+}
+body.light-mode .cal-picker-modal h3 { color: rgba(60, 30, 120, 0.85) !important; }
+body.light-mode .cal-picker-modal p { color: rgba(15, 3, 38, 0.55) !important; }
+body.light-mode .cal-picker-close { color: rgba(15, 3, 38, 0.55) !important; background: rgba(15, 3, 38, 0.06) !important; }
+body.light-mode .cal-picker-input { background: rgba(255, 255, 255, 0.7) !important; border-color: rgba(15, 3, 38, 0.15) !important; color: #0F0326 !important; }
+body.light-mode .cal-picker-input:focus { border-color: rgba(15, 3, 38, 0.4) !important; }
+
+/* Kibo nav */
+body.light-mode .cal-kibo-picker { background: rgba(255, 255, 255, 0.5) !important; border-color: rgba(15, 3, 38, 0.15) !important; color: #0F0326 !important; }
+body.light-mode .cal-kibo-picker:hover { background: rgba(255, 255, 255, 0.75) !important; }
+body.light-mode .cal-kibo-picker svg { color: rgba(15, 3, 38, 0.4) !important; }
+body.light-mode .cal-kibo-pagination button { background: rgba(255, 255, 255, 0.5) !important; border-color: rgba(15, 3, 38, 0.15) !important; color: #0F0326 !important; }
+body.light-mode .cal-kibo-header > div { color: rgba(15, 3, 38, 0.4) !important; }
+
+/* Vista semanal */
+body.light-mode .cal-vista-toggle { background: rgba(255, 255, 255, 0.3) !important; border-color: rgba(15, 3, 38, 0.1) !important; }
+body.light-mode .cal-vista-btn { color: rgba(15, 3, 38, 0.4) !important; }
+body.light-mode .cal-vista-btn.active { background: rgba(15, 3, 38, 0.1) !important; color: #0F0326 !important; }
+body.light-mode .cal-semana-dia { background: rgba(255, 255, 255, 0.35) !important; border-color: rgba(15, 3, 38, 0.07) !important; }
+body.light-mode .cal-semana-dia.hoy { border-color: rgba(15, 3, 38, 0.3) !important; background: rgba(255, 255, 255, 0.55) !important; }
+body.light-mode .cal-semana-dow { color: rgba(15, 3, 38, 0.4) !important; }
+body.light-mode .cal-semana-num { color: #0F0326 !important; }
+body.light-mode .cal-semana-dia.hoy .cal-semana-dow { color: rgba(80, 50, 140, 0.7) !important; }
+body.light-mode .cal-semana-dia.hoy .cal-semana-num { color: rgba(60, 30, 120, 0.9) !important; }
+body.light-mode .cal-semana-titulo { color: #0F0326 !important; }
+body.light-mode .cal-semana-btn { background: rgba(255, 255, 255, 0.4) !important; border-color: rgba(15, 3, 38, 0.12) !important; color: #0F0326 !important; }
+
+/* Editor de outfit */
+body.light-mode .cal-edit-outfit-item { background: rgba(255, 255, 255, 0.4) !important; border-color: rgba(15, 3, 38, 0.08) !important; }
+body.light-mode .cal-edit-outfit-desc { color: rgba(15, 3, 38, 0.6) !important; }
+body.light-mode .cal-edit-outfit-add { background: rgba(255, 255, 255, 0.25) !important; border-color: rgba(15, 3, 38, 0.15) !important; color: rgba(15, 3, 38, 0.4) !important; }
+body.light-mode .cal-edit-outfit-footer { border-top-color: rgba(15, 3, 38, 0.08) !important; }
+
 /* ── ANIMACIONES ── */
 @keyframes fadeInBg {
   from { opacity: 0; }

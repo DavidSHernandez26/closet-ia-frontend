@@ -585,14 +585,18 @@ body.light-mode .up-modal {
   border-color: rgba(15, 3, 38, 0.12) !important;
   color: #0F0326 !important;
 }
-body.light-mode .up-title { background: linear-gradient(90deg, #0F0326, #4a3877) !important; -webkit-background-clip: text !important; background-clip: text !important; }
-body.light-mode .up-sub { color: rgba(15, 3, 38, 0.6) !important; }
+body.light-mode .up-modal * { color: #0F0326 !important; -webkit-text-fill-color: #0F0326 !important; }
+body.light-mode .up-title { background: linear-gradient(90deg, #0F0326, #4a3877) !important; -webkit-background-clip: text !important; background-clip: text !important; -webkit-text-fill-color: transparent !important; color: transparent !important; }
+body.light-mode .up-sub { color: rgba(15, 3, 38, 0.6) !important; -webkit-text-fill-color: rgba(15, 3, 38, 0.6) !important; }
 body.light-mode .up-header,
 body.light-mode .up-footer { background: rgba(15, 3, 38, 0.04) !important; border-color: rgba(15, 3, 38, 0.08) !important; }
-body.light-mode .up-type-card { background: rgba(15, 3, 38, 0.03) !important; border-color: rgba(15, 3, 38, 0.1) !important; color: #0F0326 !important; }
-body.light-mode .up-type-text h3 { color: #0F0326 !important; }
-body.light-mode .up-type-text p { color: rgba(15, 3, 38, 0.6) !important; }
-body.light-mode .mensaje-ia { color: #4a3877 !important; }
+body.light-mode .up-step { color: rgba(15, 3, 38, 0.35) !important; -webkit-text-fill-color: rgba(15, 3, 38, 0.35) !important; }
+body.light-mode .up-step.active { color: rgba(60, 30, 120, 0.85) !important; -webkit-text-fill-color: rgba(60, 30, 120, 0.85) !important; }
+body.light-mode .up-type-card { background: rgba(15, 3, 38, 0.03) !important; border-color: rgba(15, 3, 38, 0.1) !important; }
+body.light-mode .up-type-text p { color: rgba(15, 3, 38, 0.6) !important; -webkit-text-fill-color: rgba(15, 3, 38, 0.6) !important; }
+body.light-mode .up-icon-done { color: #16a34a !important; -webkit-text-fill-color: #16a34a !important; }
+body.light-mode .up-icon-error { color: #dc2626 !important; -webkit-text-fill-color: #dc2626 !important; }
+body.light-mode .mensaje-ia { color: #4a3877 !important; -webkit-text-fill-color: #4a3877 !important; }
 
 /* ══════════════════════════════════════
    📱 MÓVIL

@@ -490,6 +490,14 @@ body.light-mode .amigos-btn-ver {
   border-color: rgba(15, 3, 38, 0.15) !important;
   color: #0F0326 !important;
 }
+body.light-mode .amigos-loading-text,
+body.light-mode .amigos-no-results { color: rgba(15, 3, 38, 0.4) !important; }
+body.light-mode .amigos-badge { background: rgba(15, 3, 38, 0.08) !important; color: rgba(15, 3, 38, 0.5) !important; }
+body.light-mode .amigos-tab.activa .amigos-badge { background: rgba(15, 3, 38, 0.12) !important; color: #0F0326 !important; }
+body.light-mode .amigos-avatar-sm,
+body.light-mode .amigos-avatar-md { background: rgba(15, 3, 38, 0.06) !important; border-color: rgba(15, 3, 38, 0.12) !important; color: #0F0326 !important; }
+body.light-mode .amigos-search-icon { color: rgba(15, 3, 38, 0.35) !important; }
+body.light-mode .amigos-search-clear { background: rgba(15, 3, 38, 0.05) !important; border-color: rgba(15, 3, 38, 0.1) !important; color: rgba(15, 3, 38, 0.4) !important; }
 
 @keyframes slideDown {
   from { opacity: 0; transform: translateY(-6px); }

@@ -357,7 +357,10 @@ body.light-mode .perfil-empty     { color: rgba(15,3,38,0.4); }
 body.light-mode .perfil-privado-title { color: rgba(15,3,38,0.7); }
 body.light-mode .perfil-privado-sub   { color: rgba(15,3,38,0.45); }
 body.light-mode .perfil-edit-input, body.light-mode .perfil-edit-textarea { background: rgba(15,3,38,0.05); border-color: rgba(15,3,38,0.15); color: #0F0326; }
-body.light-mode .perfil-modal     { background: rgba(240,236,255,0.98); }
+body.light-mode .perfil-at        { color: rgba(15,3,38,0.4); }
+body.light-mode .perfil-pendiente { color: rgba(15,3,38,0.5); }
+body.light-mode .perfil-modal     { background: rgba(240,236,255,0.98); border-color: rgba(15,3,38,0.1); }
+body.light-mode .perfil-modal-close { background: rgba(15,3,38,0.06); border-color: rgba(15,3,38,0.12); color: rgba(15,3,38,0.55); }
 body.light-mode .perfil-modal-desc { color: rgba(15,3,38,0.6); }
 
 body.light-mode .amigos-header h1 { background: linear-gradient(90deg, #0F0326, #1a0a40); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
