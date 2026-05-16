@@ -425,7 +425,11 @@ export default function Asistente({ usuarioId }) {
             if (last?.streaming) next[next.length - 1] = { ...last, streaming: false };
             return next;
           });
-          setSugerencias(event.sugerencias || []);
+          const rawSugs = Array.isArray(event.sugerencias) ? event.sugerencias : [];
+          const normalSugs = rawSugs
+            .map(s => typeof s === "string" ? { text: s, action: "chat" } : s)
+            .filter(s => s && typeof s.text === "string" && s.text.trim());
+          setSugerencias(normalSugs);
           const cambiarPanel = event.cambiar_panel ?? true;
           if (cambiarPanel) {
             if (event.outfit_guardado) {
@@ -665,7 +669,7 @@ export default function Asistente({ usuarioId }) {
   }
 
   function parseChat(text) {
-    if (!text) return null;
+    if (!text || typeof text !== "string") return null;
     const unescaped = text.replace(/\\n/g, "\n");
     const normalized = unescaped.replace(/ - \*\*/g, "\n- **").trim();
     return normalized.split("\n").map((line, i) => {
@@ -878,29 +882,35 @@ export default function Asistente({ usuarioId }) {
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.2 }}
                       >
-                        {sugerencias.map((s, i) => {
-                          const sug = typeof s === "object" ? s : { text: s, action: "chat" };
-                          const actionIcon = sug.action === "remove" ? "✕ " : sug.action === "swap" ? "↕ " : "";
+                        {sugerencias.map((sug, i) => {
+                          const label = String(sug.text || "");
+                          const action = sug.action || "chat";
+                          const actionIcon = action === "remove" ? "✕ " : action === "swap" ? "↕ " : "";
+                          const TIPO_LABEL = {
+                            "abrigo": "la chaqueta", "calzado": "el calzado",
+                            "gorra": "la gorra", "parte superior": "la camiseta",
+                            "parte inferior": "el pantalón", "accesorio": "el accesorio",
+                          };
                           return (
                             <motion.button
-                              key={sug.text}
-                              className={`sugerencia-chip sugerencia-chip--${sug.action || "chat"}`}
+                              key={`${label}-${i}`}
+                              className={`sugerencia-chip sugerencia-chip--${action}`}
                               onClick={() => {
                                 setSugerencias([]);
-                                if (sug.action === "remove" && sug.tipo) {
+                                if (action === "remove" && sug.tipo) {
                                   const newOutfit = outfit.filter(p => getTipoPrenda(p.descripcion) !== sug.tipo);
                                   setOutfit(newOutfit);
                                   setOutfitIds(newOutfit.map(p => p.id));
                                   setChat(prev => [
                                     ...prev,
-                                    { role: "user", text: sug.text },
-                                    { role: "assistant", text: `Listo, quité ${sug.tipo === "abrigo" ? "la chaqueta" : sug.tipo === "calzado" ? "el calzado" : sug.tipo === "gorra" ? "la gorra" : sug.tipo === "parte superior" ? "la camiseta" : sug.tipo === "parte inferior" ? "el pantalón" : "el accesorio"} del look. ¿Lo ajusto en algo más?` },
+                                    { role: "user", text: label },
+                                    { role: "assistant", text: `Listo, quité ${TIPO_LABEL[sug.tipo] || "la prenda"} del look. ¿Lo ajusto en algo más?` },
                                   ]);
-                                } else if (sug.action === "swap" && sug.tipo) {
-                                  setChat(prev => [...prev, { role: "user", text: sug.text }]);
+                                } else if (action === "swap" && sug.tipo) {
+                                  setChat(prev => [...prev, { role: "user", text: label }]);
                                   handleSwap(sug.tipo);
                                 } else {
-                                  handleRecommend(sug.text);
+                                  handleRecommend(label);
                                 }
                               }}
                               initial={{ opacity: 0, scale: 0.9 }}
@@ -908,7 +918,7 @@ export default function Asistente({ usuarioId }) {
                               transition={{ delay: i * 0.06 }}
                               whileTap={{ scale: 0.95 }}
                             >
-                              {actionIcon}{sug.text}
+                              {actionIcon}{label}
                             </motion.button>
                           );
                         })}
