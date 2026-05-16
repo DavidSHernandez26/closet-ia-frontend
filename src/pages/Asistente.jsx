@@ -319,7 +319,7 @@ export default function Asistente({ usuarioId }) {
   useEffect(() => {
     const el = chatBoxRef.current;
     if (el) el.scrollTop = el.scrollHeight;
-  }, [chat, loading]);
+  }, [chat, loading, sugerencias]);
 
   useEffect(() => {
     const el = textareaRef.current;

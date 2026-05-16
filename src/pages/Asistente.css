@@ -1344,6 +1344,21 @@ body.light-mode .ocasion-chip.activa {
   .chat-placeholder-hints    { max-width: 100%; }
   .chat-item-desc            { font-size: 0.82rem !important; }
 
+  /* Sugerencias: fila horizontal scrollable en mobile, como ocasion-chips */
+  .sugerencias-wrap {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-x !important;
+    padding: 4px 12px 10px !important;
+    gap: 7px !important;
+    scrollbar-width: none !important;
+  }
+  .sugerencias-wrap::-webkit-scrollbar { display: none !important; }
+  .sugerencia-chip { flex-shrink: 0 !important; }
+
   /* BOTTOM SHEET */
   .outfit-sheet-backdrop {
     display: block;
