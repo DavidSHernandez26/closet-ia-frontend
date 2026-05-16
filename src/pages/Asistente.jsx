@@ -627,9 +627,17 @@ export default function Asistente({ usuarioId }) {
   }
 
   function handleSeleccionarPrenda(prenda) {
-    setOutfit(prev => {
-      const sinTipo = prev.filter(p => getTipoPrenda(p.descripcion || "") !== swapTipo);
-      return [...sinTipo, prenda];
+    const sinTipo = outfit.filter(p => getTipoPrenda(p.descripcion || "") !== swapTipo);
+    const newOutfit = [...sinTipo, prenda];
+    setOutfit(newOutfit);
+    setOutfitIds(newOutfit.map(p => p.id));
+    const nombrePrenda = prenda.descripcion?.split(" - ")[0] || "prenda";
+    setChat(prev => {
+      const last = prev[prev.length - 1];
+      if (last?.role === "user") {
+        return [...prev, { role: "assistant", text: `Listo, cambié la prenda por **${nombrePrenda}**. ¿El look quedó bien?` }];
+      }
+      return [...prev, { role: "assistant", text: `Cambié por **${nombrePrenda}**. ¿Lo ajusto en algo más?` }];
     });
     setSwapTipo(null);
   }
@@ -658,7 +666,8 @@ export default function Asistente({ usuarioId }) {
 
   function parseChat(text) {
     if (!text) return null;
-    const normalized = text.replace(/ - \*\*/g, "\n- **").trim();
+    const unescaped = text.replace(/\\n/g, "\n");
+    const normalized = unescaped.replace(/ - \*\*/g, "\n- **").trim();
     return normalized.split("\n").map((line, i) => {
       if (!line.trim()) return <br key={i} />;
       const isBullet = line.trimStart().startsWith("- ");
@@ -869,19 +878,40 @@ export default function Asistente({ usuarioId }) {
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.2 }}
                       >
-                        {sugerencias.map((s, i) => (
-                          <motion.button
-                            key={s}
-                            className="sugerencia-chip"
-                            onClick={() => { setSugerencias([]); handleRecommend(s); }}
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: i * 0.06 }}
-                            whileTap={{ scale: 0.95 }}
-                          >
-                            {s}
-                          </motion.button>
-                        ))}
+                        {sugerencias.map((s, i) => {
+                          const sug = typeof s === "object" ? s : { text: s, action: "chat" };
+                          const actionIcon = sug.action === "remove" ? "✕ " : sug.action === "swap" ? "↕ " : "";
+                          return (
+                            <motion.button
+                              key={sug.text}
+                              className={`sugerencia-chip sugerencia-chip--${sug.action || "chat"}`}
+                              onClick={() => {
+                                setSugerencias([]);
+                                if (sug.action === "remove" && sug.tipo) {
+                                  const newOutfit = outfit.filter(p => getTipoPrenda(p.descripcion) !== sug.tipo);
+                                  setOutfit(newOutfit);
+                                  setOutfitIds(newOutfit.map(p => p.id));
+                                  setChat(prev => [
+                                    ...prev,
+                                    { role: "user", text: sug.text },
+                                    { role: "assistant", text: `Listo, quité ${sug.tipo === "abrigo" ? "la chaqueta" : sug.tipo === "calzado" ? "el calzado" : sug.tipo === "gorra" ? "la gorra" : sug.tipo === "parte superior" ? "la camiseta" : sug.tipo === "parte inferior" ? "el pantalón" : "el accesorio"} del look. ¿Lo ajusto en algo más?` },
+                                  ]);
+                                } else if (sug.action === "swap" && sug.tipo) {
+                                  setChat(prev => [...prev, { role: "user", text: sug.text }]);
+                                  handleSwap(sug.tipo);
+                                } else {
+                                  handleRecommend(sug.text);
+                                }
+                              }}
+                              initial={{ opacity: 0, scale: 0.9 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ delay: i * 0.06 }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              {actionIcon}{sug.text}
+                            </motion.button>
+                          );
+                        })}
                       </motion.div>
                     )}
                   </AnimatePresence>

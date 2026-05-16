@@ -38,15 +38,22 @@ const ETIQUETAS = {
   "accesorio": "Accesorio",
 };
 
-const prendaVariants = {
-  hidden:  { opacity: 0, scale: 0.82, y: 14 },
-  visible: { opacity: 1, scale: 1,    y: 0,
-    transition: { type: "spring", stiffness: 280, damping: 22 } },
-};
-
 const containerVariants = {
   hidden:  {},
-  visible: { transition: { staggerChildren: 0.09, delayChildren: 0.04 } },
+  visible: { transition: { staggerChildren: 0.1, delayChildren: 0.05 } },
+};
+
+// Solo opacity en el wrapper de posicionamiento (.mannequin-prenda tiene
+// transform:translateX(-50%) en CSS; añadir scale/y via motion lo rompería)
+const prendaFadeVariants = {
+  hidden:  { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.35, ease: "easeOut" } },
+};
+
+// El inner-div libre de conflictos CSS puede hacer scale sin problema
+const prendaScaleVariants = {
+  hidden:  { scale: 0.84 },
+  visible: { scale: 1, transition: { type: "spring", stiffness: 280, damping: 22 } },
 };
 
 const chipVariants = {
@@ -92,6 +99,7 @@ export default function VirtualMannequin({ outfit, onSwap, calAction }) {
               fill="rgba(196,181,232,0.04)" stroke="rgba(196,181,232,0.12)" strokeWidth="1"/>
           </svg>
 
+          {/* El div de posicionamiento NO es motion para no romper translateX(-50%) */}
           <motion.div
             key={outfitKey}
             className="mannequin-layers"
@@ -105,9 +113,15 @@ export default function VirtualMannequin({ outfit, onSwap, calAction }) {
                 className={`mannequin-prenda ${onSwap ? "swappable" : ""}`}
                 style={{ top: p.pos.top, height: p.pos.height, zIndex: getZIndex(p.tipo) }}
                 onClick={() => onSwap && onSwap(p.tipo)}
-                variants={prendaVariants}
+                variants={prendaFadeVariants}
               >
-                <img src={p.imagen_url} alt={p.descripcion} className="prenda-img" loading="lazy" />
+                {/* Wrapper interno libre de conflictos CSS: hace el scale */}
+                <motion.div
+                  style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}
+                  variants={prendaScaleVariants}
+                >
+                  <img src={p.imagen_url} alt={p.descripcion} className="prenda-img" loading="lazy" />
+                </motion.div>
                 {onSwap && <div className="prenda-swap-badge">↕</div>}
                 <span className="prenda-label">{p.descripcion?.split(" - ")[0]}</span>
               </motion.div>
