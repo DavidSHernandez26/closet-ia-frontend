@@ -1963,3 +1963,58 @@ body.light-mode .historial-item-fecha { color: rgba(15, 3, 38, 0.4); }
 body.light-mode .historial-item-arrow { color: rgba(15, 3, 38, 0.3); }
 
 body.light-mode .racha-badge--cero { background: rgba(15, 3, 38, 0.05); border-color: rgba(15, 3, 38, 0.1); color: rgba(15, 3, 38, 0.35); }
+
+/* ── Streaming cursor ── */
+.stream-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 13px;
+  background: rgba(196, 181, 232, 0.75);
+  border-radius: 1px;
+  margin-left: 3px;
+  vertical-align: middle;
+  animation: cursorBlink 0.65s step-end infinite;
+}
+
+@keyframes cursorBlink {
+  50% { opacity: 0; }
+}
+
+/* ── Quick reply chips (sugerencias) ── */
+.sugerencias-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding: 4px 12px 6px;
+  justify-content: flex-start;
+}
+
+.sugerencia-chip {
+  padding: 6px 13px;
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  border-radius: 20px;
+  color: rgba(196, 181, 232, 0.9);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.sugerencia-chip:hover {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: rgba(139, 92, 246, 0.45);
+  color: #e2d9f3;
+}
+
+body.light-mode .stream-cursor { background: rgba(15, 3, 38, 0.5); }
+body.light-mode .sugerencia-chip {
+  background: rgba(15, 3, 38, 0.05);
+  border-color: rgba(15, 3, 38, 0.15);
+  color: rgba(15, 3, 38, 0.65);
+}
+body.light-mode .sugerencia-chip:hover {
+  background: rgba(15, 3, 38, 0.1);
+  border-color: rgba(15, 3, 38, 0.3);
+  color: #0F0326;
+}

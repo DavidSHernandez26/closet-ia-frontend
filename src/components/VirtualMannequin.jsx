@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import "./VirtualMannequin.css";
 
 // Solo estas tienen posición en el cuerpo del maniquí
@@ -37,6 +38,23 @@ const ETIQUETAS = {
   "accesorio": "Accesorio",
 };
 
+const prendaVariants = {
+  hidden:  { opacity: 0, scale: 0.82, y: 14 },
+  visible: { opacity: 1, scale: 1,    y: 0,
+    transition: { type: "spring", stiffness: 280, damping: 22 } },
+};
+
+const containerVariants = {
+  hidden:  {},
+  visible: { transition: { staggerChildren: 0.09, delayChildren: 0.04 } },
+};
+
+const chipVariants = {
+  hidden:  { opacity: 0, x: -10 },
+  visible: { opacity: 1, x: 0,
+    transition: { type: "spring", stiffness: 240, damping: 20 } },
+};
+
 export default function VirtualMannequin({ outfit, onSwap, calAction }) {
   if (!outfit || outfit.length === 0) return null;
 
@@ -45,8 +63,11 @@ export default function VirtualMannequin({ outfit, onSwap, calAction }) {
     return { ...p, tipo, pos: POSICIONES[tipo] || null };
   });
 
-  const prendasCuerpo    = prendas.filter(p => p.pos !== null);
-  const accesoriosSide   = prendas.filter(p => p.tipo === "accesorio");
+  const prendasCuerpo  = prendas.filter(p => p.pos !== null);
+  const accesoriosSide = prendas.filter(p => p.tipo === "accesorio");
+
+  // Key derivada del outfit para re-disparar animación cuando cambian las prendas
+  const outfitKey = outfit.map(p => p.id).join("-");
 
   return (
     <div className="mannequin-wrapper">
@@ -71,28 +92,34 @@ export default function VirtualMannequin({ outfit, onSwap, calAction }) {
               fill="rgba(196,181,232,0.04)" stroke="rgba(196,181,232,0.12)" strokeWidth="1"/>
           </svg>
 
-          <div className="mannequin-layers">
+          <motion.div
+            key={outfitKey}
+            className="mannequin-layers"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
             {prendasCuerpo.map((p) => (
-              <div
+              <motion.div
                 key={p.id}
                 className={`mannequin-prenda ${onSwap ? "swappable" : ""}`}
                 style={{ top: p.pos.top, height: p.pos.height, zIndex: getZIndex(p.tipo) }}
                 onClick={() => onSwap && onSwap(p.tipo)}
+                variants={prendaVariants}
               >
                 <img src={p.imagen_url} alt={p.descripcion} className="prenda-img" loading="lazy" />
                 {onSwap && <div className="prenda-swap-badge">↕</div>}
                 <span className="prenda-label">{p.descripcion?.split(" - ")[0]}</span>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
 
-          {/* ── Botón flotante (ej. calendario) — esquina superior izquierda ── */}
           {calAction && (
             <div className="mannequin-cal-overlay">{calAction}</div>
           )}
         </div>
 
-        {/* ── Accesorios laterales (no gorras) ── */}
+        {/* ── Accesorios laterales ── */}
         {accesoriosSide.length > 0 && (
           <div className="mannequin-accesorios-side">
             <p className="accesorios-side-title">Accesorios</p>
@@ -111,13 +138,20 @@ export default function VirtualMannequin({ outfit, onSwap, calAction }) {
         )}
       </div>
 
-      {/* ── Lista abajo del maniquí ── */}
-      <div className="outfit-lista">
+      {/* ── Lista de chips abajo del maniquí ── */}
+      <motion.div
+        key={`chips-${outfitKey}`}
+        className="outfit-lista"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
         {prendas.map((p) => (
-          <div
+          <motion.div
             key={p.id}
             className={`outfit-chip ${onSwap ? "swappable" : ""}`}
             onClick={() => onSwap && onSwap(p.tipo)}
+            variants={chipVariants}
           >
             <img src={p.imagen_url} alt={p.descripcion} />
             <div className="outfit-chip-info">
@@ -125,9 +159,9 @@ export default function VirtualMannequin({ outfit, onSwap, calAction }) {
               <span className="outfit-chip-tipo">{ETIQUETAS[p.tipo] || p.tipo}</span>
             </div>
             {onSwap && <span className="outfit-chip-swap">↕</span>}
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 }

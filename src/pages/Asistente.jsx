@@ -90,9 +90,15 @@ export default function Asistente({ usuarioId }) {
     try { return JSON.parse(localStorage.getItem(`asistente_historial_${usuarioId}`)) || []; }
     catch { return []; }
   });
-  const reconRef = useRef(null);
+  const [sugerencias, setSugerencias] = useState([]);
+
+  const reconRef    = useRef(null);
+  const streamAbort = useRef(null);
 
   const chatEndRef       = useRef(null);
+
+  // Cancelar stream al desmontar
+  useEffect(() => () => streamAbort.current?.abort(), []);
   const chatBoxRef       = useRef(null);
   const textareaRef      = useRef(null);
   const prendasCacheRef  = useRef(null);
@@ -358,56 +364,105 @@ export default function Asistente({ usuarioId }) {
     if (!texto.trim() || loading) return;
     haptics.medium();
 
+    // Cancelar stream anterior si existe
+    streamAbort.current?.abort();
+    streamAbort.current = new AbortController();
+
     setChat((prev) => [...prev, { role: "user", text: texto }]);
-    if (!textoDirecto) setMensaje("");
+    if (typeof textoDirecto !== "string") setMensaje("");
     setOcasionActiva(null);
+    setSugerencias([]);
     setLoading(true);
     setCalConfirmado(false);
 
+    const climaPayload = clima ? {
+      temp: clima.temp, feels: clima.feels, wind: clima.wind,
+      city: clima.city, label: clima.label, rain_prob: clima.rain_prob ?? 0,
+    } : null;
+
+    let msgAdded = false;
+    let accText = "";
+
     try {
-      const res = await axios.post(`${API_URL}/api/fashion`, {
-        mensaje: texto,
-        historial: chat.slice(-8),
-        outfit_ids_anteriores: outfitIds,
-        clima: clima ? {
-          temp:      clima.temp,
-          feels:     clima.feels,
-          wind:      clima.wind,
-          city:      clima.city,
-          label:     clima.label,
-          rain_prob: clima.rain_prob ?? 0,
-        } : null,
-      }, { headers: getAuthHeaders() });
+      const response = await fetch(`${API_URL}/api/fashion/stream`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+        body: JSON.stringify({
+          mensaje: texto,
+          historial: chat.slice(-8),
+          outfit_ids_anteriores: outfitIds,
+          clima: climaPayload,
+        }),
+        signal: streamAbort.current.signal,
+      });
 
-      haptics.success();
-      setChat((prev) => [...prev, {
-        role: "assistant",
-        text: res.data?.respuesta || "No hubo respuesta.",
-      }]);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-      const cambiarPanel = res.data?.cambiar_panel ?? true;
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
 
-      if (!cambiarPanel) {
-        /* solo texto */
-      } else if (res.data?.outfit_guardado) {
-        if (!outfitGuardado || res.data.outfit_guardado.id !== outfitGuardado.id) {
-          setOutfitGuardado(res.data.outfit_guardado);
-          setOutfit([]);
-          setOutfitIds([]);
+      const processEvent = (event) => {
+        if (event.type === "text") {
+          accText += event.chunk;
+          if (!msgAdded) {
+            msgAdded = true;
+            setLoading(false);
+            setChat((prev) => [...prev, { role: "assistant", text: accText, streaming: true }]);
+          } else {
+            setChat((prev) => {
+              const next = [...prev];
+              const last = next[next.length - 1];
+              if (last?.streaming) next[next.length - 1] = { ...last, text: accText };
+              return next;
+            });
+          }
+        } else if (event.type === "done") {
+          haptics.success();
+          setChat((prev) => {
+            const next = [...prev];
+            const last = next[next.length - 1];
+            if (last?.streaming) next[next.length - 1] = { ...last, streaming: false };
+            return next;
+          });
+          setSugerencias(event.sugerencias || []);
+          const cambiarPanel = event.cambiar_panel ?? true;
+          if (cambiarPanel) {
+            if (event.outfit_guardado) {
+              setOutfitGuardado(event.outfit_guardado);
+              setOutfit([]); setOutfitIds([]);
+            } else if (event.outfit?.length) {
+              setOutfit(event.outfit);
+              setOutfitIds(event.outfit.map((p) => p.id));
+              setOutfitGuardado(null);
+            }
+            setRachaKey((k) => k + 1);
+          }
+          setLoading(false);
+        } else if (event.type === "error") {
+          throw new Error(event.message);
         }
-        setRachaKey(k => k + 1);
-      } else if (Array.isArray(res.data?.outfit) && res.data.outfit.length > 0) {
-        setOutfit(res.data.outfit);
-        setOutfitIds(res.data.outfit.map((p) => p.id));
-        setOutfitGuardado(null);
-        setRachaKey(k => k + 1);
+      };
+
+      outer: while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop();
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const raw = line.slice(6).trim();
+          if (raw === "[DONE]") break outer;
+          try { processEvent(JSON.parse(raw)); } catch { /* chunk mal formado */ }
+        }
       }
     } catch (err) {
-      console.error("❌ Error fashion:", err);
-      setChat((prev) => [...prev, {
-        role: "assistant",
-        text: "⚠️ Ocurrió un error al generar la recomendación.",
-      }]);
+      if (err.name === "AbortError") return;
+      setChat((prev) => [
+        ...prev,
+        { role: "assistant", text: "⚠️ Ocurrió un error al generar la recomendación." },
+      ]);
     } finally {
       setLoading(false);
     }
@@ -780,6 +835,7 @@ export default function Asistente({ usuarioId }) {
                             </span>
                             <div className={`chat-bubble ${msg.role}`}>
                               {msg.role === "assistant" ? parseChat(msg.text) : msg.text}
+                              {msg.streaming && <span className="stream-cursor" />}
                             </div>
                           </div>
                         </motion.div>
@@ -802,6 +858,33 @@ export default function Asistente({ usuarioId }) {
                       </div>
                     </div>
                   )}
+
+                  {/* ── Quick replies (sugerencias) ── */}
+                  <AnimatePresence>
+                    {!loading && sugerencias.length > 0 && (
+                      <motion.div
+                        className="sugerencias-wrap"
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        {sugerencias.map((s, i) => (
+                          <motion.button
+                            key={s}
+                            className="sugerencia-chip"
+                            onClick={() => { setSugerencias([]); handleRecommend(s); }}
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: i * 0.06 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            {s}
+                          </motion.button>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
                   <div ref={chatEndRef} />
                 </div>
