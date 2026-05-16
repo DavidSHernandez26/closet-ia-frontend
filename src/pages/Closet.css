@@ -1060,6 +1060,44 @@ body.light-mode .mac-modal-section-title { color: rgba(15,3,38,0.4); }
 }
 .mac-reanalizar-btn:disabled { opacity: 0.5; cursor: wait; }
 
+/* ── Skeleton loading ── */
+.mac-skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+  padding: 10px;
+}
+
+.mac-skeleton-card {
+  aspect-ratio: 3 / 4;
+  border-radius: 10px;
+  background: rgba(196, 181, 232, 0.07);
+  background-image: linear-gradient(
+    90deg,
+    rgba(196, 181, 232, 0.07) 0%,
+    rgba(196, 181, 232, 0.14) 40%,
+    rgba(196, 181, 232, 0.07) 80%
+  );
+  background-size: 200% 100%;
+  animation: skelShimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes skelShimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+body.light-mode .mac-skeleton-card {
+  background: rgba(15, 3, 38, 0.05);
+  background-image: linear-gradient(
+    90deg,
+    rgba(15, 3, 38, 0.05) 0%,
+    rgba(15, 3, 38, 0.1) 40%,
+    rgba(15, 3, 38, 0.05) 80%
+  );
+  background-size: 200% 100%;
+}
+
 .mac-reanalisis-msg {
   font-size: 0.75rem;
   color: rgba(196, 181, 232, 0.75);

@@ -445,9 +445,10 @@ export default function Closet({ refresh, usuarioId }) {
             )}
 
             {loading ? (
-              <div className="mac-loading">
-                <div className="mac-spinner" />
-                <p>Cargando...</p>
+              <div className="mac-skeleton-grid">
+                {Array.from({ length: 12 }).map((_, i) => (
+                  <div key={i} className="mac-skeleton-card" />
+                ))}
               </div>
             ) : prendasFiltradas.length === 0 ? (
               <div className="mac-empty">

@@ -963,7 +963,7 @@ export default function Asistente({ usuarioId }) {
             <div className="outfit-panel-body">
               {outfitGuardado ? (
                 <div className="outfit-guardado-preview">
-                  <img src={outfitGuardado.imagen_url} alt={outfitGuardado.descripcion} />
+                  <img src={outfitGuardado.imagen_url} alt={outfitGuardado.descripcion} loading="lazy" />
                   <p>{outfitGuardado.descripcion}</p>
                   {outfitGuardado.metadata_ia?.prendas?.length > 0 && (
                     <div className="outfit-guardado-prendas">
@@ -1010,10 +1010,10 @@ export default function Asistente({ usuarioId }) {
           <div className="outfit-sheet-preview-bar">
             <div className="outfit-sheet-thumbs">
               {outfitGuardado ? (
-                <img src={outfitGuardado.imagen_url} alt="" className="outfit-sheet-thumb" />
+                <img src={outfitGuardado.imagen_url} alt="" className="outfit-sheet-thumb" loading="lazy" />
               ) : (
                 outfit.slice(0, 3).map((p, i) => (
-                  <img key={i} src={p.imagen_url} alt="" className="outfit-sheet-thumb" />
+                  <img key={i} src={p.imagen_url} alt="" className="outfit-sheet-thumb" loading="lazy" />
                 ))
               )}
             </div>
@@ -1034,7 +1034,7 @@ export default function Asistente({ usuarioId }) {
           {outfitGuardado ? (
             <div style={{ position: "relative" }}>
               <div className="outfit-guardado-preview">
-                <img src={outfitGuardado.imagen_url} alt={outfitGuardado.descripcion} />
+                <img src={outfitGuardado.imagen_url} alt={outfitGuardado.descripcion} loading="lazy" />
                 <p>{outfitGuardado.descripcion}</p>
                 {outfitGuardado.metadata_ia?.prendas?.length > 0 && (
                   <div className="outfit-guardado-prendas">
@@ -1074,7 +1074,7 @@ export default function Asistente({ usuarioId }) {
                 <div className="outfit-sheet-grid">
                   {outfit.map((p, i) => (
                     <div key={i} className="outfit-sheet-card">
-                      <img src={p.imagen_url} alt={p.descripcion} />
+                      <img src={p.imagen_url} alt={p.descripcion} loading="lazy" />
                       <p>{p.descripcion?.split("(")[0]?.trim()}</p>
                     </div>
                   ))}
@@ -1139,7 +1139,7 @@ export default function Asistente({ usuarioId }) {
                 <div className="swap-grid">
                   {filtradas.map(p => (
                     <div key={p.id} className="swap-item" onClick={() => handleSeleccionarPrenda(p)}>
-                      <img src={p.imagen_url} alt={p.descripcion} />
+                      <img src={p.imagen_url} alt={p.descripcion} loading="lazy" />
                       <span>{p.descripcion?.split(" - ")[0]}</span>
                     </div>
                   ))}

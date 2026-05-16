@@ -14,6 +14,7 @@ import "./App.css";
 import "./styles/animations.css";
 import { Capacitor } from "@capacitor/core";
 import Navbar from "./components/Navbar";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { UploadProvider } from "./context/UploadContext";
 import UploadToast from "./components/UploadToast";
 
@@ -92,7 +93,10 @@ function ThemeSyncer() {
 }
 
 const PageFallback = () => (
-  <div className="loading-screen"><p>Cargando...</p></div>
+  <div className="loading-screen">
+    <div className="loading-screen-spinner" />
+    <p>Cargando...</p>
+  </div>
 );
 
 function PrivateRoute({ children, isAuthenticated, perfilListo, usuarioId, onPerfilComplete }) {
@@ -303,7 +307,12 @@ export default function App() {
   const isAuthenticated = !!session;
 
   if (loadingSession) {
-    return <div className="loading-screen"><p>Cargando aplicación...</p></div>;
+    return (
+      <div className="loading-screen">
+        <div className="loading-screen-spinner" />
+        <p>Cargando aplicación...</p>
+      </div>
+    );
   }
 
   return (
@@ -319,26 +328,28 @@ export default function App() {
             />
           )}
 
-          <React.Suspense fallback={<PageFallback />}>
-            <Routes>
-              <Route path="/waitlist" element={!isAuthenticated ? <Waitlist />  : <Navigate to="/" />} />
-              <Route path="/login"          element={!isAuthenticated ? <Login />          : <Navigate to="/" />} />
-              <Route path="/register"       element={!isAuthenticated ? <Register />       : <Navigate to="/" />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
+          <ErrorBoundary>
+            <React.Suspense fallback={<PageFallback />}>
+              <Routes>
+                <Route path="/waitlist" element={!isAuthenticated ? <Waitlist />  : <Navigate to="/" />} />
+                <Route path="/login"          element={!isAuthenticated ? <Login />          : <Navigate to="/" />} />
+                <Route path="/register"       element={!isAuthenticated ? <Register />       : <Navigate to="/" />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
 
-              <Route path="*" element={
-                <main className="main-content">
-                  <AnimatedRoutes
-                    usuarioId={usuarioId}
-                    refreshCloset={refreshCloset}
-                    isAuthenticated={isAuthenticated}
-                    perfilListo={perfilListo}
-                    onPerfilComplete={handlePerfilComplete}
-                  />
-                </main>
-              } />
-            </Routes>
-          </React.Suspense>
+                <Route path="*" element={
+                  <main className="main-content">
+                    <AnimatedRoutes
+                      usuarioId={usuarioId}
+                      refreshCloset={refreshCloset}
+                      isAuthenticated={isAuthenticated}
+                      perfilListo={perfilListo}
+                      onPerfilComplete={handlePerfilComplete}
+                    />
+                  </main>
+                } />
+              </Routes>
+            </React.Suspense>
+          </ErrorBoundary>
 
           <UploadToast />
         </div>
