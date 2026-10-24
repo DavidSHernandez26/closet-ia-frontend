@@ -15,6 +15,29 @@ import { useUpload } from "../context/UploadContext";
 
 const MAX_BYTES = 10 * 1024 * 1024;
 
+function esHeif(file) {
+  return /image\/hei[cf]/i.test(file.type) || /\.hei[cf]$/i.test(file.name);
+}
+
+// Chrome no decodifica HEIF: se convierte a JPEG (librería cargada solo cuando hace falta)
+async function heifAJpeg(file) {
+  try {
+    const { heicTo } = await import("heic-to");
+    const blob = await heicTo({ blob: file, type: "image/jpeg", quality: 0.9 });
+    return new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" });
+  } catch {
+    return null;
+  }
+}
+
+// Comprime; si el navegador no pudo leer un HEIF, lo convierte y vuelve a comprimir
+async function prepararImagen(file) {
+  const comprimido = await comprimirImagen(file);
+  if (comprimido !== file || !esHeif(file)) return comprimido;
+  const jpeg = await heifAJpeg(file);
+  return jpeg ? comprimirImagen(jpeg) : file;
+}
+
 async function comprimirImagen(file, maxWidth = 1200, quality = 0.82) {
   return new Promise((resolve) => {
     const img = document.createElement("img");  // evita new Image() que Vite puede alisar
@@ -100,10 +123,11 @@ export default function UploadModal({ onClose, onUploaded }) {
 
   const agregarArchivos = useCallback(async (nuevos) => {
     const recibidos = Array.from(nuevos).filter(Boolean);
-    const imagenes = recibidos.filter(f => f.type.startsWith("image/"));
+    const imagenes = recibidos.filter(f => f.type.startsWith("image/") || esHeif(f));
     // El límite de 10 MB del backend aplica al archivo ya comprimido, no al original
-    const comprimidos = await Promise.all(imagenes.map(f => comprimirImagen(f)));
-    const validos = comprimidos.filter(f => f.size <= MAX_BYTES);
+    const comprimidos = await Promise.all(imagenes.map(f => prepararImagen(f)));
+    // Un HEIF que no se pudo convertir no sirve: el backend no lo puede abrir
+    const validos = comprimidos.filter(f => f.size <= MAX_BYTES && !esHeif(f));
     const descartados = recibidos.length - validos.length;
     const aviso = descartados > 0
       ? `${descartados} foto${descartados !== 1 ? "s" : ""} no se pudo agregar (formato no soportado o más de 10 MB)`
@@ -337,7 +361,7 @@ export default function UploadModal({ onClose, onUploaded }) {
               </p>
 
               {esMulti && (
-                <input ref={fileInputRef} type="file" accept="image/*" multiple
+                <input ref={fileInputRef} type="file" accept="image/*,.heic,.heif" multiple
                   style={{ display: "none" }} onChange={handleFileInput} />
               )}
 
@@ -360,8 +384,8 @@ export default function UploadModal({ onClose, onUploaded }) {
                   </h3>
                   <p className="up-drop-sub">
                     {esMulti
-                      ? "o toca para elegir varias fotos · JPG / PNG / WEBP · máx 10MB c/u"
-                      : "o toca para seleccionar · JPG / PNG / WEBP · máx 10MB"}
+                      ? "o toca para elegir varias fotos · JPG / PNG / WEBP / HEIC"
+                      : "o toca para seleccionar · JPG / PNG / WEBP / HEIC"}
                   </p>
                   <span className="up-drop-cta">
                     {esMulti ? "Seleccionar fotos" : "Seleccionar archivo"}

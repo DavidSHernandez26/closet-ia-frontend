@@ -15,6 +15,8 @@ export default defineConfig({
         clientsClaim: true,
         // Precachea todos los assets generados por Vite
         globPatterns: ["**/*.{js,css,html,ico,png,svg,webp,woff2}"],
+        // Conversor HEIF (~3 MB): solo se descarga si el usuario sube una foto HEIF
+        globIgnores: ["**/heic-to-*.js"],
         // Rutas de navegación → siempre sirve index.html (SPA)
         navigateFallback: "index.html",
         navigateFallbackDenylist: [/^\/api\//],
