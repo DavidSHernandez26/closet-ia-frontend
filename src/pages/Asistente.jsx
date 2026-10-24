@@ -37,6 +37,13 @@ function getTipoPrenda(descripcion = "") {
   return getTipoTexto(descripcion);
 }
 
+function buildClimaPayload(clima) {
+  return clima ? {
+    temp: clima.temp, feels: clima.feels, wind: clima.wind,
+    city: clima.city, label: clima.label, rain_prob: clima.rain_prob ?? 0,
+  } : null;
+}
+
 export default function Asistente({ usuarioId }) {
   const STORAGE_CHAT            = `asistente_chat_${usuarioId}`;
   const STORAGE_OUTFIT          = `asistente_outfit_${usuarioId}`;
@@ -375,10 +382,7 @@ export default function Asistente({ usuarioId }) {
     setLoading(true);
     setCalConfirmado(false);
 
-    const climaPayload = clima ? {
-      temp: clima.temp, feels: clima.feels, wind: clima.wind,
-      city: clima.city, label: clima.label, rain_prob: clima.rain_prob ?? 0,
-    } : null;
+    const climaPayload = buildClimaPayload(clima);
 
     let msgAdded = false;
     let accText = "";
@@ -592,6 +596,7 @@ export default function Asistente({ usuarioId }) {
         mensaje: mensajeGeneracion,
         historial: [],
         outfit_ids_anteriores: outfitIds,
+        clima: buildClimaPayload(clima),
       }, { headers: getAuthHeaders() });
 
       if (Array.isArray(res.data?.outfit) && res.data.outfit.length > 0) {
