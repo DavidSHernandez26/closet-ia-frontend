@@ -13,6 +13,8 @@ import { haptics } from "../hooks/useHaptics";
 import { Capacitor } from "@capacitor/core";
 import { useUpload } from "../context/UploadContext";
 
+const MAX_BYTES = 10 * 1024 * 1024;
+
 async function comprimirImagen(file, maxWidth = 1200, quality = 0.82) {
   return new Promise((resolve) => {
     const img = document.createElement("img");  // evita new Image() que Vite puede alisar
@@ -97,16 +99,26 @@ export default function UploadModal({ onClose, onUploaded }) {
   const pickType = (t) => { setType(t); setStep(2); };
 
   const agregarArchivos = useCallback(async (nuevos) => {
-    const validos = Array.from(nuevos).filter(f =>
-      f.type.startsWith("image/") && f.size <= 10 * 1024 * 1024
-    );
-    if (!validos.length) return;
-    const comprimidos = await Promise.all(validos.map(f => comprimirImagen(f)));
-    const urls = comprimidos.map(f => URL.createObjectURL(f));
-    setFiles(prev => [...prev, ...comprimidos]);
+    const recibidos = Array.from(nuevos).filter(Boolean);
+    const imagenes = recibidos.filter(f => f.type.startsWith("image/"));
+    // El límite de 10 MB del backend aplica al archivo ya comprimido, no al original
+    const comprimidos = await Promise.all(imagenes.map(f => comprimirImagen(f)));
+    const validos = comprimidos.filter(f => f.size <= MAX_BYTES);
+    const descartados = recibidos.length - validos.length;
+    const aviso = descartados > 0
+      ? `${descartados} foto${descartados !== 1 ? "s" : ""} no se pudo agregar (formato no soportado o más de 10 MB)`
+      : "";
+    if (!validos.length) {
+      setFinalOk(false);
+      setFinalMsg(aviso);
+      return;
+    }
+    const urls = validos.map(f => URL.createObjectURL(f));
+    setFiles(prev => [...prev, ...validos]);
     setPreviews(prev => [...prev, ...urls]);
-    setStatuses(prev => [...prev, ...comprimidos.map(() => "pending")]);
-    setFinalMsg("");
+    setStatuses(prev => [...prev, ...validos.map(() => "pending")]);
+    setFinalOk(false);
+    setFinalMsg(aviso);
   }, []);
 
   const onDrop = (e) => {
