@@ -960,6 +960,7 @@ export default function Asistente({ usuarioId }) {
                           : "Escribe tu pregunta... (Enter para enviar)"
                       }
                       value={mensaje}
+                      maxLength={1000}
                       onChange={(e) => {
                         setMensaje(e.target.value);
                         if (ocasionActiva && e.target.value !== ocasionActiva.prompt) {
