@@ -32,7 +32,13 @@ export function crearMensaje(role, text, { ts = Date.now(), outfit = null } = {}
   return msg;
 }
 
-const indiceStreaming = (mensajes) => mensajes.findLastIndex((m) => m?.streaming);
+// Bucle hacia atrás en vez de findLastIndex: no existe en iOS Safari < 15.4 (el target es 15.0).
+function indiceStreaming(mensajes) {
+  for (let i = mensajes.length - 1; i >= 0; i--) {
+    if (mensajes[i]?.streaming) return i;
+  }
+  return -1;
+}
 
 // Pone `texto` en el mensaje que está en streaming (no necesariamente el último).
 export function aplicarFragmento(mensajes, texto) {
