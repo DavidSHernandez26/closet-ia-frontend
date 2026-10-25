@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutGrid, Shirt, Layers, Footprints, GraduationCap, Handbag,
@@ -9,6 +9,8 @@ import "./Closet.css";
 import { API_URL } from "../config";
 import { supaImg } from "../utils/imgUrl";
 import { getAuthHeaders } from "../supabase";
+
+const MAX_VUELTAS = 30;
 
 const COLOR_HEX = {
   negro: '#2a2a2e', blanco: '#f0f0f0', azul: '#2563eb', rojo: '#dc2626',
@@ -77,6 +79,15 @@ export default function Closet({ refresh, usuarioId }) {
   const [mensajeReanalisis, setMensajeReanalisis] = useState("");
   const [pendientes, setPendientes] = useState(0);
   const [errorAnalisis, setErrorAnalisis] = useState(false);
+  const mountedRef = useRef(true);
+  const analizandoRef = useRef(false);
+  const tabRef = useRef("prenda");
+  const msgTimerRef = useRef(null);
+  tabRef.current = tabActiva;
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; clearTimeout(msgTimerRef.current); };
+  }, []);
   useEffect(() => { if (!usuarioId) return; fetchPrendas(); }, [usuarioId, tabActiva, refresh]);
 
   /* Al cambiar tab, resetear categoría y filtros */
@@ -141,25 +152,32 @@ export default function Closet({ refresh, usuarioId }) {
   }
 
   async function handleReanalizar() {
-    if (reanalizando) return;
+    if (analizandoRef.current) return;
+    analizandoRef.current = true;
+    clearTimeout(msgTimerRef.current);
+    const tabInicial = tabActiva;
     setReanalizando(true);
     setMensajeReanalisis("");
     setErrorAnalisis(false);
     let totalAnalizadas = 0;
     let quedan = 0;
+    let previas = Infinity;
     try {
       // El backend procesa hasta 40 por llamada: repetir mientras avance
-      while (true) {
+      for (let i = 0; i < MAX_VUELTAS; i++) {
+        if (!mountedRef.current) return;
         const res = await axios.post(
           `${API_URL}/api/prendas/reanalizar`,
           {},
           { headers: getAuthHeaders() }
         );
+        if (!mountedRef.current) return;
         const actualizadas = res.data?.actualizadas || 0;
         quedan = res.data?.pendientes || 0;
         totalAnalizadas += actualizadas;
         setPendientes(quedan);
-        if (quedan > 0 && actualizadas > 0) {
+        if (quedan > 0 && actualizadas > 0 && quedan < previas) {
+          previas = quedan;
           setMensajeReanalisis(`Analizando… ${totalAnalizadas} listas, quedan ${quedan}`);
         } else {
           break;
@@ -168,19 +186,26 @@ export default function Closet({ refresh, usuarioId }) {
       if (quedan > 0 && totalAnalizadas === 0) {
         setMensajeReanalisis("Algunas prendas no se pudieron analizar");
       } else if (quedan > 0) {
-        setMensajeReanalisis(`${totalAnalizadas} analizadas. Algunas prendas no se pudieron analizar`);
+        setMensajeReanalisis(`${totalAnalizadas} analizadas. Quedan ${quedan} sin analizar`);
+      } else if (totalAnalizadas === 0) {
+        setMensajeReanalisis("Todo está analizado");
       } else {
         setMensajeReanalisis(`${totalAnalizadas} analizadas`);
       }
-      if (totalAnalizadas > 0) await fetchPrendas();
+      if (totalAnalizadas > 0 && tabRef.current === tabInicial) await fetchPrendas();
     } catch (err) {
-      setErrorAnalisis(true);
-      setMensajeReanalisis("");
       console.error(err);
-      if (totalAnalizadas > 0) await fetchPrendas();
+      if (mountedRef.current) {
+        setErrorAnalisis(true);
+        setMensajeReanalisis("");
+        if (totalAnalizadas > 0 && tabRef.current === tabInicial) await fetchPrendas();
+      }
     } finally {
-      setReanalizando(false);
-      setTimeout(() => setMensajeReanalisis(""), 5000);
+      analizandoRef.current = false;
+      if (mountedRef.current) {
+        setReanalizando(false);
+        msgTimerRef.current = setTimeout(() => setMensajeReanalisis(""), 5000);
+      }
     }
   }
 
@@ -482,7 +507,7 @@ export default function Closet({ refresh, usuarioId }) {
                   </>
                 ) : (
                   <>
-                    <span>{pendientes} {pendientes === 1 ? "prenda sin analizar" : "prendas sin analizar"} ·</span>
+                    <span>{pendientes === 1 ? "1 sin analizar" : `${pendientes} sin analizar`} ·</span>
                     <button type="button" onClick={handleReanalizar} disabled={reanalizando}>Analizar ahora</button>
                   </>
                 )}
