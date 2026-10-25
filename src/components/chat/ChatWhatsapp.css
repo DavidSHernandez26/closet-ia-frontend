@@ -14,6 +14,7 @@
   text-align: left;
   font-family: inherit;
 }
+@media (max-width: 900px) { .wa-bubble { max-width: 88%; } }
 .chat-bubble.wa-bubble.user,
 .wa-bubble.user {
   background: linear-gradient(135deg, #7c5cd6, #9b7fe0);

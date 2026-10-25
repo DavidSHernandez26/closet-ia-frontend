@@ -1176,7 +1176,6 @@ body.light-mode .ocasion-chip.activa {
 
   .outfit-panel { display: none !important; }
 
-  .wa-bubble                 { max-width: 88%; }
   .chat-bubble               { font-size: 0.88rem !important; }
   .chat-placeholder-hints    { max-width: 100%; }
   .chat-item-desc            { font-size: 0.82rem !important; }

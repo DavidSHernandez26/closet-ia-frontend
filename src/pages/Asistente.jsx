@@ -10,7 +10,7 @@ import { API_URL } from "../config";
 import { supabase, getAuthHeaders } from "../supabase";
 import { getWeather } from "../services/weatherService";
 import { haptics } from "../hooks/useHaptics";
-import { agruparPorDia } from "../lib/chat/mensajes.mjs";
+import { agruparPorDia, crearMensaje, snapshotOutfit, restaurarOutfit, actualizarSnapshot, ultimoIndiceOutfit, recortarHistorial } from "../lib/chat/mensajes.mjs";
 import { TRANS } from "../lib/chat/movimiento";
 import ChatBubble from "../components/chat/ChatBubble";
 import TypingIndicator from "../components/chat/TypingIndicator";
@@ -67,9 +67,14 @@ export default function Asistente({ usuarioId }) {
   const [ocasionManiqui, setOcasionManiqui] = useState(null);
 
   const [chat, setChat] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(STORAGE_CHAT)) || []; }
+    try {
+      const guardado = JSON.parse(localStorage.getItem(STORAGE_CHAT)) || [];
+      return guardado.map((m) => (m?.streaming ? { ...m, streaming: false } : m));
+    }
     catch { return []; }
   });
+  const [indiceOutfitAbierto, setIndiceOutfitAbierto] = useState(null);
+  const [modalAbierto, setModalAbierto] = useState(false);
 
   const [outfit, setOutfit] = useState(() => {
     try { return JSON.parse(localStorage.getItem(STORAGE_OUTFIT)) || []; }
@@ -324,7 +329,7 @@ export default function Asistente({ usuarioId }) {
   }, [modo, usuarioId]);
 
   useEffect(() => {
-    try { localStorage.setItem(STORAGE_CHAT, JSON.stringify(chat.slice(-100))); } catch {}
+    try { localStorage.setItem(STORAGE_CHAT, JSON.stringify(recortarHistorial(chat, 100).map((m) => (m.streaming ? { ...m, streaming: false } : m)))); } catch {}
   }, [chat]);
   useEffect(() => { localStorage.setItem(STORAGE_OUTFIT, JSON.stringify(outfit)); }, [outfit]);
   useEffect(() => { localStorage.setItem(STORAGE_OUTFIT_IDS, JSON.stringify(outfitIds)); }, [outfitIds]);
@@ -382,7 +387,7 @@ export default function Asistente({ usuarioId }) {
     streamAbort.current?.abort();
     streamAbort.current = new AbortController();
 
-    setChat((prev) => [...prev, { role: "user", text: texto }]);
+    setChat((prev) => [...prev, crearMensaje("user", texto)]);
     if (typeof textoDirecto !== "string") setMensaje("");
     setOcasionActiva(null);
     setSugerencias([]);
@@ -400,7 +405,7 @@ export default function Asistente({ usuarioId }) {
         headers: { "Content-Type": "application/json", ...getAuthHeaders() },
         body: JSON.stringify({
           mensaje: texto,
-          historial: chat.slice(-8),
+          historial: chat.filter((m) => m.text).slice(-8).map(({ role, text }) => ({ role, text })),
           outfit_ids_anteriores: outfitIds,
           clima: climaPayload,
         }),
@@ -419,7 +424,7 @@ export default function Asistente({ usuarioId }) {
           if (!msgAdded) {
             msgAdded = true;
             setLoading(false);
-            setChat((prev) => [...prev, { role: "assistant", text: accText, streaming: true }]);
+            setChat((prev) => [...prev, { ...crearMensaje("assistant", accText), streaming: true }]);
           } else {
             setChat((prev) => {
               const next = [...prev];
@@ -430,18 +435,25 @@ export default function Asistente({ usuarioId }) {
           }
         } else if (event.type === "done") {
           haptics.success();
-          setChat((prev) => {
-            const next = [...prev];
-            const last = next[next.length - 1];
-            if (last?.streaming) next[next.length - 1] = { ...last, streaming: false };
-            return next;
-          });
           const rawSugs = Array.isArray(event.sugerencias) ? event.sugerencias : [];
           const normalSugs = rawSugs
             .map(s => typeof s === "string" ? { text: s, action: "chat" } : s)
             .filter(s => s && typeof s.text === "string" && s.text.trim());
           setSugerencias(normalSugs);
           const cambiarPanel = event.cambiar_panel ?? true;
+          const snapNuevo = cambiarPanel
+            ? (event.outfit_guardado
+                ? snapshotOutfit({ outfitGuardado: event.outfit_guardado })
+                : snapshotOutfit({ outfit: event.outfit }))
+            : null;
+          setChat((prev) => {
+            const next = [...prev];
+            const last = next[next.length - 1];
+            if (last?.streaming) next[next.length - 1] = { ...last, streaming: false };
+            if (snapNuevo) next.push(crearMensaje("assistant", "", { outfit: snapNuevo }));
+            return next;
+          });
+          if (snapNuevo) setIndiceOutfitAbierto(null);
           if (cambiarPanel) {
             if (event.outfit_guardado) {
               setOutfitGuardado(event.outfit_guardado);
@@ -476,7 +488,7 @@ export default function Asistente({ usuarioId }) {
       if (err.name === "AbortError") return;
       setChat((prev) => [
         ...prev,
-        { role: "assistant", text: "⚠️ Ocurrió un error al generar la recomendación." },
+        crearMensaje("assistant", "⚠️ Ocurrió un error al generar la recomendación."),
       ]);
     } finally {
       setLoading(false);
@@ -505,6 +517,7 @@ export default function Asistente({ usuarioId }) {
       localStorage.setItem(`asistente_historial_${usuarioId}`, JSON.stringify(nuevo));
     }
     setChat([]);
+    setIndiceOutfitAbierto(null);
     setOutfit([]);
     setOutfitIds([]);
     setOutfitGuardado(null);
@@ -546,6 +559,7 @@ export default function Asistente({ usuarioId }) {
   /* ── Restaurar sesión del historial ── */
   function restaurarSesion(sesion) {
     setChat(sesion.mensajes);
+    setIndiceOutfitAbierto(null);
     setShowHistorial(false);
   }
 
@@ -612,10 +626,14 @@ export default function Asistente({ usuarioId }) {
         setOutfit(res.data.outfit);
         setOutfitIds(res.data.outfit.map((p) => p.id));
         setOutfitGuardado(null);
+        setChat((prev) => [...prev, crearMensaje("assistant", "", { outfit: snapshotOutfit({ outfit: res.data.outfit }) })]);
+        setIndiceOutfitAbierto(null);
       } else if (res.data?.outfit_guardado) {
         setOutfitGuardado(res.data.outfit_guardado);
         setOutfit([]);
         setOutfitIds([]);
+        setChat((prev) => [...prev, crearMensaje("assistant", "", { outfit: snapshotOutfit({ outfitGuardado: res.data.outfit_guardado }) })]);
+        setIndiceOutfitAbierto(null);
       }
     } catch (err) {
       console.error(err);
@@ -644,6 +662,28 @@ export default function Asistente({ usuarioId }) {
     }
   }
 
+  // Actualiza la foto del mensaje abierto (o el último con outfit) sin crear mensaje nuevo.
+  function conFotoActualizada(prev, newOutfit) {
+    const snap = snapshotOutfit({ outfit: newOutfit });
+    if (!snap) return prev;
+    const idx = indiceOutfitAbierto !== null && prev[indiceOutfitAbierto]?.outfit
+      ? indiceOutfitAbierto
+      : ultimoIndiceOutfit(prev);
+    return idx >= 0 ? actualizarSnapshot(prev, idx, snap) : prev;
+  }
+
+  function abrirOutfitDeMensaje(index) {
+    const msg = chat[index];
+    if (!msg?.outfit) return;
+    const r = restaurarOutfit(msg.outfit);
+    setOutfit(r.outfit);
+    setOutfitIds(r.outfitIds);
+    setOutfitGuardado(r.outfitGuardado);
+    setIndiceOutfitAbierto(index);
+    if (window.matchMedia("(max-width: 900px)").matches) setShowOutfitSheet(true);
+    else setModalAbierto(true);
+  }
+
   function handleSeleccionarPrenda(prenda) {
     const sinTipo = outfit.filter(p => getTipoPrenda(p.descripcion || "") !== swapTipo);
     const newOutfit = [...sinTipo, prenda];
@@ -651,11 +691,12 @@ export default function Asistente({ usuarioId }) {
     setOutfitIds(newOutfit.map(p => p.id));
     const nombrePrenda = prenda.descripcion?.split(" - ")[0] || "prenda";
     setChat(prev => {
+      const base = conFotoActualizada(prev, newOutfit);
       const last = prev[prev.length - 1];
       if (last?.role === "user") {
-        return [...prev, { role: "assistant", text: `Listo, cambié la prenda por **${nombrePrenda}**. ¿El look quedó bien?` }];
+        return [...base, crearMensaje("assistant", `Listo, cambié la prenda por **${nombrePrenda}**. ¿El look quedó bien?`)];
       }
-      return [...prev, { role: "assistant", text: `Cambié por **${nombrePrenda}**. ¿Lo ajusto en algo más?` }];
+      return [...base, crearMensaje("assistant", `Cambié por **${nombrePrenda}**. ¿Lo ajusto en algo más?`)];
     });
     setSwapTipo(null);
   }
@@ -879,7 +920,7 @@ export default function Asistente({ usuarioId }) {
                           transition={TRANS.mensaje}
                         >
                           {msg.outfit ? (
-                            <OutfitMessage snapshot={msg.outfit} ts={msg.ts} onOpen={() => {}} />
+                            <OutfitMessage snapshot={msg.outfit} ts={msg.ts} onOpen={() => abrirOutfitDeMensaje(index)} />
                           ) : (
                             <ChatBubble role={msg.role} ts={msg.ts} streaming={msg.streaming}>
                               {msg.role === "assistant" ? parseChat(msg.text) : msg.text}
@@ -935,12 +976,12 @@ export default function Asistente({ usuarioId }) {
                                   setOutfit(newOutfit);
                                   setOutfitIds(newOutfit.map(p => p.id));
                                   setChat(prev => [
-                                    ...prev,
-                                    { role: "user", text: label },
-                                    { role: "assistant", text: `Listo, quité ${TIPO_LABEL[sug.tipo] || "la prenda"} del look. ¿Lo ajusto en algo más?` },
+                                    ...conFotoActualizada(prev, newOutfit),
+                                    crearMensaje("user", label),
+                                    crearMensaje("assistant", `Listo, quité ${TIPO_LABEL[sug.tipo] || "la prenda"} del look. ¿Lo ajusto en algo más?`),
                                   ]);
                                 } else if (action === "swap" && sug.tipo) {
-                                  setChat(prev => [...prev, { role: "user", text: label }]);
+                                  setChat(prev => [...prev, crearMensaje("user", label)]);
                                   handleSwap(sug.tipo);
                                 } else {
                                   handleRecommend(label);
