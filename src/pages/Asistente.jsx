@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, MotionConfig } from "framer-motion";
 import { Footprints, Briefcase, Moon, Zap, PartyPopper, Plane, Trash2, Shirt, Mic, MicOff, History, X, Flame } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
 import { LocalNotifications } from "@capacitor/local-notifications";
@@ -10,6 +10,13 @@ import { API_URL } from "../config";
 import { supabase, getAuthHeaders } from "../supabase";
 import { getWeather } from "../services/weatherService";
 import { haptics } from "../hooks/useHaptics";
+import { agruparPorDia } from "../lib/chat/mensajes.mjs";
+import { TRANS } from "../lib/chat/movimiento";
+import ChatBubble from "../components/chat/ChatBubble";
+import TypingIndicator from "../components/chat/TypingIndicator";
+import DaySeparator from "../components/chat/DaySeparator";
+import OutfitMessage from "../components/chat/OutfitMessage";
+import "../components/chat/ChatWhatsapp.css";
 
 const TIPOS_VALIDOS = ["parte superior","parte inferior","calzado","abrigo","gorra","accesorio"];
 
@@ -710,8 +717,10 @@ export default function Asistente({ usuarioId }) {
     });
   }
 
+  const escribiendo = loading || chat.some((m) => m.streaming);
+
   return (
-    <>
+    <MotionConfig reducedMotion="user">
       <div ref={fondoRef} className={`asistente-fondo ${tieneOutfit && modo === "chat" ? "sheet-visible" : ""}`}>
         <div className={`asistente-layout ${modo === "maniqui" ? "layout-maniqui" : ""}`}>
 
@@ -730,9 +739,28 @@ export default function Asistente({ usuarioId }) {
                 <div className="asistente-avatar">✦</div>
                 <div className="asistente-header-info">
                   <h1>{modo === "chat" ? "Asistente de Moda" : "Probador Virtual"}</h1>
-                  <p>
-                    <span className="asistente-status-dot" />
-                    Activo · Closet IA
+                  <p className="asistente-status">
+                    <AnimatePresence initial={false}>
+                      {escribiendo ? (
+                        <motion.span
+                          key="escribiendo"
+                          className="asistente-status-escribiendo"
+                          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                          transition={TRANS.aparecer}
+                        >
+                          escribiendo…
+                        </motion.span>
+                      ) : (
+                        <motion.span
+                          key="enlinea"
+                          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                          transition={TRANS.aparecer}
+                        >
+                          <span className="asistente-status-dot" />
+                          en línea
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
                   </p>
                 </div>
               </div>
@@ -837,47 +865,45 @@ export default function Asistente({ usuarioId }) {
                       </div>
                     </motion.div>
                   ) : (
-                    <AnimatePresence initial={false}>
-                      {chat.map((msg, i) => (
+                    agruparPorDia(chat).map((fila) => {
+                      if (fila.tipo === "dia") {
+                        return <DaySeparator key={fila.key} etiqueta={fila.etiqueta} />;
+                      }
+                      const { msg, index } = fila;
+                      return (
                         <motion.div
-                          key={i}
-                          className={`chat-message-row ${msg.role}`}
-                          initial={{ opacity: 0, y: 10, scale: 0.97 }}
+                          key={index}
+                          className={`wa-row ${msg.role}`}
+                          initial={{ opacity: 0, y: 10, scale: 0.96 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
-                          transition={{ duration: 0.25, ease: "easeOut" }}
+                          transition={TRANS.mensaje}
                         >
-                          <div className={`chat-msg-avatar ${msg.role}`}>
-                            {msg.role === "assistant" ? "✦" : "👤"}
-                          </div>
-                          <div className="chat-msg-content">
-                            <span className="chat-msg-sender">
-                              {msg.role === "assistant" ? "Asistente" : "Tú"}
-                            </span>
-                            <div className={`chat-bubble ${msg.role}`}>
+                          {msg.outfit ? (
+                            <OutfitMessage snapshot={msg.outfit} ts={msg.ts} onOpen={() => {}} />
+                          ) : (
+                            <ChatBubble role={msg.role} ts={msg.ts} streaming={msg.streaming}>
                               {msg.role === "assistant" ? parseChat(msg.text) : msg.text}
-                              {msg.streaming && <span className="stream-cursor" />}
-                            </div>
-                          </div>
+                            </ChatBubble>
+                          )}
                         </motion.div>
-                      ))}
-                    </AnimatePresence>
+                      );
+                    })
                   )}
 
-                  {loading && (
-                    <div className="chat-message-row assistant">
-                      <div className="chat-msg-avatar assistant">✦</div>
-                      <div className="chat-msg-content">
-                        <span className="chat-msg-sender">Asistente</span>
-                        <div className="chat-bubble assistant">
-                          <div className="chat-loader">
-                            <span className="dot" />
-                            <span className="dot" />
-                            <span className="dot" />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  <AnimatePresence>
+                    {loading && (
+                      <motion.div
+                        key="typing"
+                        className="wa-row assistant"
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        transition={TRANS.aparecer}
+                      >
+                        <TypingIndicator />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
                   {/* ── Quick replies (sugerencias) ── */}
                   <AnimatePresence>
@@ -1039,9 +1065,7 @@ export default function Asistente({ usuarioId }) {
                       disabled={loadingManiqui}
                     >
                       {loadingManiqui ? (
-                        <div className="chat-loader">
-                          <span className="dot" /><span className="dot" /><span className="dot" />
-                        </div>
+                        <TypingIndicator bare />
                       ) : (
                         "✨ Generar outfit"
                       )}
@@ -1260,9 +1284,7 @@ export default function Asistente({ usuarioId }) {
               <p>Solo se muestran prendas de esta categoría</p>
               {swapLoading ? (
                 <div className="swap-loading">
-                  <div className="chat-loader">
-                    <span className="dot" /><span className="dot" /><span className="dot" />
-                  </div>
+                  <TypingIndicator bare />
                 </div>
               ) : filtradas.length === 0 ? (
                 <p className="swap-empty">No tienes {etiquetas[swapTipo] || swapTipo} en tu closet.</p>
@@ -1336,6 +1358,6 @@ export default function Asistente({ usuarioId }) {
           </motion.div>
         )}
       </AnimatePresence>
-    </>
+    </MotionConfig>
   );
 }

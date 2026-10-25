@@ -1,0 +1,86 @@
+/* Piezas del chat estilo WhatsApp (oscuro por defecto, claro en body.light-mode) */
+.wa-row { display: flex; margin-bottom: 6px; }
+.wa-row.user { justify-content: flex-end; transform-origin: bottom right; }
+.wa-row.assistant { justify-content: flex-start; transform-origin: bottom left; }
+
+.wa-bubble {
+  max-width: 80%;
+  padding: 7px 10px 5px;
+  border-radius: 14px;
+  line-height: 1.4;
+  font-size: 0.9rem;
+  word-break: break-word;
+  position: relative;
+  text-align: left;
+  font-family: inherit;
+}
+.chat-bubble.wa-bubble.user,
+.wa-bubble.user {
+  background: linear-gradient(135deg, #7c5cd6, #9b7fe0);
+  color: #fff;
+  border: none;
+  border-bottom-right-radius: 4px;
+  box-shadow: none;
+}
+.chat-bubble.wa-bubble.assistant,
+.wa-bubble.assistant {
+  background: rgba(196, 181, 232, 0.10);
+  color: rgba(244, 244, 249, 0.92);
+  border: 1px solid rgba(196, 181, 232, 0.12);
+  border-bottom-left-radius: 4px;
+  box-shadow: none;
+}
+.wa-meta { font-size: 10px; opacity: 0.65; text-align: right; margin-top: 2px; }
+.wa-tick { margin-left: 3px; color: #d9cdf5; }
+
+.wa-day {
+  align-self: center;
+  font-size: 10.5px;
+  padding: 3px 9px;
+  border-radius: 8px;
+  margin: 4px 0 8px;
+  background: rgba(196, 181, 232, 0.08);
+  color: rgba(244, 244, 249, 0.6);
+}
+
+.wa-typing { display: flex; gap: 4px; padding: 10px 12px; width: fit-content; }
+.wa-typing i { width: 6px; height: 6px; border-radius: 50%; display: block; background: #C4B5E8; }
+
+.wa-outfit { cursor: pointer; display: block; width: 78%; max-width: 260px; }
+.wa-outfit-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin: 2px 0 5px; }
+.wa-outfit-grid.single { grid-template-columns: 1fr; }
+.wa-outfit-thumb { aspect-ratio: 1; border-radius: 9px; overflow: hidden; background: rgba(196, 181, 232, 0.12); }
+.wa-outfit-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.wa-outfit-hint { font-size: 0.82rem; }
+
+/* Cabecera: estado con fundido */
+.asistente-status { position: relative; height: 14px; min-width: 110px; }
+.asistente-status > span { position: absolute; left: 0; top: 0; white-space: nowrap; display: flex; align-items: center; gap: 5px; }
+.asistente-status .asistente-status-escribiendo { color: #C4B5E8; }
+
+/* ── Modo claro ── */
+body.light-mode .chat-bubble.wa-bubble.user,
+body.light-mode .wa-bubble.user {
+  background: #5a3d9e !important;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  border: none !important;
+}
+body.light-mode .chat-bubble.wa-bubble.assistant,
+body.light-mode .wa-bubble.assistant {
+  background: #fff !important;
+  border: 1px solid rgba(15, 3, 38, 0.08) !important;
+  box-shadow: 0 1px 2px rgba(15, 3, 38, 0.06);
+  color: #0F0326 !important;
+  -webkit-text-fill-color: #0F0326 !important;
+}
+body.light-mode .wa-bubble.user .wa-meta,
+body.light-mode .wa-bubble.user .wa-tick { color: #d9cdf5; -webkit-text-fill-color: #d9cdf5; }
+body.light-mode .wa-day { background: rgba(15, 3, 38, 0.06); color: rgba(15, 3, 38, 0.55); }
+body.light-mode .wa-typing i { background: #7b62b8; }
+body.light-mode .wa-outfit-thumb { background: #f1edfb; }
+body.light-mode .asistente-status .asistente-status-escribiendo { color: #5a3d9e; }
+body.light-mode .stream-cursor { background: rgba(15, 3, 38, 0.5); }
+
+.wa-typing--bare { padding: 0; justify-content: center; align-items: center; margin: 0 auto; }
+.wa-typing--bare i { background: currentColor; }

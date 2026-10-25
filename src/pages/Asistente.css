@@ -385,85 +385,8 @@ body.light-mode .cfd-hint { color: rgba(15, 3, 38, 0.6); }
   color: rgba(244, 244, 249, 0.9);
 }
 
-/* ── MENSAJE ROW ── */
-.chat-message-row {
-  display: flex;
-  gap: 10px;
-  animation: messageIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  margin-bottom: 4px;
-}
-
-.chat-message-row.user      { flex-direction: row-reverse; }
-.chat-message-row.assistant { flex-direction: row; }
-
-.chat-msg-avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.85rem;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.chat-msg-avatar.assistant {
-  background: linear-gradient(135deg, rgba(196,181,232,0.2), rgba(196,181,232,0.06));
-  border: 1px solid rgba(196,181,232,0.15);
-  box-shadow: inset 0 1px 0 rgba(196,181,232,0.12);
-}
-
-.chat-msg-avatar.user {
-  background: rgba(196, 181, 232, 0.12);
-  border: 1px solid rgba(196, 181, 232, 0.15);
-}
-
-.chat-msg-content {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  max-width: 75%;
-}
-
-.chat-message-row.user .chat-msg-content { align-items: flex-end; }
-
-.chat-msg-sender {
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  padding: 0 4px;
-}
-
-.chat-message-row.assistant .chat-msg-sender { color: rgba(196, 181, 232, 0.8); }
-.chat-message-row.user .chat-msg-sender      { color: rgba(244, 244, 249, 0.65); }
-
-/* ── BURBUJAS ── */
-.chat-bubble {
-  padding: 12px 16px;
-  border-radius: 18px;
-  line-height: 1.6;
-  font-size: 0.9rem;
-  position: relative;
-  word-break: break-word;
-}
-
-.chat-bubble.user {
-  background: rgba(196, 181, 232, 0.14);
-  color: rgba(244, 244, 249, 0.92);
-  border: 1px solid rgba(196, 181, 232, 0.2);
-  border-bottom-right-radius: 5px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15), inset 0 1px 0 rgba(196,181,232,0.12);
-}
-
-.chat-bubble.assistant {
-  background: rgba(25, 10, 55, 0.7);
-  color: rgba(244, 244, 249, 0.88);
-  border: 1px solid rgba(196, 181, 232, 0.08);
-  border-bottom-left-radius: 5px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.03);
-}
+/* ── BURBUJAS (base; estilo WhatsApp en components/chat/ChatWhatsapp.css) ── */
+.chat-bubble { word-break: break-word; }
 
 /* ── Formato markdown del chat ── */
 .chat-bubble.assistant .chat-para {
@@ -518,31 +441,6 @@ body.light-mode .chat-bubble.assistant .chat-item-label {
 }
 body.light-mode .chat-item-dot  { color: rgba(80, 50, 140, 0.5); }
 body.light-mode .chat-item-desc { color: rgba(15, 3, 38, 0.65); }
-
-/* ── LOADER ── */
-.chat-loader {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 14px 18px;
-}
-
-.chat-loader .dot {
-  width: 5px;
-  height: 5px;
-  background: rgba(196, 181, 232, 0.5);
-  border-radius: 50%;
-  animation: dotBounce 1.4s infinite ease-in-out;
-}
-
-.chat-loader .dot:nth-child(1) { animation-delay: 0s; }
-.chat-loader .dot:nth-child(2) { animation-delay: 0.15s; }
-.chat-loader .dot:nth-child(3) { animation-delay: 0.3s; }
-
-@keyframes dotBounce {
-  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-  30%           { transform: translateY(-5px); opacity: 1; }
-}
 
 /* ── FORM INPUT ── */
 .asistente-form {
@@ -1022,11 +920,6 @@ body.light-mode .chat-item-desc { color: rgba(15, 3, 38, 0.65); }
 .outfit-sheet          { display: none; }
 
 /* ── ANIMACIONES ── */
-@keyframes messageIn {
-  from { opacity: 0; transform: translateY(8px) scale(0.98); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
-}
-
 @keyframes fadeInBg {
   from { opacity: 0; }
   to   { opacity: 1; }
@@ -1082,62 +975,6 @@ body.light-mode .chat-hint:hover {
 }
 
 body.light-mode .chat-placeholder-title { color: rgba(15, 3, 38, 0.6) !important; }
-
-/* sender labels */
-body.light-mode .chat-message-row.assistant .chat-msg-sender {
-  color: rgba(80, 50, 140, 0.6) !important;
-  -webkit-text-fill-color: rgba(80, 50, 140, 0.6) !important;
-}
-body.light-mode .chat-message-row.user .chat-msg-sender {
-  color: rgba(15, 3, 38, 0.45) !important;
-  -webkit-text-fill-color: rgba(15, 3, 38, 0.45) !important;
-}
-
-body.light-mode .chat-bubble.user {
-  background: rgba(15, 3, 38, 0.12) !important;
-  color: #0F0326 !important;
-  -webkit-text-fill-color: #0F0326 !important;
-  border-color: rgba(15, 3, 38, 0.12) !important;
-}
-
-/* Burbuja asistente — todo el árbol de texto explícitamente oscuro */
-body.light-mode .chat-bubble.assistant {
-  background: rgba(255, 255, 255, 0.92) !important;
-  color: #0F0326 !important;
-  -webkit-text-fill-color: #0F0326 !important;
-  border-color: rgba(15, 3, 38, 0.1) !important;
-}
-body.light-mode .chat-bubble.assistant .chat-para,
-body.light-mode .chat-bubble.assistant .chat-item,
-body.light-mode .chat-bubble.assistant .chat-item-body {
-  color: #0F0326 !important;
-  -webkit-text-fill-color: #0F0326 !important;
-}
-body.light-mode .chat-bubble.assistant strong,
-body.light-mode .chat-bubble.assistant .chat-item-label {
-  color: rgba(60, 30, 120, 0.9) !important;
-  -webkit-text-fill-color: rgba(60, 30, 120, 0.9) !important;
-}
-body.light-mode .chat-item-dot {
-  color: rgba(80, 50, 140, 0.5) !important;
-  -webkit-text-fill-color: rgba(80, 50, 140, 0.5) !important;
-}
-body.light-mode .chat-item-desc {
-  color: rgba(15, 3, 38, 0.65) !important;
-  -webkit-text-fill-color: rgba(15, 3, 38, 0.65) !important;
-}
-
-body.light-mode .chat-msg-avatar.assistant {
-  background: rgba(15, 3, 38, 0.06) !important;
-  border-color: rgba(15, 3, 38, 0.1) !important;
-  color: rgba(15, 3, 38, 0.7) !important;
-  -webkit-text-fill-color: rgba(15, 3, 38, 0.7) !important;
-}
-
-body.light-mode .chat-msg-avatar.user {
-  background: rgba(15, 3, 38, 0.08) !important;
-  border-color: rgba(15, 3, 38, 0.12) !important;
-}
 
 body.light-mode .asistente-form-inner {
   background: rgba(255, 255, 255, 0.88) !important;
@@ -1339,7 +1176,7 @@ body.light-mode .ocasion-chip.activa {
 
   .outfit-panel { display: none !important; }
 
-  .chat-msg-content          { max-width: 88% !important; }
+  .wa-bubble                 { max-width: 88%; }
   .chat-bubble               { font-size: 0.88rem !important; }
   .chat-placeholder-hints    { max-width: 100%; }
   .chat-item-desc            { font-size: 0.82rem !important; }
@@ -2046,7 +1883,6 @@ body.light-mode .racha-badge--cero { background: rgba(15, 3, 38, 0.05); border-c
   color: #93d2fa;
 }
 
-body.light-mode .stream-cursor { background: rgba(15, 3, 38, 0.5); }
 body.light-mode .sugerencia-chip {
   background: rgba(15, 3, 38, 0.05);
   border-color: rgba(15, 3, 38, 0.15);
