@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { motion, AnimatePresence, MotionConfig } from "framer-motion";
 import { Footprints, Briefcase, Moon, Zap, PartyPopper, Plane, Trash2, Shirt, Mic, MicOff, History, X, Flame } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
@@ -10,12 +10,11 @@ import { API_URL } from "../config";
 import { supabase, getAuthHeaders } from "../supabase";
 import { getWeather } from "../services/weatherService";
 import { haptics } from "../hooks/useHaptics";
-import { agruparPorDia, crearMensaje, snapshotOutfit, restaurarOutfit, actualizarSnapshot, ultimoIndiceOutfit, recortarHistorial } from "../lib/chat/mensajes.mjs";
+import { agruparPorDia, crearMensaje, snapshotOutfit, restaurarOutfit, actualizarSnapshot, ultimoIndiceOutfit, recortarHistorial, aplicarFragmento, terminarStream } from "../lib/chat/mensajes.mjs";
 import { TRANS } from "../lib/chat/movimiento";
-import ChatBubble from "../components/chat/ChatBubble";
 import TypingIndicator from "../components/chat/TypingIndicator";
 import DaySeparator from "../components/chat/DaySeparator";
-import OutfitMessage from "../components/chat/OutfitMessage";
+import MessageRow from "../components/chat/MessageRow";
 import MannequinModal from "../components/chat/MannequinModal";
 import { useEsEscritorio } from "../hooks/useEsEscritorio";
 import "../components/chat/ChatWhatsapp.css";
@@ -82,6 +81,8 @@ export default function Asistente({ usuarioId }) {
     catch { return []; }
   });
   const [indiceOutfitAbierto, setIndiceOutfitAbierto] = useState(null);
+  const umbralAnimRef = useRef(chat.length); // índice desde el que las filas animan al aparecer
+  const calGuardadoIdxRef = useRef(null);    // mensaje de outfit al que corresponde el "✅ Guardado"
   const [modalAbierto, setModalAbierto] = useState(false);
   const esEscritorio = useEsEscritorio();
 
@@ -341,7 +342,8 @@ export default function Asistente({ usuarioId }) {
   const prefetchActivo = modo === "maniqui" || (esEscritorio && modalAbierto);
   useEffect(() => {
     if (!prefetchActivo || !usuarioId) return;
-    prendasCacheRef.current = null; // invalidar en cada entrada para evitar datos viejos
+    // Si la caché ya está caliente (p. ej. la llenó el chip "Cambiar"), no volver a pedirla
+    if (prendasCacheRef.current) return;
     let cancelled = false;
     async function prefetchPrendas() {
       try {
@@ -452,12 +454,8 @@ export default function Asistente({ usuarioId }) {
             setLoading(false);
             setChat((prev) => [...prev, { ...crearMensaje("assistant", accText), streaming: true }]);
           } else {
-            setChat((prev) => {
-              const next = [...prev];
-              const last = next[next.length - 1];
-              if (last?.streaming) next[next.length - 1] = { ...last, text: accText };
-              return next;
-            });
+            const texto = accText;
+            setChat((prev) => aplicarFragmento(prev, texto));
           }
         } else if (event.type === "done") {
           haptics.success();
@@ -472,13 +470,7 @@ export default function Asistente({ usuarioId }) {
                 ? snapshotOutfit({ outfitGuardado: event.outfit_guardado })
                 : snapshotOutfit({ outfit: event.outfit }))
             : null;
-          setChat((prev) => {
-            const next = [...prev];
-            const last = next[next.length - 1];
-            if (last?.streaming) next[next.length - 1] = { ...last, streaming: false };
-            if (snapNuevo) next.push(crearMensaje("assistant", "", { outfit: snapNuevo }));
-            return next;
-          });
+          setChat((prev) => terminarStream(prev, snapNuevo));
           if (snapNuevo) setIndiceOutfitAbierto(null);
           if (cambiarPanel) {
             if (event.outfit_guardado) {
@@ -584,8 +576,10 @@ export default function Asistente({ usuarioId }) {
 
   /* ── Restaurar sesión del historial ── */
   function restaurarSesion(sesion) {
+    umbralAnimRef.current = sesion.mensajes.length; // la sesión restaurada aparece sin animar fila por fila
     setChat(sesion.mensajes);
     setIndiceOutfitAbierto(null);
+    setCalConfirmado(false);
     setShowHistorial(false);
   }
 
@@ -625,6 +619,7 @@ export default function Asistente({ usuarioId }) {
       }, { headers: getAuthHeaders() });
 
       setShowCalPicker(false);
+      calGuardadoIdxRef.current = indiceOutfitAbierto !== null ? indiceOutfitAbierto : ultimoIndiceOutfit(chat);
       setCalConfirmado(true);
     } catch (err) {
       console.error("Error guardando en calendario:", err);
@@ -691,11 +686,12 @@ export default function Asistente({ usuarioId }) {
   }
 
   // Actualiza la foto del mensaje abierto (o el último con outfit) sin crear mensaje nuevo.
-  function conFotoActualizada(prev, newOutfit) {
+  // `soloUltimo`: los chips siempre apuntan al último mensaje de outfit (decisión 6 del spec).
+  function conFotoActualizada(prev, newOutfit, { soloUltimo = false } = {}) {
     if (outfitGuardado) return prev; // nunca pisar la foto de un outfit guardado
     const snap = snapshotOutfit({ outfit: newOutfit });
     if (!snap) return prev;
-    const idx = indiceOutfitAbierto !== null && prev[indiceOutfitAbierto]?.outfit
+    const idx = !soloUltimo && indiceOutfitAbierto !== null && prev[indiceOutfitAbierto]?.outfit
       ? indiceOutfitAbierto
       : ultimoIndiceOutfit(prev);
     return idx >= 0 ? actualizarSnapshot(prev, idx, snap) : prev;
@@ -708,6 +704,8 @@ export default function Asistente({ usuarioId }) {
     setOutfit(r.outfit);
     setOutfitIds(r.outfitIds);
     setOutfitGuardado(r.outfitGuardado);
+    // Otro mensaje: el "✅ Guardado" era de otro outfit
+    if (index !== calGuardadoIdxRef.current) setCalConfirmado(false);
     setIndiceOutfitAbierto(index);
     if (esEscritorio) setModalAbierto(true);
     else setShowOutfitSheet(true);
@@ -715,6 +713,7 @@ export default function Asistente({ usuarioId }) {
 
   function cerrarModal() {
     setModalAbierto(false);
+    setIndiceOutfitAbierto(null);
     setSwapTipo(null);
     setShowCalPicker(false);
   }
@@ -739,6 +738,7 @@ export default function Asistente({ usuarioId }) {
       }
       return [...base, crearMensaje("assistant", `Cambié por **${nombrePrenda}**. ¿Lo ajusto en algo más?`)];
     });
+    setCalConfirmado(false); // el outfit cambió: el "Guardado" anterior ya no aplica
     setSwapTipo(null);
   }
 
@@ -756,48 +756,15 @@ export default function Asistente({ usuarioId }) {
     ];
   }, [clima]);
 
-  function parseBold(text) {
-    return text.split(/(\*\*[^*]+\*\*)/g).map((seg, j) =>
-      seg.startsWith("**") && seg.endsWith("**")
-        ? <strong key={j}>{seg.slice(2, -2)}</strong>
-        : seg
-    );
-  }
+  const filasChat = useMemo(() => agruparPorDia(chat), [chat]);
 
-  function parseChat(text) {
-    if (!text || typeof text !== "string") return null;
-    const unescaped = text.replace(/\\n/g, "\n");
-    const normalized = unescaped.replace(/ - \*\*/g, "\n- **").trim();
-    return normalized.split("\n").map((line, i) => {
-      if (!line.trim()) return <br key={i} />;
-      const isBullet = line.trimStart().startsWith("- ");
-      const content  = isBullet ? line.trimStart().slice(2) : line;
+  // onOpen estable para las filas memoizadas (siempre llama a la versión más reciente)
+  const abrirOutfitRef = useRef(abrirOutfitDeMensaje);
+  abrirOutfitRef.current = abrirOutfitDeMensaje;
+  const onAbrirOutfit = useCallback((index) => abrirOutfitRef.current(index), []);
 
-      if (isBullet) {
-        // Patrón **Label**: descripción → label en su propia línea
-        const m = content.match(/^\*\*([^*]+)\*\*[:\s]\s*(.*)/s);
-        if (m) {
-          return (
-            <div key={i} className="chat-item">
-              <span className="chat-item-dot">·</span>
-              <div className="chat-item-body">
-                <strong className="chat-item-label">{m[1]}:</strong>
-                {m[2] && <span className="chat-item-desc">{m[2]}</span>}
-              </div>
-            </div>
-          );
-        }
-        return (
-          <div key={i} className="chat-item">
-            <span className="chat-item-dot">·</span>
-            <span>{parseBold(content)}</span>
-          </div>
-        );
-      }
-
-      return <p key={i} className="chat-para">{parseBold(content)}</p>;
-    });
-  }
+  // Solo animan las filas nuevas: las que ya existían al montar o al volver del Probador no.
+  if (modo !== "chat" || chat.length < umbralAnimRef.current) umbralAnimRef.current = chat.length;
 
   const escribiendo = loading || chat.some((m) => m.streaming);
   // Con un outfit guardado (foto fija) no hay chips para cambiar o quitar prendas sueltas
@@ -807,7 +774,7 @@ export default function Asistente({ usuarioId }) {
 
   return (
     <MotionConfig reducedMotion="user">
-      <div ref={fondoRef} className={`asistente-fondo ${tieneOutfit && modo === "chat" ? "sheet-visible" : ""}`}>
+      <div ref={fondoRef} inert={esEscritorio && modalAbierto} className={`asistente-fondo ${tieneOutfit && modo === "chat" ? "sheet-visible" : ""}`}>
         <div className="asistente-layout">
 
           {/* ── CARD PRINCIPAL ── */}
@@ -951,28 +918,19 @@ export default function Asistente({ usuarioId }) {
                       </div>
                     </motion.div>
                   ) : (
-                    agruparPorDia(chat).map((fila) => {
+                    filasChat.map((fila) => {
                       if (fila.tipo === "dia") {
                         return <DaySeparator key={fila.key} etiqueta={fila.etiqueta} />;
                       }
                       const { msg, index } = fila;
                       return (
-                        <motion.div
+                        <MessageRow
                           key={index}
-                          data-msg-index={index}
-                          className={`wa-row ${msg.role}`}
-                          initial={{ opacity: 0, y: 10, scale: 0.96 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          transition={TRANS.mensaje}
-                        >
-                          {msg.outfit ? (
-                            <OutfitMessage snapshot={msg.outfit} ts={msg.ts} onOpen={() => abrirOutfitDeMensaje(index)} />
-                          ) : (
-                            <ChatBubble role={msg.role} ts={msg.ts} streaming={msg.streaming}>
-                              {msg.role === "assistant" ? parseChat(msg.text) : msg.text}
-                            </ChatBubble>
-                          )}
-                        </motion.div>
+                          msg={msg}
+                          index={index}
+                          onOpen={onAbrirOutfit}
+                          animar={index >= umbralAnimRef.current}
+                        />
                       );
                     })
                   )}
@@ -1019,16 +977,30 @@ export default function Asistente({ usuarioId }) {
                                 setSugerencias([]);
                                 if ((action === "remove" || action === "swap") && outfitGuardado) {
                                   return;
-                                } else if (action === "remove" && sug.tipo) {
-                                  const newOutfit = outfit.filter(p => getTipoPrenda(p.descripcion) !== sug.tipo);
+                                }
+                                // Los chips actúan sobre el último mensaje de outfit (no sobre uno viejo abierto)
+                                const idxUltimo = ultimoIndiceOutfit(chat);
+                                if ((action === "remove" || action === "swap") && chat[idxUltimo]?.outfit?.guardado) return;
+                                const outfitUltimo = idxUltimo >= 0 ? restaurarOutfit(chat[idxUltimo].outfit).outfit : outfit;
+                                if (action === "remove" && sug.tipo) {
+                                  const newOutfit = outfitUltimo.filter(p => getTipoPrenda(p.descripcion) !== sug.tipo);
                                   setOutfit(newOutfit);
                                   setOutfitIds(newOutfit.map(p => p.id));
+                                  setIndiceOutfitAbierto(null);
+                                  setCalConfirmado(false);
                                   setChat(prev => [
-                                    ...conFotoActualizada(prev, newOutfit),
+                                    ...conFotoActualizada(prev, newOutfit, { soloUltimo: true }),
                                     crearMensaje("user", label),
                                     crearMensaje("assistant", `Listo, quité ${TIPO_LABEL[sug.tipo] || "la prenda"} del look. ¿Lo ajusto en algo más?`),
                                   ]);
                                 } else if (action === "swap" && sug.tipo) {
+                                  // La elección posterior se aplica al último outfit: se "abre" ese mensaje
+                                  if (idxUltimo >= 0) {
+                                    setOutfit(outfitUltimo);
+                                    setOutfitIds(outfitUltimo.map(p => p.id));
+                                    if (idxUltimo !== calGuardadoIdxRef.current) setCalConfirmado(false);
+                                    setIndiceOutfitAbierto(idxUltimo);
+                                  }
                                   setChat(prev => [...prev, crearMensaje("user", label)]);
                                   handleSwap(sug.tipo);
                                   // En escritorio abre el pop up directo en "cambiar" (sin confirmación)

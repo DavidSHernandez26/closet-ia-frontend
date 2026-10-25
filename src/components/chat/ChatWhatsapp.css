@@ -4,7 +4,7 @@
 .wa-row.assistant { justify-content: flex-start; transform-origin: bottom left; }
 
 .wa-bubble {
-  max-width: 80%;
+  max-width: min(80%, 620px);
   padding: 7px 10px 5px;
   border-radius: 14px;
   line-height: 1.4;

@@ -4,11 +4,16 @@ const pickPrenda = (p) => ({ id: p.id, imagen_url: p.imagen_url, descripcion: p.
 
 // Snapshot del outfit para guardarlo dentro de un mensaje.
 // Si hay outfit guardado, tiene prioridad. Sin outfit ni guardado devuelve null.
+// Del outfit guardado se conserva solo metadata_ia.prendas (las etiquetas del pop up).
 export function snapshotOutfit({ outfit, outfitGuardado } = {}) {
-  if (outfitGuardado) return { guardado: pickPrenda(outfitGuardado) };
-  if (Array.isArray(outfit) && outfit.length > 0) {
-    return { prendas: outfit.map(pickPrenda) };
+  if (outfitGuardado) {
+    const guardado = pickPrenda(outfitGuardado);
+    const prendas = outfitGuardado.metadata_ia?.prendas;
+    if (Array.isArray(prendas)) guardado.metadata_ia = { prendas };
+    return { guardado };
   }
+  const validas = Array.isArray(outfit) ? outfit.filter(Boolean) : [];
+  if (validas.length > 0) return { prendas: validas.map(pickPrenda) };
   return null;
 }
 
@@ -25,6 +30,29 @@ export function crearMensaje(role, text, { ts = Date.now(), outfit = null } = {}
   const msg = { role, text, ts };
   if (outfit !== null) msg.outfit = outfit;
   return msg;
+}
+
+const indiceStreaming = (mensajes) => mensajes.findLastIndex((m) => m?.streaming);
+
+// Pone `texto` en el mensaje que está en streaming (no necesariamente el último).
+export function aplicarFragmento(mensajes, texto) {
+  const i = indiceStreaming(mensajes);
+  if (i < 0) return mensajes;
+  return mensajes.map((msg, j) => (j === i ? { ...msg, text: texto } : msg));
+}
+
+// Termina el stream: quita `streaming` del mensaje en streaming y, si hay snapshot,
+// inserta el mensaje de outfit justo después (o al final si no hay mensaje en streaming).
+export function terminarStream(mensajes, snapshot, ts = Date.now()) {
+  const i = indiceStreaming(mensajes);
+  if (i < 0 && !snapshot) return mensajes;
+  const next = [...mensajes];
+  if (i >= 0) {
+    const { streaming, ...resto } = next[i];
+    next[i] = resto;
+  }
+  if (snapshot) next.splice(i >= 0 ? i + 1 : next.length, 0, crearMensaje("assistant", "", { ts, outfit: snapshot }));
+  return next;
 }
 
 export function formatearHora(ts, locale) {

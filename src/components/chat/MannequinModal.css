@@ -16,6 +16,7 @@
   width: 100%;
   max-width: 520px;
   max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
   display: flex;
   flex-direction: column;
   background: rgba(20, 6, 46, 0.98);
@@ -175,6 +176,7 @@ body.light-mode .mm-modal-cal-btn {
   color: #0F0326;
 }
 body.light-mode .mm-modal-cal-btn:hover { background: rgba(15, 3, 38, 0.1); }
+body.light-mode .mm-modal-cal-ok { color: #3f6b37; } /* ≥ 4.5:1 sobre blanco */
 body.light-mode .mm-modal .outfit-guardado-preview p { color: rgba(15, 3, 38, 0.6); }
 body.light-mode .mm-modal .outfit-guardado-chip {
   background: rgba(15, 3, 38, 0.04);
