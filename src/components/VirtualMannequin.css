@@ -323,3 +323,85 @@ body.light-mode .outfit-chip.swappable:hover { border-color: rgba(15, 3, 38, 0.2
   color: rgba(196, 181, 232, 0.5);
   flex-shrink: 0;
 }
+
+/* ── BOTONES (reset de estilos nativos, mismo aspecto previo) ── */
+button.mannequin-prenda,
+button.accesorio-side-item,
+button.outfit-chip {
+  font: inherit;
+  color: inherit;
+  text-align: inherit;
+  appearance: none;
+  -webkit-appearance: none;
+}
+button.mannequin-prenda {
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+button.accesorio-side-item,
+button.outfit-chip {
+  width: 100%;
+  box-sizing: border-box;
+}
+button.mannequin-prenda:focus-visible,
+button.accesorio-side-item:focus-visible,
+button.outfit-chip:focus-visible,
+.mm-confirm-btn:focus-visible {
+  outline: 2px solid rgba(196, 181, 232, 0.9);
+  outline-offset: 2px;
+}
+.outfit-chip-info { text-align: left; }
+
+/* ── CONFIRMACIÓN ── */
+.mm-item-wrap { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+
+.mm-confirm-anchor {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+.mm-confirm-anchor > .mm-confirm { pointer-events: auto; }
+
+.mm-confirm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(30, 14, 64, 0.96);
+  border: 1px solid rgba(196, 181, 232, 0.35);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  color: rgba(244, 244, 249, 0.92);
+}
+.mm-confirm-inline { align-self: stretch; }
+.mm-confirm-texto { font-size: 0.72rem; line-height: 1.2; text-align: center; }
+.mm-confirm-acciones { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.mm-confirm-btn {
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 4px 10px;
+  cursor: pointer;
+  border: 1px solid rgba(196, 181, 232, 0.4);
+  background: transparent;
+  color: rgba(244, 244, 249, 0.85);
+}
+.mm-confirm-ok { background: rgba(196, 181, 232, 0.9); color: #0F0326; border-color: transparent; }
+
+body.light-mode .mm-confirm {
+  background: rgba(255, 255, 255, 0.97);
+  border-color: rgba(15, 3, 38, 0.2);
+  box-shadow: 0 6px 20px rgba(15, 3, 38, 0.18);
+  color: rgba(15, 3, 38, 0.85);
+}
+body.light-mode .mm-confirm-btn { border-color: rgba(15, 3, 38, 0.25); color: rgba(15, 3, 38, 0.8); }
+body.light-mode .mm-confirm-ok { background: #0F0326; color: #fff; border-color: transparent; }

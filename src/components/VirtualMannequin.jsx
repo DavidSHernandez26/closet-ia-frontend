@@ -1,4 +1,5 @@
-import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import "./VirtualMannequin.css";
 
 // Solo estas tienen posición en el cuerpo del maniquí
@@ -62,7 +63,53 @@ const chipVariants = {
     transition: { type: "spring", stiffness: 240, damping: 20 } },
 };
 
-export default function VirtualMannequin({ outfit, onSwap, calAction }) {
+const confirmVariants = {
+  hidden:  { opacity: 0, y: 6, scale: 0.96 },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.18, ease: "easeOut" } },
+  exit:    { opacity: 0, y: 4, scale: 0.97, transition: { duration: 0.15, ease: "easeIn" } },
+};
+
+function ConfirmCambio({ tipo, onConfirm, onCancel, className = "" }) {
+  const etiqueta = (ETIQUETAS[tipo] || tipo).toLowerCase();
+  return (
+    <motion.div
+      className={`mm-confirm ${className}`}
+      data-mm-confirm
+      role="group"
+      aria-label={`¿Cambiar ${etiqueta}?`}
+      variants={confirmVariants}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+    >
+      <span className="mm-confirm-texto">¿Cambiar {etiqueta}?</span>
+      <div className="mm-confirm-acciones">
+        <button type="button" className="mm-confirm-btn mm-confirm-ok" onClick={onConfirm}>Cambiar</button>
+        <button type="button" className="mm-confirm-btn mm-confirm-cancel" onClick={onCancel}>Cancelar</button>
+      </div>
+    </motion.div>
+  );
+}
+
+export default function VirtualMannequin({ outfit, onSwap, calAction, confirmarCambio = true }) {
+  // Solo una confirmación abierta a la vez: "<zona>:<id>"
+  const [pendiente, setPendiente] = useState(null);
+
+  useEffect(() => {
+    if (!pendiente) return;
+    const onKey = (e) => { if (e.key === "Escape") setPendiente(null); };
+    const onDown = (e) => {
+      if (e.target.closest?.("[data-mm-confirm], [data-mm-trigger]")) return;
+      setPendiente(null);
+    };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", onDown);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", onDown);
+    };
+  }, [pendiente]);
+
   if (!outfit || outfit.length === 0) return null;
 
   const prendas = outfit.map((p) => {
@@ -75,6 +122,13 @@ export default function VirtualMannequin({ outfit, onSwap, calAction }) {
 
   // Key derivada del outfit para re-disparar animación cuando cambian las prendas
   const outfitKey = outfit.map(p => p.id).join("-");
+
+  const pedirCambio = (clave, tipo) => {
+    if (!onSwap) return;
+    if (!confirmarCambio) { onSwap(tipo); return; }
+    setPendiente((actual) => (actual === clave ? null : clave));
+  };
+  const confirmar = (tipo) => { setPendiente(null); onSwap && onSwap(tipo); };
 
   return (
     <div className="mannequin-wrapper">
@@ -108,25 +162,40 @@ export default function VirtualMannequin({ outfit, onSwap, calAction }) {
             animate="visible"
           >
             {prendasCuerpo.map((p) => (
-              <motion.div
+              <motion.button
+                type="button"
                 key={p.id}
+                data-mm-trigger
                 className={`mannequin-prenda ${onSwap ? "swappable" : ""}`}
                 style={{ top: p.pos.top, height: p.pos.height, zIndex: getZIndex(p.tipo) }}
-                onClick={() => onSwap && onSwap(p.tipo)}
+                onClick={() => pedirCambio(`cuerpo:${p.id}`, p.tipo)}
+                aria-label={onSwap ? `Cambiar ${(ETIQUETAS[p.tipo] || p.tipo).toLowerCase()}` : undefined}
                 variants={prendaFadeVariants}
               >
                 {/* Wrapper interno libre de conflictos CSS: hace el scale */}
-                <motion.div
+                <motion.span
                   style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}
                   variants={prendaScaleVariants}
                 >
                   <img src={p.imagen_url} alt={p.descripcion} className="prenda-img" loading="lazy" />
-                </motion.div>
-                {onSwap && <div className="prenda-swap-badge">↕</div>}
+                </motion.span>
+                {onSwap && <span className="prenda-swap-badge">↕</span>}
                 <span className="prenda-label">{p.descripcion?.split(" - ")[0]}</span>
-              </motion.div>
+              </motion.button>
             ))}
           </motion.div>
+
+          <AnimatePresence>
+            {prendasCuerpo.filter(p => pendiente === `cuerpo:${p.id}`).map(p => (
+              <div
+                key={p.id}
+                className="mm-confirm-anchor"
+                style={{ top: `calc(${p.pos.top} + ${p.pos.height} / 2)` }}
+              >
+                <ConfirmCambio tipo={p.tipo} onConfirm={() => confirmar(p.tipo)} onCancel={() => setPendiente(null)} />
+              </div>
+            ))}
+          </AnimatePresence>
 
           {calAction && (
             <div className="mannequin-cal-overlay">{calAction}</div>
@@ -138,14 +207,22 @@ export default function VirtualMannequin({ outfit, onSwap, calAction }) {
           <div className="mannequin-accesorios-side">
             <p className="accesorios-side-title">Accesorios</p>
             {accesoriosSide.map(p => (
-              <div
-                key={p.id}
-                className={`accesorio-side-item ${onSwap ? "swappable" : ""}`}
-                onClick={() => onSwap && onSwap(p.tipo)}
-              >
-                <img src={p.imagen_url} alt={p.descripcion} loading="lazy" />
-                <span>{p.descripcion?.split(" - ")[0]}</span>
-                {onSwap && <span className="accesorio-swap-icon">↕</span>}
+              <div key={p.id} className="mm-item-wrap">
+                <button
+                  type="button"
+                  data-mm-trigger
+                  className={`accesorio-side-item ${onSwap ? "swappable" : ""}`}
+                  onClick={() => pedirCambio(`acc:${p.id}`, p.tipo)}
+                >
+                  <img src={p.imagen_url} alt={p.descripcion} loading="lazy" />
+                  <span>{p.descripcion?.split(" - ")[0]}</span>
+                  {onSwap && <span className="accesorio-swap-icon">↕</span>}
+                </button>
+                <AnimatePresence>
+                  {pendiente === `acc:${p.id}` && (
+                    <ConfirmCambio className="mm-confirm-inline" tipo={p.tipo} onConfirm={() => confirmar(p.tipo)} onCancel={() => setPendiente(null)} />
+                  )}
+                </AnimatePresence>
               </div>
             ))}
           </div>
@@ -161,18 +238,25 @@ export default function VirtualMannequin({ outfit, onSwap, calAction }) {
         animate="visible"
       >
         {prendas.map((p) => (
-          <motion.div
-            key={p.id}
-            className={`outfit-chip ${onSwap ? "swappable" : ""}`}
-            onClick={() => onSwap && onSwap(p.tipo)}
-            variants={chipVariants}
-          >
-            <img src={p.imagen_url} alt={p.descripcion} />
-            <div className="outfit-chip-info">
-              <span className="outfit-chip-nombre">{p.descripcion?.split(" - ")[0]}</span>
-              <span className="outfit-chip-tipo">{ETIQUETAS[p.tipo] || p.tipo}</span>
-            </div>
-            {onSwap && <span className="outfit-chip-swap">↕</span>}
+          <motion.div key={p.id} className="mm-item-wrap" variants={chipVariants}>
+            <button
+              type="button"
+              data-mm-trigger
+              className={`outfit-chip ${onSwap ? "swappable" : ""}`}
+              onClick={() => pedirCambio(`chip:${p.id}`, p.tipo)}
+            >
+              <img src={p.imagen_url} alt={p.descripcion} />
+              <span className="outfit-chip-info">
+                <span className="outfit-chip-nombre">{p.descripcion?.split(" - ")[0]}</span>
+                <span className="outfit-chip-tipo">{ETIQUETAS[p.tipo] || p.tipo}</span>
+              </span>
+              {onSwap && <span className="outfit-chip-swap">↕</span>}
+            </button>
+            <AnimatePresence>
+              {pendiente === `chip:${p.id}` && (
+                <ConfirmCambio className="mm-confirm-inline" tipo={p.tipo} onConfirm={() => confirmar(p.tipo)} onCancel={() => setPendiente(null)} />
+              )}
+            </AnimatePresence>
           </motion.div>
         ))}
       </motion.div>
