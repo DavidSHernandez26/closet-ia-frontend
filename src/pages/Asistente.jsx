@@ -558,7 +558,9 @@ export default function Asistente({ usuarioId }) {
       if (outfitGuardado) {
         imagen_url  = outfitGuardado.imagen_url;
         descripcion = outfitGuardado.descripcion;
-        metadata    = outfitGuardado.metadata_ia || {};
+        // outfit_guardado_id (no outfit_ids): el calendario muestra la foto del outfit guardado;
+        // con outfit_ids lo buscaría como prenda suelta y lo pondría en el maniquí.
+        metadata    = { ...(outfitGuardado.metadata_ia || {}), outfit_guardado_id: outfitGuardado.id };
       } else if (outfit.length > 0) {
         imagen_url  = outfit[0].imagen_url;
         descripcion = outfit.map((p) => p.descripcion?.split("(")[0]?.trim()).join(", ");
