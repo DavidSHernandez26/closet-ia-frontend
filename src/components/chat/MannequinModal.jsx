@@ -20,6 +20,7 @@ export default function MannequinModal({
   onPedirCambio,
   swap = {},
   calendario = {},
+  focoAlCerrar,
 }) {
   const paso = swap.tipo ? "cambiar" : calendario.abierto ? "calendario" : "maniqui";
 
@@ -27,18 +28,28 @@ export default function MannequinModal({
   const closeRef  = useRef(null);
   const backRef   = useRef(null);
   const prevFocus = useRef(null);
+  const downEnFondo = useRef(false);
 
   // Refs a lo último para el listener de teclado sin re-suscribirse en cada render
   const estado = useRef({});
-  estado.current = { paso, onClose, swap, calendario };
+  estado.current = { paso, onClose, swap, calendario, focoAlCerrar };
+
+  // ✕ y Escape: primero cierran el paso interno, luego el pop up
+  const volverOCerrar = () => {
+    if (paso === "cambiar") swap.onVolver?.();
+    else if (paso === "calendario") calendario.onVolver?.();
+    else onClose?.();
+  };
 
   // Foco: guardar el elemento previo al abrir y devolverlo al cerrar
   useEffect(() => {
     if (!abierto) return;
     prevFocus.current = document.activeElement;
     return () => {
-      const el = prevFocus.current;
-      if (el && el.isConnected && typeof el.focus === "function") el.focus();
+      let el = prevFocus.current;
+      // Si el elemento previo ya no existe (p. ej. el chip de sugerencia), volver al mensaje del outfit
+      if (!el || !el.isConnected || typeof el.focus !== "function") el = estado.current.focoAlCerrar?.();
+      el?.focus?.();
     };
   }, [abierto]);
 
@@ -99,7 +110,12 @@ export default function MannequinModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={TRANS.popup}
-          onClick={onClose}
+          // Solo cierra si el toque empezó y terminó en el fondo (no al soltar un arrastre desde el pop up)
+          onPointerDown={(e) => { downEnFondo.current = e.target === e.currentTarget; }}
+          onClick={(e) => {
+            if (downEnFondo.current && e.target === e.currentTarget) onClose?.();
+            downEnFondo.current = false;
+          }}
         >
           <motion.div
             ref={dialogRef}
@@ -130,8 +146,8 @@ export default function MannequinModal({
                 ref={closeRef}
                 type="button"
                 className="mm-modal-close"
-                onClick={onClose}
-                aria-label="Cerrar"
+                onClick={volverOCerrar}
+                aria-label={paso === "maniqui" ? "Cerrar" : "Volver"}
               >
                 <X size={16} />
               </button>

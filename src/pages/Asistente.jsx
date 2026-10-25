@@ -669,6 +669,8 @@ export default function Asistente({ usuarioId }) {
   }
 
   async function handleSwap(tipo) {
+    // Un outfit guardado es una foto fija: no se cambian prendas sueltas
+    if (outfitGuardado) return;
     setSwapTipo(tipo);
     // Si ya tenemos prendas cacheadas, las usamos sin mostrar loading
     if (prendasCacheRef.current) {
@@ -690,6 +692,7 @@ export default function Asistente({ usuarioId }) {
 
   // Actualiza la foto del mensaje abierto (o el último con outfit) sin crear mensaje nuevo.
   function conFotoActualizada(prev, newOutfit) {
+    if (outfitGuardado) return prev; // nunca pisar la foto de un outfit guardado
     const snap = snapshotOutfit({ outfit: newOutfit });
     if (!snap) return prev;
     const idx = indiceOutfitAbierto !== null && prev[indiceOutfitAbierto]?.outfit
@@ -722,6 +725,7 @@ export default function Asistente({ usuarioId }) {
   }
 
   function handleSeleccionarPrenda(prenda) {
+    if (outfitGuardado) { setSwapTipo(null); return; }
     const sinTipo = outfit.filter(p => getTipoPrenda(p.descripcion || "") !== swapTipo);
     const newOutfit = [...sinTipo, prenda];
     setOutfit(newOutfit);
@@ -796,6 +800,10 @@ export default function Asistente({ usuarioId }) {
   }
 
   const escribiendo = loading || chat.some((m) => m.streaming);
+  // Con un outfit guardado (foto fija) no hay chips para cambiar o quitar prendas sueltas
+  const sugerenciasVisibles = outfitGuardado
+    ? sugerencias.filter((s) => s.action !== "swap" && s.action !== "remove")
+    : sugerencias;
 
   return (
     <MotionConfig reducedMotion="user">
@@ -951,6 +959,7 @@ export default function Asistente({ usuarioId }) {
                       return (
                         <motion.div
                           key={index}
+                          data-msg-index={index}
                           className={`wa-row ${msg.role}`}
                           initial={{ opacity: 0, y: 10, scale: 0.96 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -985,7 +994,7 @@ export default function Asistente({ usuarioId }) {
 
                   {/* ── Quick replies (sugerencias) ── */}
                   <AnimatePresence>
-                    {!loading && sugerencias.length > 0 && (
+                    {!loading && sugerenciasVisibles.length > 0 && (
                       <motion.div
                         className="sugerencias-wrap"
                         initial={{ opacity: 0, y: 8 }}
@@ -993,7 +1002,7 @@ export default function Asistente({ usuarioId }) {
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.2 }}
                       >
-                        {sugerencias.map((sug, i) => {
+                        {sugerenciasVisibles.map((sug, i) => {
                           const label = String(sug.text || "");
                           const action = sug.action || "chat";
                           const actionIcon = action === "remove" ? "✕ " : action === "swap" ? "↕ " : "";
@@ -1008,7 +1017,9 @@ export default function Asistente({ usuarioId }) {
                               className={`sugerencia-chip sugerencia-chip--${action}`}
                               onClick={() => {
                                 setSugerencias([]);
-                                if (action === "remove" && sug.tipo) {
+                                if ((action === "remove" || action === "swap") && outfitGuardado) {
+                                  return;
+                                } else if (action === "remove" && sug.tipo) {
                                   const newOutfit = outfit.filter(p => getTipoPrenda(p.descripcion) !== sug.tipo);
                                   setOutfit(newOutfit);
                                   setOutfitIds(newOutfit.map(p => p.id));
@@ -1330,6 +1341,10 @@ export default function Asistente({ usuarioId }) {
           outfit={outfit}
           outfitGuardado={outfitGuardado}
           onPedirCambio={handleSwap}
+          focoAlCerrar={() =>
+            document.querySelector(`.wa-row[data-msg-index="${indiceOutfitAbierto}"] .wa-outfit`)
+            || [...document.querySelectorAll(".wa-row .wa-outfit")].pop()
+            || null}
           swap={{
             tipo: swapTipo,
             etiqueta: swapTipo ? (ETIQUETAS_SWAP[swapTipo] || swapTipo) : "",

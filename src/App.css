@@ -358,16 +358,6 @@ body.light-mode .btn-add-cal {
   border-color: rgba(15, 3, 38, 0.12) !important;
   color: #0F0326 !important;
 }
-body.light-mode .outfit-panel {
-  background: rgba(255, 255, 255, 0.3) !important;
-  border-color: rgba(15, 3, 38, 0.1) !important;
-}
-body.light-mode .outfit-panel h3 {
-  background: linear-gradient(90deg, #0F0326, #1a0a40) !important;
-  -webkit-background-clip: text !important;
-  -webkit-text-fill-color: transparent !important;
-}
-body.light-mode .outfit-placeholder { color: rgba(15, 3, 38, 0.4) !important; }
 body.light-mode .outfit-card { background: rgba(255, 255, 255, 0.3) !important; border-color: rgba(15, 3, 38, 0.08) !important; }
 body.light-mode .outfit-card span { color: rgba(15, 3, 38, 0.6) !important; }
 body.light-mode .loader .dot { background: #0F0326 !important; }
