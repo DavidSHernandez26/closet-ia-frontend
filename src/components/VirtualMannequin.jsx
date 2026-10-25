@@ -166,6 +166,8 @@ export default function VirtualMannequin({ outfit, onSwap, calAction, confirmarC
                 type="button"
                 key={p.id}
                 data-mm-trigger
+                tabIndex={onSwap ? undefined : -1}
+                aria-disabled={onSwap ? undefined : true}
                 className={`mannequin-prenda ${onSwap ? "swappable" : ""}`}
                 style={{ top: p.pos.top, height: p.pos.height, zIndex: getZIndex(p.tipo) }}
                 onClick={() => pedirCambio(`cuerpo:${p.id}`, p.tipo)}
@@ -211,6 +213,8 @@ export default function VirtualMannequin({ outfit, onSwap, calAction, confirmarC
                 <button
                   type="button"
                   data-mm-trigger
+                  tabIndex={onSwap ? undefined : -1}
+                  aria-disabled={onSwap ? undefined : true}
                   className={`accesorio-side-item ${onSwap ? "swappable" : ""}`}
                   onClick={() => pedirCambio(`acc:${p.id}`, p.tipo)}
                 >
@@ -242,6 +246,8 @@ export default function VirtualMannequin({ outfit, onSwap, calAction, confirmarC
             <button
               type="button"
               data-mm-trigger
+              tabIndex={onSwap ? undefined : -1}
+              aria-disabled={onSwap ? undefined : true}
               className={`outfit-chip ${onSwap ? "swappable" : ""}`}
               onClick={() => pedirCambio(`chip:${p.id}`, p.tipo)}
             >

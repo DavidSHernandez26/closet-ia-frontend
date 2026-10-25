@@ -20,7 +20,7 @@
 
 .asistente-layout {
   display: grid;
-  grid-template-columns: 1.6fr 1fr;
+  grid-template-columns: 1fr; /* escritorio: el chat ocupa todo el ancho (el maniquí va en pop up) */
   gap: 20px;
   width: 100%;
   max-width: 1440px;
@@ -549,112 +549,6 @@ body.light-mode .chat-item-desc { color: rgba(15, 3, 38, 0.65); }
   color: rgba(255, 107, 107, 0.8);
 }
 
-/* ── OUTFIT PANEL desktop ── */
-.outfit-panel {
-  background: rgba(12, 4, 28, 0.65);
-  backdrop-filter: blur(28px) saturate(180%);
-  -webkit-backdrop-filter: blur(28px) saturate(180%);
-  border: 1px solid rgba(196, 181, 232, 0.1);
-  border-radius: 24px;
-  color: var(--white);
-  box-shadow:
-    0 0 0 1px rgba(196,181,232,0.03),
-    0 24px 60px rgba(0,0,0,0.5),
-    inset 0 1px 0 rgba(196,181,232,0.06);
-  position: relative;
-  height: calc(100vh - 10px - 1.5rem);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.outfit-panel::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 10%; right: 10%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(196,181,232,0.4), transparent);
-  pointer-events: none;
-}
-
-/* ── HUD macOS (igual que asistente) ── */
-.outfit-panel-hud {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 13px 18px;
-  border-bottom: 1px solid rgba(196, 181, 232, 0.07);
-  background: rgba(196, 181, 232, 0.03);
-  flex-shrink: 0;
-  user-select: none;
-}
-
-.outfit-panel-hud-center {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
-
-.outfit-panel-hud h3 {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: rgba(244, 244, 249, 0.7);
-  margin: 0;
-  letter-spacing: -0.01em;
-}
-
-.outfit-panel-hud-right {
-  min-width: 36px;
-  display: flex;
-  justify-content: flex-end;
-  flex-shrink: 0;
-}
-
-.outfit-panel-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 9px;
-  background: linear-gradient(135deg, rgba(196,181,232,0.25), rgba(196,181,232,0.08));
-  border: 1px solid rgba(196,181,232,0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.9rem;
-  flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(196,181,232,0.1), inset 0 1px 0 rgba(196,181,232,0.15);
-}
-
-/* ── Cuerpo del panel (debajo del HUD) ── */
-.outfit-panel-body {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  padding: 18px 22px 22px;
-  scrollbar-width: none;
-}
-
-.outfit-panel-body::-webkit-scrollbar { display: none; }
-
-.outfit-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  padding: 32px 16px;
-  text-align: center;
-  color: rgba(244, 244, 249, 0.25);
-  font-size: 0.85rem;
-  border: 1px dashed rgba(196, 181, 232, 0.1);
-  border-radius: 16px;
-  background: rgba(196, 181, 232, 0.02);
-  flex-shrink: 0;
-}
-
-.outfit-placeholder-icon { font-size: 2rem; opacity: 0.4; }
-
-
 /* ── OUTFIT GUARDADO ── */
 .outfit-guardado-preview {
   display: flex;
@@ -1000,28 +894,6 @@ body.light-mode .btn-clear-chat {
   border-color: rgba(15, 3, 38, 0.07) !important;
 }
 
-body.light-mode .outfit-panel {
-  background: rgba(255, 255, 255, 0.82) !important;
-  border-color: rgba(15, 3, 38, 0.1) !important;
-}
-
-body.light-mode .outfit-panel-hud {
-  background: rgba(255, 255, 255, 0.5) !important;
-  border-bottom-color: rgba(15, 3, 38, 0.08) !important;
-}
-
-body.light-mode .outfit-panel-hud h3  { color: rgba(15, 3, 38, 0.85) !important; }
-
-body.light-mode .outfit-panel-icon {
-  background: rgba(15, 3, 38, 0.08) !important;
-  border-color: rgba(15, 3, 38, 0.12) !important;
-}
-
-body.light-mode .outfit-placeholder {
-  color: rgba(15, 3, 38, 0.35) !important;
-  border-color: rgba(15, 3, 38, 0.08) !important;
-}
-
 body.light-mode .btn-add-cal-icon {
   background: rgba(15, 3, 38, 0.05) !important;
   border-color: rgba(15, 3, 38, 0.1) !important;
@@ -1173,8 +1045,6 @@ body.light-mode .ocasion-chip.activa {
   .asistente-form textarea { font-size: 16px !important; }
 
   body.light-mode .asistente-form { background: rgba(255, 255, 255, 0.98) !important; }
-
-  .outfit-panel { display: none !important; }
 
   .chat-bubble               { font-size: 0.88rem !important; }
   .chat-placeholder-hints    { max-width: 100%; }
@@ -1343,14 +1213,6 @@ body.light-mode .ocasion-chip.activa {
   body.light-mode .outfit-sheet-arrow   { color: rgba(15, 3, 38, 0.4) !important; }
   body.light-mode .outfit-sheet-card    { background: rgba(15,3,38,0.04) !important; border-color: rgba(15,3,38,0.08) !important; }
   body.light-mode .outfit-sheet-card p  { color: rgba(15,3,38,0.55) !important; }
-}
-
-/* ════════════════════════════════════════
-   LAYOUT PROBADOR — columna única en desktop
-════════════════════════════════════════ */
-.asistente-layout.layout-maniqui {
-  grid-template-columns: 1fr;
-  max-width: 900px;
 }
 
 /* ════════════════════════════════════════

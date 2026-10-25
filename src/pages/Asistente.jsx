@@ -16,6 +16,8 @@ import ChatBubble from "../components/chat/ChatBubble";
 import TypingIndicator from "../components/chat/TypingIndicator";
 import DaySeparator from "../components/chat/DaySeparator";
 import OutfitMessage from "../components/chat/OutfitMessage";
+import MannequinModal from "../components/chat/MannequinModal";
+import { useEsEscritorio } from "../hooks/useEsEscritorio";
 import "../components/chat/ChatWhatsapp.css";
 
 const TIPOS_VALIDOS = ["parte superior","parte inferior","calzado","abrigo","gorra","accesorio"];
@@ -43,6 +45,12 @@ function getCategoriaPrenda(prenda) {
 function getTipoPrenda(descripcion = "") {
   return getTipoTexto(descripcion);
 }
+
+const ETIQUETAS_SWAP = {
+  "gorra": "gorras", "abrigo": "chaquetas / abrigos",
+  "parte superior": "camisetas", "parte inferior": "pantalones",
+  "calzado": "calzado", "accesorio": "accesorios",
+};
 
 function buildClimaPayload(clima) {
   return clima ? {
@@ -75,6 +83,7 @@ export default function Asistente({ usuarioId }) {
   });
   const [indiceOutfitAbierto, setIndiceOutfitAbierto] = useState(null);
   const [modalAbierto, setModalAbierto] = useState(false);
+  const esEscritorio = useEsEscritorio();
 
   const [outfit, setOutfit] = useState(() => {
     try { return JSON.parse(localStorage.getItem(STORAGE_OUTFIT)) || []; }
@@ -312,9 +321,26 @@ export default function Asistente({ usuarioId }) {
     } catch { /* notificaciones no críticas */ }
   }
 
-  // Prefetch prendas al entrar al modo probador para que el swap sea instantáneo
+  // Cruce de 900 px: se cierra el pop up o se colapsa la hoja; el outfit se conserva.
+  // En escritorio no hay modo Probador.
+  const escritorioPrevio = useRef(esEscritorio);
   useEffect(() => {
-    if (modo !== "maniqui" || !usuarioId) return;
+    if (escritorioPrevio.current === esEscritorio) return;
+    escritorioPrevio.current = esEscritorio;
+    setSwapTipo(null);
+    setShowCalPicker(false);
+    if (esEscritorio) {
+      setShowOutfitSheet(false);
+      setModo("chat");
+    } else {
+      setModalAbierto(false);
+    }
+  }, [esEscritorio]);
+
+  // Prefetch prendas al entrar al modo probador (o al abrir el pop up) para que el swap sea instantáneo
+  const prefetchActivo = modo === "maniqui" || (esEscritorio && modalAbierto);
+  useEffect(() => {
+    if (!prefetchActivo || !usuarioId) return;
     prendasCacheRef.current = null; // invalidar en cada entrada para evitar datos viejos
     let cancelled = false;
     async function prefetchPrendas() {
@@ -326,7 +352,7 @@ export default function Asistente({ usuarioId }) {
     }
     prefetchPrendas();
     return () => { cancelled = true; };
-  }, [modo, usuarioId]);
+  }, [prefetchActivo, usuarioId]);
 
   useEffect(() => {
     try { localStorage.setItem(STORAGE_CHAT, JSON.stringify(recortarHistorial(chat, 100).map((m) => (m.streaming ? { ...m, streaming: false } : m)))); } catch {}
@@ -680,8 +706,19 @@ export default function Asistente({ usuarioId }) {
     setOutfitIds(r.outfitIds);
     setOutfitGuardado(r.outfitGuardado);
     setIndiceOutfitAbierto(index);
-    if (window.matchMedia("(max-width: 900px)").matches) setShowOutfitSheet(true);
-    else setModalAbierto(true);
+    if (esEscritorio) setModalAbierto(true);
+    else setShowOutfitSheet(true);
+  }
+
+  function cerrarModal() {
+    setModalAbierto(false);
+    setSwapTipo(null);
+    setShowCalPicker(false);
+  }
+
+  function abrirCalendario() {
+    setFechaSeleccionada(new Date().toISOString().split("T")[0]);
+    setShowCalPicker(true);
   }
 
   function handleSeleccionarPrenda(prenda) {
@@ -763,7 +800,7 @@ export default function Asistente({ usuarioId }) {
   return (
     <MotionConfig reducedMotion="user">
       <div ref={fondoRef} className={`asistente-fondo ${tieneOutfit && modo === "chat" ? "sheet-visible" : ""}`}>
-        <div className={`asistente-layout ${modo === "maniqui" ? "layout-maniqui" : ""}`}>
+        <div className="asistente-layout">
 
           {/* ── CARD PRINCIPAL ── */}
           <div className="asistente-card">
@@ -858,8 +895,8 @@ export default function Asistente({ usuarioId }) {
               </div>
             )}
 
-            {/* ── Modo toggle ── */}
-            <div className="modo-toggle-wrap">
+            {/* ── Modo toggle (solo celular; en escritorio no hay Probador) ── */}
+            {!esEscritorio && <div className="modo-toggle-wrap">
               <div className="modo-toggle">
                 <button
                   className={`modo-btn ${modo === "chat" ? "activo" : ""}`}
@@ -874,7 +911,7 @@ export default function Asistente({ usuarioId }) {
                   <Shirt size={14} /> Probador
                 </button>
               </div>
-            </div>
+            </div>}
 
             {modo === "chat" ? (
               <>
@@ -983,6 +1020,8 @@ export default function Asistente({ usuarioId }) {
                                 } else if (action === "swap" && sug.tipo) {
                                   setChat(prev => [...prev, crearMensaje("user", label)]);
                                   handleSwap(sug.tipo);
+                                  // En escritorio abre el pop up directo en "cambiar" (sin confirmación)
+                                  if (esEscritorio) setModalAbierto(true);
                                 } else {
                                   handleRecommend(label);
                                 }
@@ -1127,63 +1166,6 @@ export default function Asistente({ usuarioId }) {
             )}
           </div>
 
-          {/* ── PANEL OUTFIT desktop — solo en modo chat ── */}
-          {modo === "chat" && <div className="outfit-panel">
-
-            {/* HUD macOS */}
-            <div className="outfit-panel-hud">
-              <div className="asistente-mac-dots">
-                <span className="asistente-mac-dot red"    />
-                <span className="asistente-mac-dot yellow" />
-                <span className="asistente-mac-dot green"  />
-              </div>
-              <div className="outfit-panel-hud-center">
-                <Shirt size={20} className="outfit-panel-icon" />
-                <h3>Outfit sugerido</h3>
-              </div>
-              <div className="outfit-panel-hud-right">
-                {tieneOutfit && !loading && (
-                  calConfirmado ? (
-                    <span className="cal-confirmado-badge" title="Guardado en el calendario">✅</span>
-                  ) : (
-                    <button className="btn-add-cal-icon" title="Agregar al calendario" onClick={() => {
-                      setFechaSeleccionada(new Date().toISOString().split("T")[0]);
-                      setShowCalPicker(true);
-                    }}>📅</button>
-                  )
-                )}
-              </div>
-            </div>
-
-            {/* Contenido */}
-            <div className="outfit-panel-body">
-              {outfitGuardado ? (
-                <div className="outfit-guardado-preview">
-                  <img src={outfitGuardado.imagen_url} alt={outfitGuardado.descripcion} loading="lazy" />
-                  <p>{outfitGuardado.descripcion}</p>
-                  {outfitGuardado.metadata_ia?.prendas?.length > 0 && (
-                    <div className="outfit-guardado-prendas">
-                      {outfitGuardado.metadata_ia.prendas.map((pr, i) => (
-                        <span key={i} className="outfit-guardado-chip">
-                          {pr.nombre} ({pr.color})
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : outfit.length === 0 ? (
-                <div className="outfit-placeholder">
-                  <span className="outfit-placeholder-icon">✦</span>
-                  <p>Las prendas recomendadas aparecerán aquí</p>
-                </div>
-              ) : (
-                <VirtualMannequin
-                  outfit={outfit}
-                  onSwap={modo === "maniqui" ? handleSwap : undefined}
-                />
-              )}
-            </div>
-          </div>}
         </div>
 
       </div>
@@ -1290,7 +1272,7 @@ export default function Asistente({ usuarioId }) {
       </div>
 
       {/* ── Modal calendario (fuera del fondo para z-index correcto) ── */}
-      {showCalPicker && (
+      {showCalPicker && !(esEscritorio && modalAbierto) && (
         <div className="cal-picker-overlay" onClick={() => setShowCalPicker(false)}>
           <div className="cal-picker-modal" onClick={(e) => e.stopPropagation()}>
             <button className="cal-picker-close" onClick={() => setShowCalPicker(false)}>✕</button>
@@ -1310,13 +1292,9 @@ export default function Asistente({ usuarioId }) {
       )}
 
       {/* ── Modal swap (fuera del fondo para z-index correcto) ── */}
-      {swapTipo && (() => {
+      {swapTipo && !(esEscritorio && modalAbierto) && (() => {
         const filtradas = swapPrendas.filter(p => getCategoriaPrenda(p) === swapTipo);
-        const etiquetas = {
-          "gorra": "gorras", "abrigo": "chaquetas / abrigos",
-          "parte superior": "camisetas", "parte inferior": "pantalones",
-          "calzado": "calzado", "accesorio": "accesorios",
-        };
+        const etiquetas = ETIQUETAS_SWAP;
         return (
           <div className="cal-picker-overlay" onClick={() => setSwapTipo(null)}>
             <div className="swap-modal" onClick={(e) => e.stopPropagation()}>
@@ -1343,6 +1321,34 @@ export default function Asistente({ usuarioId }) {
           </div>
         );
       })()}
+
+      {/* ── Pop up del maniquí (solo escritorio) ── */}
+      {esEscritorio && (
+        <MannequinModal
+          abierto={modalAbierto}
+          onClose={cerrarModal}
+          outfit={outfit}
+          outfitGuardado={outfitGuardado}
+          onPedirCambio={handleSwap}
+          swap={{
+            tipo: swapTipo,
+            etiqueta: swapTipo ? (ETIQUETAS_SWAP[swapTipo] || swapTipo) : "",
+            prendas: swapTipo ? swapPrendas.filter(p => getCategoriaPrenda(p) === swapTipo) : [],
+            loading: swapLoading,
+            onElegir: handleSeleccionarPrenda,
+            onVolver: () => setSwapTipo(null),
+          }}
+          calendario={{
+            abierto: showCalPicker,
+            onAbrir: abrirCalendario,
+            onVolver: () => setShowCalPicker(false),
+            fecha: fechaSeleccionada,
+            onFecha: setFechaSeleccionada,
+            onGuardar: handleGuardarCalendario,
+            confirmado: calConfirmado,
+          }}
+        />
+      )}
 
       {/* ── FAB Historial ── */}
       {historial.length > 0 && (
