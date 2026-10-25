@@ -43,6 +43,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "test": "node --test test/*.test.mjs",
     "dev:all": "concurrently \"npm run dev\" \"cd ../backend && node server.js\""
   },
   "browserslist": {
