@@ -1104,3 +1104,46 @@ body.light-mode .mac-skeleton-card {
   padding: 4px 8px 0;
   animation: fadeIn 0.3s ease;
 }
+
+.closet-analizar-aviso {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: rgba(196, 181, 232, 0.85);
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  border-radius: 8px;
+  padding: 6px 10px;
+  margin: 0 0 8px;
+}
+.closet-analizar-aviso button {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #C4B5E8;
+  font-size: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.closet-analizar-aviso button:disabled { opacity: 0.5; cursor: wait; }
+body.light-mode .closet-analizar-aviso {
+  color: rgba(15, 3, 38, 0.7);
+  background: rgba(139, 92, 246, 0.08);
+}
+body.light-mode .closet-analizar-aviso button { color: #6d3fd1; }
+
+@media (max-width: 768px) {
+  .mac-toolbar { flex-wrap: wrap; }
+  .closet-analizar-btn {
+    order: 3;
+    flex: 0 0 100%;
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+    font-size: 0.85rem;
+  }
+  .closet-analizar-aviso button { min-height: 32px; }
+}

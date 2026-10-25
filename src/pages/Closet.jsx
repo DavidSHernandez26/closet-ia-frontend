@@ -75,6 +75,8 @@ export default function Closet({ refresh, usuarioId }) {
   const [loadingRecs, setLoadingRecs]         = useState(false);
   const [reanalizando, setReanalizando]       = useState(false);
   const [mensajeReanalisis, setMensajeReanalisis] = useState("");
+  const [pendientes, setPendientes] = useState(0);
+  const [errorAnalisis, setErrorAnalisis] = useState(false);
   useEffect(() => { if (!usuarioId) return; fetchPrendas(); }, [usuarioId, tabActiva, refresh]);
 
   /* Al cambiar tab, resetear categoría y filtros */
@@ -84,7 +86,7 @@ export default function Closet({ refresh, usuarioId }) {
   useEffect(() => { setRecomendaciones([]); }, [prendas]);
 
   useEffect(() => {
-    const onUpdate = () => fetchPrendas();
+    const onUpdate = () => { fetchPrendas(); fetchPendientes(); };
     window.addEventListener('prendas-updated', onUpdate);
     window.addEventListener('auth-token-refreshed', onUpdate);
     return () => {
@@ -92,6 +94,17 @@ export default function Closet({ refresh, usuarioId }) {
       window.removeEventListener('auth-token-refreshed', onUpdate);
     };
   }, [tabActiva]);
+
+  useEffect(() => { if (!usuarioId) return; fetchPendientes(); }, [usuarioId]);
+
+  async function fetchPendientes() {
+    try {
+      const res = await axios.get(`${API_URL}/api/prendas/pendientes-color`, { headers: getAuthHeaders() });
+      setPendientes(Number(res.data?.pendientes) || 0);
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
   async function fetchPrendas() {
     try {
@@ -131,18 +144,40 @@ export default function Closet({ refresh, usuarioId }) {
     if (reanalizando) return;
     setReanalizando(true);
     setMensajeReanalisis("");
+    setErrorAnalisis(false);
+    let totalAnalizadas = 0;
+    let quedan = 0;
     try {
-      const headers = getAuthHeaders();
-      const res = await axios.post(
-        `${API_URL}/api/prendas/reanalizar`,
-        {},
-        { headers }
-      );
-      setMensajeReanalisis(res.data.mensaje);
-      if (res.data.actualizadas > 0) await fetchPrendas();
+      // El backend procesa hasta 40 por llamada: repetir mientras avance
+      while (true) {
+        const res = await axios.post(
+          `${API_URL}/api/prendas/reanalizar`,
+          {},
+          { headers: getAuthHeaders() }
+        );
+        const actualizadas = res.data?.actualizadas || 0;
+        quedan = res.data?.pendientes || 0;
+        totalAnalizadas += actualizadas;
+        setPendientes(quedan);
+        if (quedan > 0 && actualizadas > 0) {
+          setMensajeReanalisis(`Analizando… ${totalAnalizadas} listas, quedan ${quedan}`);
+        } else {
+          break;
+        }
+      }
+      if (quedan > 0 && totalAnalizadas === 0) {
+        setMensajeReanalisis("Algunas prendas no se pudieron analizar");
+      } else if (quedan > 0) {
+        setMensajeReanalisis(`${totalAnalizadas} analizadas. Algunas prendas no se pudieron analizar`);
+      } else {
+        setMensajeReanalisis(`${totalAnalizadas} analizadas`);
+      }
+      if (totalAnalizadas > 0) await fetchPrendas();
     } catch (err) {
-      setMensajeReanalisis("Error al analizar. Intenta de nuevo.");
+      setErrorAnalisis(true);
+      setMensajeReanalisis("");
       console.error(err);
+      if (totalAnalizadas > 0) await fetchPrendas();
     } finally {
       setReanalizando(false);
       setTimeout(() => setMensajeReanalisis(""), 5000);
@@ -428,18 +463,31 @@ export default function Closet({ refresh, usuarioId }) {
                 <option value="za">Z → A</option>
                 <option value="color">Por color</option>
               </select>
-              {tabActiva === "prenda" && (
-                <button
-                  className="mac-reanalizar-btn"
-                  onClick={handleReanalizar}
-                  disabled={reanalizando}
-                  title="Enriquecer metadata de prendas con IA"
-                >
-                  <Sparkles size={13} />
-                  {reanalizando ? "Analizando…" : "Mejorar IA"}
-                </button>
-              )}
+              <button
+                className="mac-reanalizar-btn closet-analizar-btn"
+                onClick={handleReanalizar}
+                disabled={reanalizando}
+                title="Analizar los colores de tus prendas con IA"
+              >
+                <Sparkles size={13} />
+                {reanalizando ? "Analizando…" : "Analizar colores"}
+              </button>
             </div>
+            {(pendientes > 0 || errorAnalisis) && (
+              <div className="closet-analizar-aviso" role="status">
+                {errorAnalisis ? (
+                  <>
+                    <span>No se pudo analizar.</span>
+                    <button type="button" onClick={handleReanalizar} disabled={reanalizando}>Reintentar</button>
+                  </>
+                ) : (
+                  <>
+                    <span>{pendientes} {pendientes === 1 ? "prenda sin analizar" : "prendas sin analizar"} ·</span>
+                    <button type="button" onClick={handleReanalizar} disabled={reanalizando}>Analizar ahora</button>
+                  </>
+                )}
+              </div>
+            )}
             {mensajeReanalisis && (
               <div className="mac-reanalisis-msg">{mensajeReanalisis}</div>
             )}
